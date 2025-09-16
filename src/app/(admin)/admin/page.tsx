@@ -1,9 +1,24 @@
+"use client";
+
+import { RecentAnnouncementsTable } from "@/components/announcements/recent-announcements-table";
+import type { Announcement } from "@/components/announcements/recent-announcements-table";
+import { PageHeader } from "@/components/page-header";
+import { ROUTES } from "@/constants/routes";
+
+const data: Announcement[] = Array.from({ length: 10 }).map((_, i) => ({
+  id: `${i}`,
+  name: "Announcement 1",
+  access: i % 3 === 0 ? "Admin Only" : "All Employees",
+  date: "2024-07-26",
+  type: "Policy",
+  status: i % 4 === 0 ? "Draft" : "Published",
+}));
+
 export default function AdminHomePage() {
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold tracking-tight">Admin Dashboard</h1>
-      <p className="text-muted-foreground">Overview and quick stats will appear here.</p>
-    </div>
+    <>
+      <PageHeader title="Dashboard" crumbs={[{ label: "Pages", href: "#" }, { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }]} />
+    </>
   );
 }
 

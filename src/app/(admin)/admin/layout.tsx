@@ -19,9 +19,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <SidebarProvider>
       <AdminSidebar />
-      <SidebarInset className="flex min-h-svh flex-col">
-        <div className="">
-          <div className="flex h-16 items-center gap-3 px-4">
+      <SidebarInset className="flex flex-col">
+          <div className="sticky top-0 z-10 bg-background flex h-16 items-center gap-3 px-4">
             <SidebarTrigger className="md:-ml-8 z-[10]" />
             <div className="hidden flex-1 items-center md:flex">
               <TopbarSearch />
@@ -37,8 +36,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <ProfileDropdown />
             </div>
           </div>
-        </div>
-        <ScrollArea className="flex-1">
+
+        <ScrollArea className="h-[calc(100vh-5rem)]">
           <div className="p-4 md:p-6 lg:p-8">
             {children}
           </div>
