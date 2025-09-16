@@ -2,14 +2,16 @@ export const ROUTES = {
   // Auth
   AUTH_LOGIN: "/login",
     ADMIN:{
-        DASHBOARD: "/admin",
+        DASHBOARD: "/dashboard",
 
         // Admin sections
-        COMPANY_HUB: "/admin/company-hub",
-        KNOWLEDGE_BASE: "/admin/knowledge-base",
-        NEW_HIRE_PLAN: "/admin/new-hire-plan",
-        DEPARTMENTS: "/admin/departments",
-        ORG_CHART: "/admin/org-chart",
+        COMPANY_HUB: "/dashboard/company-hub",
+        COMPANY_HUB_NEW: "/dashboard/company-hub/new",
+        KNOWLEDGE_BASE: "/dashboard/knowledge-base",
+        NEW_HIRE_PLAN: "/dashboard/new-hire-plan",
+        DEPARTMENTS: "/dashboard/departments",
+        ORG_CHART: "/dashboard/org-chart",
+        ORG_CHART_NEW: "/dashboard/org-chart/new",
     }
   
 } as const;

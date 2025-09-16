@@ -37,11 +37,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
           </div>
 
-        <ScrollArea className="h-[calc(100vh-5rem)]">
-          <div className="p-4 md:p-6 lg:p-8">
+          <div>
             {children}
           </div>
-        </ScrollArea>
       </SidebarInset>
     </SidebarProvider>
   );

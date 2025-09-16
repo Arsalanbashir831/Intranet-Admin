@@ -16,7 +16,7 @@ export function DataTableToolbar({tableName, searchPlaceholder = "Search", onSea
   return (
     <div className="flex flex-col md:flex-row items-center gap-2 py-3 justify-between">
       {tableName && (
-      <h1 className="text-2xl font-semibold tracking-tight">{tableName}</h1>
+      <p className="text-xl font-medium tracking-tight">{tableName}</p>
       )}
 
       <div className="flex items-center gap-4">

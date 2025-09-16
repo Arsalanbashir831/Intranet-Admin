@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { EllipsisVertical, Pin, Trash } from "lucide-react";
+import { Card } from "../ui/card";
 
 export type Announcement = {
     id: string;
@@ -114,6 +115,7 @@ export function RecentAnnouncementsTable({ initialData }: { initialData: Announc
     ];
 
     return (
+        <Card className="border-[#FFF6F6] p-4 shadow-none">
             <DataTable
                 columns={columns}
                 data={ordered}
@@ -128,6 +130,7 @@ export function RecentAnnouncementsTable({ initialData }: { initialData: Announc
                 footer={(table) => <DataTablePagination table={table} />}
                 className=""
             />
+            </Card>
     );
 }
 

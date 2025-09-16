@@ -31,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Company Hub", href: ROUTES.ADMIN.COMPANY_HUB, iconSrc: "/icons/building.svg" },
   { label: "Knowledge Base", href: ROUTES.ADMIN.KNOWLEDGE_BASE, iconSrc: "/icons/note-blank.svg" },
   { label: "New Hire Plan", href: ROUTES.ADMIN.NEW_HIRE_PLAN, iconSrc: "/icons/clipboard-text.svg" },
+  { label: "Departments", href: ROUTES.ADMIN.DEPARTMENTS, iconSrc: "/icons/users.svg" },
   { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART, iconSrc: "/icons/user-hierarchy.svg" },
 ];
 
