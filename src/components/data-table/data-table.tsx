@@ -47,7 +47,7 @@ export function DataTable<TData, TValue>({ columns, data, toolbar, footer, class
 
   return (
     <div className={className}>
-      {toolbar?.(table as any)}
+      {toolbar?.(table)}
       <ScrollArea className="flex-1">
       <Table className=" w-full">
         <TableHeader className="bg-[#F9F9F9] rounded-md">
@@ -89,7 +89,7 @@ export function DataTable<TData, TValue>({ columns, data, toolbar, footer, class
       </Table>
       <ScrollBar orientation="vertical" />
       </ScrollArea>
-      {footer?.(table as any)}
+      {footer?.(table)}
     </div>
   );
 }

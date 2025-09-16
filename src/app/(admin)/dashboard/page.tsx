@@ -1,6 +1,5 @@
 "use client";
 
-import { RecentAnnouncementsTable } from "@/components/announcements/recent-announcements-table";
 import type { Announcement } from "@/components/announcements/recent-announcements-table";
 import { PageHeader } from "@/components/page-header";
 import { ROUTES } from "@/constants/routes";

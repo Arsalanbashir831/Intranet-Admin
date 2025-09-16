@@ -5,7 +5,6 @@ import type { Announcement } from "@/components/announcements/recent-announcemen
 import { PageHeader } from "@/components/page-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES } from "@/constants/routes";
-import Link from "next/link";
 
 const data: Announcement[] = Array.from({ length: 10 }).map((_, i) => ({
   id: `${i}`,

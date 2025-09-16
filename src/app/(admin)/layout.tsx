@@ -2,14 +2,11 @@
 
 import type { ReactNode } from "react";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AdminSidebar } from "@/components/admin/layout/admin-sidebar";
 import { ProfileDropdown } from "@/components/admin/layout/profile-dropdown";
-import { CircleQuestionMark, Search } from "lucide-react";
+import { CircleQuestionMark } from "lucide-react";
 import { TopbarSearch } from "@/components/admin/layout/topbar-search";
 import Link from "next/link";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 type AdminLayoutProps = {
   children: ReactNode;
