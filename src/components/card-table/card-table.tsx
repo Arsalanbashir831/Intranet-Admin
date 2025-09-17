@@ -24,6 +24,7 @@ type CardTableProps<TData, TValue> = {
   sorting?: SortingState;
   onSortingChange?: (state: SortingState) => void;
   headerClassName?: string;
+  onRowClick?: (row: any) => void;
 };
 
 export function CardTable<TData, TValue>({
@@ -36,6 +37,7 @@ export function CardTable<TData, TValue>({
   sorting: controlledSorting,
   onSortingChange,
   headerClassName,
+  onRowClick,
 }: CardTableProps<TData, TValue>) {
   const [internalSorting, setInternalSorting] = React.useState<SortingState>([]);
   const sorting = controlledSorting ?? internalSorting;
@@ -90,6 +92,9 @@ export function CardTable<TData, TValue>({
                   "group grid grid-cols-4 items-center gap-3 rounded-lg border border-[#E4E4E4] bg-white px-4 py-3",
                   rowClassName?.(row.original)
                 )}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                role={onRowClick ? "button" : undefined}
+                tabIndex={onRowClick ? 0 : undefined}
               >
                 {row.getVisibleCells().map((cell) => (
                   <div key={cell.id} className="min-w-0 truncate">

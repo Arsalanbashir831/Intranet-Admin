@@ -10,6 +10,7 @@ export const ROUTES = {
         KNOWLEDGE_BASE: "/dashboard/knowledge-base",
         NEW_HIRE_PLAN: "/dashboard/new-hire-plan",
         DEPARTMENTS: "/dashboard/departments",
+        DEPARTMENTS_ID: (id: string) => `/dashboard/departments/${id}`,
         ORG_CHART: "/dashboard/org-chart",
         ORG_CHART_NEW: "/dashboard/org-chart/new",
         ORG_CHART_PROFILE_ID: (id: string) => `/dashboard/org-chart/${id}`,

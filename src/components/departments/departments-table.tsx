@@ -13,6 +13,8 @@ import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "../card-table/pin-row-button";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 
 export type DepartmentRow = {
   id: string;
@@ -37,6 +39,7 @@ export function DepartmentsTable() {
   const [sortedBy, setSortedBy] = React.useState<string>("department");
   const [data, setData] = React.useState<DepartmentRow[]>(departments);
   const { pinnedIds, togglePin, ordered } = usePinnedRows<DepartmentRow>(data);
+  const router = useRouter();
 
   React.useEffect(() => {
     const copy = [...departments];
@@ -121,7 +124,8 @@ export function DepartmentsTable() {
         columns={columns}
         data={ordered}
         headerClassName="grid-cols-[0.9fr_1.4fr_1.2fr_0.8fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[0.9fr_1.4fr_1.2fr_0.8fr_0.8fr]"}
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[0.9fr_1.4fr_1.2fr_0.8fr_0.8fr] cursor-pointer"}
+        onRowClick={(row) => router.push(ROUTES.ADMIN.DEPARTMENTS_ID(row.original.id))}
         footer={(table) => <CardTablePagination table={table} />}
       />
     </Card>

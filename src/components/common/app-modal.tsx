@@ -12,13 +12,16 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Separator } from "../ui/separator";
+import Image from "next/image";
 
 export type AppModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: React.ReactNode;
   description?: React.ReactNode;
-  icon?: React.ReactNode;
+  // Accept either a React node (e.g., Lucide icon) or a string path to a public icon
+  icon?: React.ReactNode | string;
   children?: React.ReactNode;
   className?: string;
   showFooter?: boolean;
@@ -50,12 +53,17 @@ export function AppModal({
 }: AppModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("sm:max-w-[580px]", className)}>
-        <DialogHeader>
+      <DialogContent className={cn("sm:max-w-[680px] p-0", className)}>
+        <DialogHeader className="p-6 pb-0">
           <div className="flex items-start gap-3">
             {icon ? (
-              <div className="grid size-8 place-items-center rounded bg-[#E6F4F1] text-[#0F766E]">
-                {icon}
+              <div className="grid size-9 place-items-center rounded bg-[#008285] text-white overflow-hidden">
+                {typeof icon === "string" ? (
+                  // If a string path is provided, render as an image from public/
+                  <Image src={icon} alt="icon" className="size-5" width={20} height={20} />
+                ) : (
+                  icon
+                )}
               </div>
             ) : null}
             <div className="min-w-0">
@@ -67,14 +75,18 @@ export function AppModal({
           </div>
         </DialogHeader>
 
+        <Separator className="w-full bg-[#E9EAEB]" />
+
         <div className="py-2">{children}</div>
+
+        <Separator className="mb-2 w-full bg-[#E9EAEB]" />
 
         {footerSlot ? (
           <div className="mt-4">{footerSlot}</div>
         ) : showFooter ? (
-          <DialogFooter className="gap-2 sm:justify-between">
+          <DialogFooter className="gap-2 sm:justify-between p-6 pt-0">
             <DialogClose asChild>
-              <Button variant="outline" onClick={onCancel}>
+              <Button variant="outline" onClick={onCancel} className="basis-1/2">
                 {cancelText}
               </Button>
             </DialogClose>
@@ -82,6 +94,7 @@ export function AppModal({
               onClick={onConfirm}
               disabled={confirmDisabled}
               variant={confirmVariant}
+              className="basis-1/2"
             >
               {confirmText}
             </Button>
