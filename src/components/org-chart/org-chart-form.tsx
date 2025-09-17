@@ -1,11 +1,25 @@
 "use client";
 
+import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload } from "lucide-react";
+import { Dropzone } from "@/components/ui/dropzone";
+import { SelectableTags, createSelectableItems, type SelectableItem } from "@/components/ui/selectable-tags";
 
 export function OrgChartForm() {
+  // Sample departments data - in real app, this would come from props or API
+  const departments = [
+    { id: "1", name: "Human Resources" },
+    { id: "2", name: "Engineering" },
+    { id: "3", name: "Marketing" },
+    { id: "4", name: "Sales" },
+    { id: "5", name: "Finance" },
+    { id: "6", name: "Operations" },
+  ];
+
+  const [selectedDepartment, setSelectedDepartment] = React.useState<string[]>([]);
+
   return (
       <div className="grid gap-6">
         <div className="grid grid-cols-12 items-center gap-4 border-t border-[#E9EAEB] pt-4">
@@ -53,7 +67,13 @@ export function OrgChartForm() {
         <div className="grid grid-cols-12 items-center gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Department:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="HR" />
+            <SelectableTags
+              items={createSelectableItems(departments)}
+              selectedItems={selectedDepartment}
+              onSelectionChange={setSelectedDepartment}
+              searchPlaceholder="Search departments..."
+              emptyMessage="No departments found."
+            />
           </div>
         </div>
 
@@ -64,20 +84,19 @@ export function OrgChartForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 items-start gap-4 border-t border-[#E9EAEB] pt-4">
-          <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Profile Picture:</Label>
-          <div className="col-span-12 md:col-span-10">
-            <div className="flex items-center gap-4">
-              <button className="grid size-14 place-items-center rounded-full border-2 border-[#D64575] text-[#D64575]" type="button">
-                <Upload />
-              </button>
-              <div className="flex-1 rounded-md border p-6 text-sm text-muted-foreground">
-                <span className="text-[#D64575]">Click to upload</span> or drag and drop
-                <div className="text-xs">SVG, PNG, JPG or GIF (max. 800x400px)</div>
-              </div>
-            </div>
-          </div>
-        </div>
+         <div className="grid grid-cols-12 items-start gap-4 border-t border-[#E9EAEB] pt-4">
+           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Profile Picture:</Label>
+           <div className="col-span-12 md:col-span-10">
+             <Dropzone 
+               onFileSelect={(files) => {
+                 console.log("Files selected:", files);
+                 // Handle file upload logic here
+               }}
+               accept="image/*"
+               maxSize={800 * 400}
+             />
+           </div>
+         </div>
 
         <div className="grid grid-cols-12 items-start gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Qualification and Education</Label>
