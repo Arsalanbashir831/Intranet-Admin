@@ -12,6 +12,8 @@ export const ROUTES = {
         DEPARTMENTS: "/dashboard/departments",
         ORG_CHART: "/dashboard/org-chart",
         ORG_CHART_NEW: "/dashboard/org-chart/new",
+        ORG_CHART_PROFILE_ID: (id: string) => `/dashboard/org-chart/${id}`,
+        ORG_CHART_PROFILE_ID_EDIT: (id: string) => `/dashboard/org-chart/${id}/edit`,
     }
   
 } as const;

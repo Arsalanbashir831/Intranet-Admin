@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Upload, Plus, ImagePlusIcon } from "lucide-react";
+import { Upload, Plus, ImagePlusIcon, XIcon } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
 import Image from "next/image";
@@ -16,22 +16,24 @@ export interface DropzoneProps {
   multiple?: boolean;
   children?: React.ReactNode;
   showPreview?: boolean;
+  initialPreviewUrls?: string[]; // pre-loaded previews (e.g., existing images in edit mode)
 }
 
 export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
-  ({ 
-    onFileSelect, 
-    accept = "image/*", 
+  ({
+    onFileSelect,
+    accept = "image/*",
     maxSize = 800 * 400, // 800x400px default
     className,
     disabled = false,
     multiple = false,
     children,
     showPreview = true,
-    ...props 
+    initialPreviewUrls = [],
+    ...props
   }, ref) => {
     const [isDragOver, setIsDragOver] = React.useState(false);
-    const [previewUrls, setPreviewUrls] = React.useState<string[]>([]);
+    const [previewUrls, setPreviewUrls] = React.useState<string[]>(initialPreviewUrls ?? []);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -57,7 +59,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
       const files = e.target.files;
       if (files && files.length > 0) {
         onFileSelect?.(files);
-        
+
         // Generate preview URLs for images
         if (showPreview && accept.includes('image')) {
           const newUrls: string[] = [];
@@ -66,10 +68,15 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
               newUrls.push(URL.createObjectURL(file));
             }
           });
-          setPreviewUrls(prev => [...prev, ...newUrls]);
+          if (multiple) {
+            setPreviewUrls(prev => [...prev, ...newUrls]);
+          } else {
+            // Replace previous preview with the latest selected image when multiple=false
+            setPreviewUrls(newUrls.slice(0, 1));
+          }
         }
       }
-      
+
       // Clear the input value so the same file can be selected again
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -79,13 +86,13 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     const handleDrop = (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragOver(false);
-      
+
       if (disabled) return;
 
       const files = e.dataTransfer.files;
       if (files.length > 0) {
         onFileSelect?.(files);
-        
+
         // Generate preview URLs for images
         if (showPreview && accept.includes('image')) {
           const newUrls: string[] = [];
@@ -94,20 +101,33 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
               newUrls.push(URL.createObjectURL(file));
             }
           });
-          setPreviewUrls(prev => [...prev, ...newUrls]);
+          if (multiple) {
+            setPreviewUrls(prev => [...prev, ...newUrls]);
+          } else {
+            setPreviewUrls(newUrls.slice(0, 1));
+          }
         }
       }
     };
 
     const clearAllImages = () => {
-      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      previewUrls.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url) });
       setPreviewUrls([]);
     };
 
-    // Clean up preview URLs on unmount
+    // Sync external previews and clean up on change/unmount
+    React.useEffect(() => {
+      if (initialPreviewUrls && initialPreviewUrls.length) {
+        setPreviewUrls(initialPreviewUrls);
+      }
+    }, [initialPreviewUrls?.join(",")]);
+
     React.useEffect(() => {
       return () => {
-        previewUrls.forEach(url => URL.revokeObjectURL(url));
+        previewUrls.forEach(url => {
+          // Only revoke blob URLs; skip absolute URLs passed in
+          if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+        });
       };
     }, [previewUrls]);
 
@@ -145,13 +165,14 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
               <span className="text-sm text-muted-foreground">
                 {previewUrls.length} image{previewUrls.length !== 1 ? 's' : ''} selected
               </span>
-              <button
+              <Button
+                variant="link"
                 type="button"
                 onClick={clearAllImages}
-                className="text-xs text-red-500 hover:text-red-600 font-medium"
+                className="text-xs p-0 text-red-500 hover:text-red-600 font-medium hover:no-underline h-fit"
               >
-                Clear all
-              </button>
+                {multiple ? "Clear all" : "Clear"}
+              </Button>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {previewUrls.map((url, index) => (
@@ -163,27 +184,29 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                     width={100}
                     height={100}
                   />
-                  <button
+                  <Button
                     type="button"
+                    size='icon'
                     onClick={() => {
                       const newUrls = previewUrls.filter((_, i) => i !== index);
                       setPreviewUrls(newUrls);
                       URL.revokeObjectURL(url);
                     }}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                    className="absolute -top-2 -right-2 bg-primary text-white rounded-full size-6 flex items-center justify-center text-xs hover:bg-primary/90 transition-colors"
                   >
-                    ×
-                  </button>
+                    <XIcon size={12} />
+                  </Button>
                 </div>
               ))}
             </div>
-            <button
+            <Button
+              variant="link"
               type="button"
               onClick={handleClick}
-              className="mt-3 text-sm text-primary hover:text-primary/80 font-medium"
+              className="mt-3 p-0 text-sm text-primary hover:text-primary/80 font-medium hover:no-underline h-fit"
             >
-              Add more images
-            </button>
+              {multiple ? "Add more images" : "Update image"}
+            </Button>
           </div>
         ) : (
           <div

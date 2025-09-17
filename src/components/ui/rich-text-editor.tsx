@@ -171,6 +171,22 @@ export function RichTextEditor({
         },
   });
 
+  // Update editor content when `content` prop changes (e.g., in edit forms)
+  React.useEffect(() => {
+    if (!editor) return;
+    if (typeof content === "string") {
+      // Avoid unnecessary updates if content is already the same
+      try {
+        const current = editor.getHTML();
+        if (current !== content) {
+          editor.commands.setContent(content);
+        }
+      } catch {
+        editor.commands.setContent(content);
+      }
+    }
+  }, [editor, content]);
+
   const updateFontSize = (size: number) => {
     setFontSize(size);
     editor?.chain().focus().setFontSize(`${size}px`).run();
