@@ -34,6 +34,8 @@ export interface SelectableTagsProps {
   allowCreate?: boolean;
   onCreateTag?: (label: string) => void;
   icon?: ReactNode;
+  // Optional custom renderer to display selected items inside the trigger
+  renderSelected?: (id: string) => ReactNode;
 }
 
 export function SelectableTags({
@@ -49,6 +51,7 @@ export function SelectableTags({
   allowCreate = false,
   onCreateTag,
   icon,
+  renderSelected,
 }: SelectableTagsProps) {
   const [searchValue, setSearchValue] = React.useState("");
 
@@ -98,13 +101,28 @@ export function SelectableTags({
     <div className={cn("w-full", className)}>
       <Tags>
         <TagsTrigger 
-          className="w-full justify-between min-h-10 h-auto border-[#E2E8F0] rounded-[8px]" 
+          className="w-full min-h-10 h-auto border-[#E2E8F0] rounded-[8px]" 
           disabled={disabled}
           placeholder={placeholder}
           icon={icon}
         >
           {selectedItems.map((itemId) => {
             const item = items.find((i) => i.id === itemId);
+            if (renderSelected) {
+              return (
+                <TagsValue
+                  key={itemId}
+                  onRemove={() => handleRemove(itemId)}
+                  className="bg-white hover:bg-transparent text-current flex items-center border border-[#AFAFAF]"
+                  icon={<CircleX size={12} />}
+                  iconContainerClassName="grid size-5 place-items-center rounded-full text-[#868C98] hover:text-[#868C98]/80"
+                >
+                  <div className="flex items-center gap-2 rounded-[10px] py-1">
+                    {renderSelected(itemId)}
+                  </div>
+                </TagsValue>
+              );
+            }
             return (
               <TagsValue
                 key={itemId}

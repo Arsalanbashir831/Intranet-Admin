@@ -77,7 +77,7 @@ export function AppModal({
 
         <Separator className="w-full bg-[#E9EAEB]" />
 
-        <div className="py-2">{children}</div>
+        <div className="py-2 max-h-[65vh] overflow-y-auto px-0">{children}</div>
 
         <Separator className="mb-2 w-full bg-[#E9EAEB]" />
 

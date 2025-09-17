@@ -6,6 +6,7 @@ import {
   createContext,
   type MouseEventHandler,
   type ReactNode,
+  Children,
   useContext,
   useEffect,
   useRef,
@@ -131,9 +132,9 @@ export const TagsTrigger = ({
     >
       <div className="flex flex-wrap items-center gap-1">
         {children}
-        <span className="py-px text-muted-foreground">
-          {placeholder}
-        </span>
+        {Children.count(children) === 0 && (
+          <span className="py-px text-muted-foreground">{placeholder}</span>
+        )}
       </div>
       {icon}
     </Button>

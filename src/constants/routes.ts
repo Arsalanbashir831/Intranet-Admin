@@ -9,6 +9,7 @@ export const ROUTES = {
         COMPANY_HUB_NEW: "/dashboard/company-hub/new",
         KNOWLEDGE_BASE: "/dashboard/knowledge-base",
         NEW_HIRE_PLAN: "/dashboard/new-hire-plan",
+        ADD_NEW_HIRE_PLAN: "/dashboard/new-hire-plan/new",
         DEPARTMENTS: "/dashboard/departments",
         DEPARTMENTS_ID: (id: string) => `/dashboard/departments/${id}`,
         ORG_CHART: "/dashboard/org-chart",
