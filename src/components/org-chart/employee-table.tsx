@@ -27,13 +27,25 @@ export type EmployeeRow = {
   staffCount?: number;
 };
 
-export function EmployeeTable({ rows }: { rows: EmployeeRow[] }) {
+const employees: EmployeeRow[] = [
+  { id: "1", name: "Albert Flores", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D", location: "Toledo", email: "Fisherman12@gmail.com", department: "HR", role: "Director", reportingTo: "--", reportingAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D" },
+  { id: "2", name: "Albert Flores", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D", location: "Orange", email: "Janecooper@gmail.com", department: "Marketing", role: "Manager", reportingTo: "Albert Flores", reportingAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D" },
+  { id: "3", name: "Albert Flores", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D", location: "Naperville", email: "Fisherman12@gmail.com", department: "Finance", role: "HOD", reportingTo: "Albert Flores", reportingAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D" },
+  { id: "4", name: "Albert Flores", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D", location: "Fairfield", email: "Janecooper@gmail.com", department: "Executive", role: "CEO", reportingTo: "--", reportingAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D" },
+  { id: "5", name: "Albert Flores", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D", location: "Fairfield", email: "Joneshighman@gmail.com", department: "HR", role: "Director", reportingTo: "--", reportingAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D" },
+  { id: "6", name: "Albert Flores", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D", location: "Fairfield", email: "Savannahbae@yahoo.com", department: "Legal", role: "Director", reportingTo: "--", reportingAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D" },
+  { id: "7", name: "Albert Flores", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D", location: "Pembroke Pines", email: "Ester123@gmail.com", department: "Marketing", role: "Lead", reportingTo: "Albert Flores", reportingAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D" },
+  { id: "8", name: "Albert Flores", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D", location: "Austin", email: "Fisherman12@gmail.com", department: "Finance", role: "Lead", reportingTo: "Albert Flores", reportingAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D" },
+  { id: "9", name: "Albert Flores", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D", location: "Pembroke Pines", email: "Ester123@gmail.com", department: "Legal", role: "HOD", reportingTo: "Albert Flores", reportingAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D" },
+];
+
+export function EmployeeTable() {
   const [sortedBy, setSortedBy] = React.useState<string>("name");
-  const [data, setData] = React.useState<EmployeeRow[]>(rows);
-  const { pinnedIds, togglePin, ordered } = usePinnedRows<EmployeeRow>(data);
+  const [data, setData] = React.useState<EmployeeRow[]>(employees);
+  const { pinnedIds, togglePin } = usePinnedRows<EmployeeRow>(data);
 
   React.useEffect(() => {
-    const copy = [...rows];
+    const copy = [...employees];
     copy.sort((a, b) => {
       const key = sortedBy as keyof EmployeeRow;
       const av = (a[key] ?? "") as any;
@@ -42,7 +54,7 @@ export function EmployeeTable({ rows }: { rows: EmployeeRow[] }) {
       return String(av).localeCompare(String(bv));
     });
     setData(copy);
-  }, [rows, sortedBy]);
+  }, [employees, sortedBy]);
   const columns: ColumnDef<EmployeeRow>[] = [
     {
       accessorKey: "name",
@@ -138,7 +150,7 @@ export function EmployeeTable({ rows }: { rows: EmployeeRow[] }) {
       />
       <CardTable<EmployeeRow, unknown>
         columns={columns}
-        data={ordered}
+        data={data}
         headerClassName="grid-cols-[1.2fr_1fr_1.2fr_0.9fr_0.8fr_1fr_0.8fr]"
         rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.2fr_0.9fr_0.8fr_1fr_0.8fr]"}
         footer={(table) => <CardTablePagination table={table} />}
