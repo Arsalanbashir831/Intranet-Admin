@@ -3,9 +3,9 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Dropzone } from "@/components/ui/dropzone";
 import { SelectableTags, createSelectableItems, type SelectableItem } from "@/components/ui/selectable-tags";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 export function OrgChartForm() {
   // Sample departments data - in real app, this would come from props or API
@@ -25,42 +25,42 @@ export function OrgChartForm() {
         <div className="grid grid-cols-12 items-center gap-4 border-t border-[#E9EAEB] pt-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Name:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="Name" />
+            <Input placeholder="Name" className="border-[#E2E8F0]"/>
           </div>
         </div>
 
         <div className="grid grid-cols-12 items-center gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Address:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="Address" />
+            <Input placeholder="Address" className="border-[#E2E8F0]"/>
           </div>
         </div>
 
         <div className="grid grid-cols-12 items-center gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">City:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="City" />
+            <Input placeholder="City" className="border-[#E2E8F0]"/>
           </div>
         </div>
 
         <div className="grid grid-cols-12 items-center gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Phone Number:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="Phone Number" />
+            <Input placeholder="Phone Number" className="border-[#E2E8F0]"/>
           </div>
         </div>
 
         <div className="grid grid-cols-12 items-center gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Email Id:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="Email Id" type="email" />
+            <Input placeholder="Email Id" type="email" className="border-[#E2E8F0]"/>
           </div>
         </div>
 
         <div className="grid grid-cols-12 items-center gap-4 border-t border-[#E9EAEB] pt-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Reporting to:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="Michael James" />
+            <Input placeholder="Michael James" className="border-[#E2E8F0]"/>
           </div>
         </div>
 
@@ -80,7 +80,7 @@ export function OrgChartForm() {
         <div className="grid grid-cols-12 items-center gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Branch/Location:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="Lahore" />
+            <Input placeholder="Lahore" className="border-[#E2E8F0]"/>
           </div>
         </div>
 
@@ -101,20 +101,11 @@ export function OrgChartForm() {
         <div className="grid grid-cols-12 items-start gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Qualification and Education</Label>
           <div className="col-span-12 md:col-span-10">
-            <div className="rounded-md border">
-              <div className="flex items-center justify-between border-b p-2 text-muted-foreground text-sm">
-                <div className="flex items-center gap-2">
-                  <span>16</span>
-                  <span>A</span>
-                  <span>B</span>
-                  <span>I</span>
-                  <span>U</span>
-                  <span>S</span>
-                </div>
-                <div className="text-xs text-muted-foreground">10–60 word limit</div>
-              </div>
-              <Textarea rows={8} placeholder="Write Qualification and Education" className="min-h-40 resize-y rounded-none border-0 focus-visible:ring-0" />
-            </div>
+            <RichTextEditor
+              placeholder="Write Qualification and Education"
+              minHeight="200px"
+              maxHeight="400px"
+            />
           </div>
         </div>
       </div>

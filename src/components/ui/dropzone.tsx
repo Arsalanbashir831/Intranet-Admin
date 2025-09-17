@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Upload, Plus, ImagePlusIcon } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
+import Image from "next/image";
 
 export interface DropzoneProps {
   onFileSelect?: (files: FileList | null) => void;
@@ -139,7 +140,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
 
         {/* Dropzone Area or Preview */}
         {previewUrls.length > 0 && showPreview ? (
-          <div className="flex-1 rounded-md border p-4">
+          <div className="flex-1 rounded-md border border-[#E2E8F0] p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-muted-foreground">
                 {previewUrls.length} image{previewUrls.length !== 1 ? 's' : ''} selected
@@ -155,10 +156,12 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {previewUrls.map((url, index) => (
                 <div key={index} className="relative group">
-                  <img
+                  <Image
                     src={url}
                     alt={`Preview ${index + 1}`}
                     className="w-full h-24 object-cover rounded-md border"
+                    width={100}
+                    height={100}
                   />
                   <button
                     type="button"
@@ -189,7 +192,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={cn(
-              "flex-1 rounded-md border p-6 text-sm text-muted-foreground cursor-pointer transition-colors",
+              "flex-1 rounded-md border border-[#E2E8F0] p-6 text-sm text-muted-foreground cursor-pointer transition-colors",
               "hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20",
               isDragOver && "border-primary bg-primary/5",
               disabled && "opacity-50 cursor-not-allowed"

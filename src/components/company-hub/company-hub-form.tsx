@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dropzone } from "@/components/ui/dropzone";
 import { SelectableTags, createSelectableItems } from "@/components/ui/selectable-tags";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { ChevronDownIcon } from "lucide-react";
 
 export function CompanyHubForm() {
@@ -41,7 +41,7 @@ export function CompanyHubForm() {
         <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
           <Label className="col-span-12 md:col-span-2 text-sm">Title:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="e.g. Announcement 1/Policy" />
+            <Input placeholder="e.g. Announcement 1/Policy" className="border-[#E2E8F0]"/>
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export function CompanyHubForm() {
         <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
           <Label className="col-span-12 md:col-span-2 text-sm">Hashtags/tags:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="#importantNotice" />
+            <Input placeholder="#importantNotice" className="border-[#E2E8F0]" />
           </div>
         </div>
 
@@ -85,24 +85,18 @@ export function CompanyHubForm() {
         <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
           <Label className="col-span-12 md:col-span-2 text-sm">Posted by:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input placeholder="Michael James" />
+            <Input placeholder="Michael James" className="border-[#E2E8F0]" />
           </div>
         </div>
 
         <div className="grid grid-cols-12 items-start gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm">Description:</Label>
           <div className="col-span-12 md:col-span-10">
-            <div className="rounded-md border">
-              <div className="flex items-center gap-2 border-b p-2 text-muted-foreground text-sm">
-                <span>16</span>
-                <span>A</span>
-                <span>B</span>
-                <span>I</span>
-                <span>U</span>
-                <span>S</span>
-              </div>
-              <Textarea rows={8} placeholder="Write Description for the Announcement/Policy" className="min-h-40 resize-y rounded-none border-0 focus-visible:ring-0" />
-            </div>
+            <RichTextEditor
+              placeholder="Write Description for the Announcement/Policy"
+              minHeight="200px"
+              maxHeight="400px"
+            />
           </div>
         </div>
       </div>

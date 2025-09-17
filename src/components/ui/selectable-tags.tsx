@@ -98,7 +98,7 @@ export function SelectableTags({
     <div className={cn("w-full", className)}>
       <Tags>
         <TagsTrigger 
-          className="w-full justify-between min-h-10 h-auto" 
+          className="w-full justify-between min-h-10 h-auto border-[#E2E8F0] rounded-[8px]" 
           disabled={disabled}
           placeholder={placeholder}
           icon={icon}

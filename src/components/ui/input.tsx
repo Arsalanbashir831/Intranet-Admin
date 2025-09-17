@@ -6,10 +6,11 @@ type InputProps = React.ComponentProps<"input"> & {
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
   containerClassName?: string
+  rightIconClickable?: boolean
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ containerClassName, className, type, leftIcon, rightIcon, ...props }, ref) => {
+  ({ containerClassName, className, type, leftIcon, rightIcon, rightIconClickable = false, ...props }, ref) => {
     const inputElement = (
       <input
         ref={ref}
@@ -40,7 +41,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         {inputElement}
         {rightIcon && (
-          <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-muted-foreground">
+          <span className={cn(
+            "absolute inset-y-0 right-2 flex items-center text-muted-foreground",
+            !rightIconClickable && "pointer-events-none"
+          )}>
             {rightIcon}
           </span>
         )}
