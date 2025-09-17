@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Upload, Plus, ImagePlusIcon, XIcon } from "lucide-react";
+import { ImagePlusIcon, XIcon } from "lucide-react";
 import { Button } from "./button";
 import { Input } from "./input";
 import Image from "next/image";
