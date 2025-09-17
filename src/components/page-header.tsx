@@ -25,8 +25,8 @@ type PageHeaderProps = {
 
 export function PageHeader({ title, crumbs, action, className }: PageHeaderProps) {
   return (
-    <div className={cn("px-12 pb-4 border-b border-[#E4E4E4]", className)}>
-      <div className="flex items-center justify-between gap-3">
+    <div className={cn("px-5 md:px-12 pb-4 border-b border-[#E4E4E4]", className)}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight truncate">{title}</h1>
           <div className="mt-1">
@@ -53,7 +53,7 @@ export function PageHeader({ title, crumbs, action, className }: PageHeaderProps
             </Breadcrumb>
           </div>
         </div>
-        {action ? <div className="shrink-0">{action}</div> : null}
+        {action ? <div className="shrink-0 self-end">{action}</div> : null}
       </div>
     </div>
   );

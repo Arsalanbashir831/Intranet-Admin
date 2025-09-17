@@ -31,10 +31,10 @@ export function CardTableToolbar({
   activeSort,
 }: CardTableToolbarProps) {
   return (
-    <div className={cn("flex items-center justify-between gap-3", className)}>
+    <div className={cn("flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", className)}>
       <h3 className="text-xl font-semibold text-foreground">{title}</h3>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <TableSearch
           placeholder={placeholder ?? "Search"}
           onChange={onSearchChange ?? (() => {})}
@@ -46,11 +46,7 @@ export function CardTableToolbar({
           onSortChange={onSortChange ?? (() => {})}
         />
 
-        <Button
-          variant="outline"
-          className="gap-1"
-          onClick={onFilterClick ?? (() => {})}
-        >
+        <Button variant="outline" className="gap-1" onClick={onFilterClick ?? (() => {})}>
           <Filter className="size-4" /> Filter
         </Button>
       </div>
