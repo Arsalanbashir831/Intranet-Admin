@@ -25,6 +25,8 @@ type CardTableProps<TData, TValue> = {
   onSortingChange?: (state: SortingState) => void;
   headerClassName?: string;
   onRowClick?: (row: any) => void;
+  noResultsContent?: React.ReactNode;
+  wrapRow?: (rowElement: React.ReactNode, row: any) => React.ReactNode;
 };
 
 export function CardTable<TData, TValue>({
@@ -38,6 +40,8 @@ export function CardTable<TData, TValue>({
   onSortingChange,
   headerClassName,
   onRowClick,
+  noResultsContent,
+  wrapRow,
 }: CardTableProps<TData, TValue>) {
   const [internalSorting, setInternalSorting] = React.useState<SortingState>([]);
   const sorting = controlledSorting ?? internalSorting;
@@ -76,40 +80,54 @@ export function CardTable<TData, TValue>({
                 {header.isPlaceholder
                   ? null
                   : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
               </div>
             ))}
           </div>
 
           {/* Body */}
-          <div className="mt-3 space-y-3">
-            {table.getRowModel().rows.map((row) => (
-              <div
-                key={row.id}
-                className={cn(
-                  "group grid grid-cols-4 items-center gap-3 rounded-lg border border-[#E4E4E4] bg-white px-4 py-3",
-                  rowClassName?.(row.original)
-                )}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                role={onRowClick ? "button" : undefined}
-                tabIndex={onRowClick ? 0 : undefined}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <div key={cell.id} className="min-w-0 truncate">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          <div className="mt-3 flex flex-col gap-3">
+            {table.getRowModel().rows.map((row) => {
+              const rowDiv = (
+                <div
+                  key={row.id}
+                  className={cn(
+                    "group grid grid-cols-4 items-center gap-3 rounded-lg border border-[#E4E4E4] bg-white px-4 py-3",
+                    rowClassName?.(row.original)
+                  )}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  role={onRowClick ? "button" : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <div key={cell.id} className="min-w-0 truncate">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
+                  ))}
+                </div>
+              );
+              return wrapRow ? wrapRow(rowDiv, row) : rowDiv;
+            })}
+            {table.getRowModel().rows.length === 0 && (
+              <div className="space-y-3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="grid grid-cols-4 items-center gap-3 rounded-lg border border-[#E4E4E4] bg-white px-4 py-6" />
+                ))}
+                <div className={cn("flex items-center justify-center", noResultsContent ? "-mt-14 mb-5" : "-mt-12 mb-7")}>
+                  <div className="text-center">
+                    {noResultsContent ?? (<div className="text-center text-[13px] font-medium text-[#111827]">This folder is empty</div>)}
                   </div>
+                </div>
+                {[0, 1].map((i) => (
+                  <div key={i} className="grid grid-cols-4 items-center gap-3 rounded-lg border border-[#E4E4E4] bg-white px-4 py-6" />
                 ))}
               </div>
-            ))}
-            {table.getRowModel().rows.length === 0 && (
-              <div className="rounded-lg border border-dashed border-[#EDEEF2] bg-white px-4 py-10 text-center text-sm text-muted-foreground">
-                No results
-              </div>
+
             )}
           </div>
-          
+
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>

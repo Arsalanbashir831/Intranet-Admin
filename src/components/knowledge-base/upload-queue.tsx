@@ -1,0 +1,62 @@
+"use client";
+
+import * as React from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
+
+export type UploadStatus = "pending" | "uploading" | "done" | "error";
+
+export type UploadItem = {
+  id: string;
+  name: string;
+  size: number;
+  progress: number; // 0-100
+  status: UploadStatus;
+  targetPath?: string; // where to add when done
+};
+
+export function UploadQueue({ items, onClear, onRemove, collapsed, setCollapsed }: { items: UploadItem[]; onClear?: () => void; onRemove?: (id: string) => void; collapsed: boolean; setCollapsed: (c: boolean) => void }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="fixed bottom-4 right-4 z-50 w-[320px]">
+      <Card className="border-[#E4E4E4] p-3 shadow-sm gap-0">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="text-sm font-medium">Upload queue</div>
+          <div className="flex items-center gap-1">
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setCollapsed(!collapsed)}>{collapsed ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}</Button>
+          </div>
+        </div>
+        {!collapsed && (
+          <div className="max-h-[240px] space-y-2 overflow-auto pr-1">
+            <div className="flex items-center justify-end">
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={onClear}>Clear All</Button>
+            </div>
+            {items.map((item) => (
+              <div key={item.id} className="rounded border border-[#F0F0F0] p-2">
+                <div className="flex items-center justify-between text-[12px]">
+                  <span className="truncate pr-2">{item.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">
+                      {item.status === "done" ? "Done" : item.status === "error" ? "Error" : `${item.progress}%`}
+                    </span>
+                    {item.status !== "uploading" && (
+                      <button className="text-muted-foreground hover:text-foreground" onClick={() => onRemove?.(item.id)}>
+                        <X className="size-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-1 h-1.5 w-full overflow-hidden rounded bg-[#F1F5F9]">
+                  <div className="h-full bg-[#22C55E] transition-all" style={{ width: `${item.progress}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+

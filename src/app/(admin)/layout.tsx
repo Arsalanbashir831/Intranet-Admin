@@ -1,6 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { UploadQueueProvider } from "@/contexts/upload-queue-context";
+import { UploadQueue } from "@/components/knowledge-base/upload-queue";
+import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/layout/admin-sidebar";
 import { ProfileDropdown } from "@/components/admin/layout/profile-dropdown";
@@ -11,6 +14,11 @@ import Link from "next/link";
 type AdminLayoutProps = {
   children: ReactNode;
 };
+
+function QueueMount() {
+  const { items, clear, remove, collapsed, setCollapsed } = useUploadQueue();
+  return <UploadQueue items={items} onClear={clear} onRemove={remove} collapsed={collapsed} setCollapsed={setCollapsed} />;
+}
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
@@ -35,7 +43,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
 
           <div>
-            {children}
+            <UploadQueueProvider>
+              {children}
+              <QueueMount />
+            </UploadQueueProvider>
           </div>
       </SidebarInset>
     </SidebarProvider>

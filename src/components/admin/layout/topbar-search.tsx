@@ -28,7 +28,10 @@ export function TopbarSearch() {
         placeholder="Search"
         aria-label="Search"
         leftIcon={ <Search className="size-4" /> }
-        rightIcon={ <kbd className="rounded-[4px] bg-[#F2F2F2] p-1 text-muted-foreground"><CommandIcon className="size-4"/></kbd>
+        rightIcon={ <div className="flex items-center gap-1">
+          <kbd className="rounded-[4px] bg-[#F2F2F2] p-1 text-muted-foreground"><CommandIcon className="size-4"/></kbd>
+          <kbd className="rounded-[4px] bg-[#F2F2F2] px-2 text-muted-foreground">K</kbd>
+          </div>
         }
       />
      

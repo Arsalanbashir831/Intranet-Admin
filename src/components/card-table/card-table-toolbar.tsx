@@ -16,6 +16,7 @@ export type CardTableToolbarProps = {
   className?: string;
   sortOptions?: { label: string; value: string }[];
   activeSort?: string;
+  accessControl?: React.ReactNode; // optional control like AccessLevelDropdown
 };
 
 export function CardTableToolbar({
@@ -29,6 +30,7 @@ export function CardTableToolbar({
     { label: "Name", value: "name" },
   ],
   activeSort,
+  accessControl,
 }: CardTableToolbarProps) {
   return (
     <div className={cn("flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", className)}>
@@ -39,6 +41,8 @@ export function CardTableToolbar({
           placeholder={placeholder ?? "Search"}
           onChange={onSearchChange ?? (() => {})}
         />
+
+        {accessControl}
 
         <SortingDropdown
           sortOptions={sortOptions}
