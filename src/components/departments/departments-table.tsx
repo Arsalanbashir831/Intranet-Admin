@@ -15,6 +15,7 @@ import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "../card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { cn } from "@/lib/utils";
 
 export type DepartmentRow = {
   id: string;
@@ -35,7 +36,7 @@ const departments: DepartmentRow[] = [
   { id: "7", department: "Legal", location: "Rubtsovsk,", managerName: "Albert Flores", managerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60", staffCount: 154 },
 ];
 
-export function DepartmentsTable() {
+export function DepartmentsTable({ className }: { className?: string }) {
   const [sortedBy, setSortedBy] = React.useState<string>("department");
   const [data, setData] = React.useState<DepartmentRow[]>(departments);
   const { pinnedIds, togglePin, ordered } = usePinnedRows<DepartmentRow>(data);
@@ -106,7 +107,7 @@ export function DepartmentsTable() {
   ];
 
   return (
-    <Card className="border-[#FFF6F6] p-5 shadow-none">
+    <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className)}>
       <CardTableToolbar
         title="Departments"
         onSearchChange={() => { }}

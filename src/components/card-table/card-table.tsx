@@ -71,8 +71,8 @@ export function CardTable<TData, TValue>({
     <div className={cn("w-full", className)}>
       {toolbar ? <div className="mb-3">{toolbar}</div> : null}
 
-      <ScrollArea className={cn("w-full", isMobile && "w-screen overflow-x-auto")}>
-        <div className={cn(isMobile && "min-w-[720px]")}>
+      <ScrollArea className={cn("w-full overflow-x-auto")}> 
+        <div className={cn(isMobile && "min-w-[720px]")}> 
           {/* Header */}
           <div className={cn("grid grid-cols-4 items-center gap-3 rounded-md border border-[#EDEEF2] bg-[#F7F7F9] px-4 py-3 text-xs font-medium text-[#667085]", headerClassName)}>
             {table.getFlatHeaders().map((header) => (
