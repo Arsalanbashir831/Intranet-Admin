@@ -111,7 +111,7 @@ export function DepartmentsDetailTable() {
   ];
 
   return (
-    <Card className="border-[#FFF6F6] p-5 shadow-none">
+    <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
       <CardTableToolbar
         title="Marketing Staff Directory"
         onSearchChange={() => {}}

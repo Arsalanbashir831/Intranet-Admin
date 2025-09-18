@@ -52,7 +52,9 @@ export function AdminSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="space-y-4">
               {NAV_ITEMS.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = item.href === ROUTES.ADMIN.DASHBOARD 
+                  ? pathname === item.href 
+                  : pathname === item.href || pathname.startsWith(item.href + "/");
                 return (
                   <SidebarMenuItem key={item.href}>
                     <Link href={item.href} passHref>

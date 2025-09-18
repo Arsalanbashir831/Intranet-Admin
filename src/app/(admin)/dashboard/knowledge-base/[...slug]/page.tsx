@@ -3,7 +3,7 @@
 import * as React from "react";
 import { PageHeader } from "@/components/page-header";
 import { ROUTES } from "@/constants/routes";
-import { ScrollArea } from "@/components/ui/scroll-area";
+// import { ScrollArea } from "@/components/ui/scroll-area";
 import { FolderDetailsTable, FolderItemRow } from "@/components/knowledge-base/folder-details-table";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 import { AddFileModal } from "@/components/knowledge-base/add-file-modal";
@@ -56,8 +56,8 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: { slug
   return (
     <>
       <PageHeader title="Knowledge Base" crumbs={crumbs} />
-      <ScrollArea className="h-[calc(100vh-10rem)]">
-        <div className="px-12 py-4">
+      {/* <ScrollArea className="h-[calc(100vh-10rem)]"> */}
+        <div className="px-4 md:px-12 py-4">
           <FolderDetailsTable
             title={name}
             data={items}
@@ -66,7 +66,7 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: { slug
             onChangeAccess={() => {}}
           />
         </div>
-      </ScrollArea>
+      {/* </ScrollArea> */}
       <AddFolderModal open={openNewFolder} onOpenChange={setOpenNewFolder} />
       <AddFileModal open={openNewFile} onOpenChange={setOpenNewFile} />
     </>

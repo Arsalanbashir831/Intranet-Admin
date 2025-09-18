@@ -49,7 +49,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             
 
             {/* Profile Details Card */}
-            <div className="px-12 py-6">
+            <div className="px-4 md:px-12 py-6">
                 <EmployeeProfileCard employee={employeeData} />
             </div>
         </>

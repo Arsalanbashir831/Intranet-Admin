@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/page-header";
-import { ScrollArea } from "@/components/ui/scroll-area";
+// import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES } from "@/constants/routes";
 import { NewHirePlanForm } from "@/components/new-hire/new-hire-plan-form";
 
@@ -15,11 +15,11 @@ export default function NewHirePlanCreatePage() {
         ]}
         action={null}
       />
-      <ScrollArea className="h-[calc(100vh-10rem)]">
-        <div className="px-5 md:px-12 py-4">
+      {/* <ScrollArea className="h-[calc(100vh-10rem)]"> */}
+        <div className="px-4 md:px-12 py-4">
           <NewHirePlanForm />
         </div>
-      </ScrollArea>
+      {/* </ScrollArea> */}
     </>
   );
 }

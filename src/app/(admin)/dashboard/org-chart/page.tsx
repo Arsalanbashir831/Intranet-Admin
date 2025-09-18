@@ -2,8 +2,8 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
-import { EmployeeTable, type EmployeeRow } from "@/components/org-chart/employee-table";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { EmployeeTable } from "@/components/org-chart/employee-table";
+// import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 
@@ -24,11 +24,11 @@ export default function OrgChartPage() {
           </Link>
         }
       />
-      <ScrollArea className="h-[calc(100vh-10rem)]">
-        <div className="px-5 md:px-12 py-4">
+      {/* <ScrollArea className="h-[calc(100vh-10rem)]"> */}
+        <div className="px-4 md:px-12 py-4">
           <EmployeeTable />;
         </div>
-      </ScrollArea>
+      {/* </ScrollArea> */}
     </>
   );
 }

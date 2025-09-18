@@ -36,7 +36,7 @@ export function NewTaskModal({ open, setOpen, onCreate, type = "task" }: NewTask
       onCancel={() => setOpen(false)}
     >
       <div className="space-y-4 px-6 py-4">
-        <div className="flex items-start gap-6">
+        <div className="flex flex-col md:flex-row items-start gap-6">
           <Label className="w-28 pt-2">{isTraining ? "Training Title:" : "Task Title:"}</Label>
           <Input
             value={title}
@@ -46,9 +46,9 @@ export function NewTaskModal({ open, setOpen, onCreate, type = "task" }: NewTask
           />
         </div>
 
-        <div className="flex items-start gap-6">
+        <div className="flex flex-col md:flex-row items-start gap-6">
           <Label className="w-28 pt-2">{isTraining ? "Training Detail" : "Task Detail"}</Label>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 max-w-full">
             <RichTextEditor
               content={detail}
               onChange={setDetail}
@@ -59,7 +59,7 @@ export function NewTaskModal({ open, setOpen, onCreate, type = "task" }: NewTask
           </div>
         </div>
 
-        <div className="flex items-start gap-6">
+        <div className="flex flex-col md:flex-row items-start gap-6">
           <Label className="w-28 pt-2">Attachments:</Label>
           <Dropzone className="flex-1" accept="image/*,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
         </div>
