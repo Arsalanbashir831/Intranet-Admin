@@ -62,8 +62,8 @@ export function KnowledgeBaseTable() {
     const copy = [...rows];
     copy.sort((a, b) => {
       const key = sortedBy as keyof KnowledgeBaseRow;
-      const av = (a[key] ?? "") as any;
-      const bv = (b[key] ?? "") as any;
+      const av = (a[key] ?? "") as string;
+      const bv = (b[key] ?? "") as string;
       if (key === "dateCreated") return String(av).localeCompare(String(bv));
       return String(av).localeCompare(String(bv));
     });

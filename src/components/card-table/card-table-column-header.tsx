@@ -3,9 +3,10 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
+import { Column } from "@tanstack/react-table";
 
 type Props<TData> = {
-  column: any;
+  column: Column<TData, unknown>;
   title: string;
 };
 

@@ -125,7 +125,7 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
                   <div className="text-sm text-[#667085]">{branch}</div>
                   <div>
                     <Combobox
-                      data={managers as any}
+                      data={managers as unknown as { value: string; label: string; username: string; avatar: string }[]}
                       type="Manager"
                       value={branchManagers[branch] ?? ""}
                       onValueChange={(v) => handleManagerChange(branch, v)}

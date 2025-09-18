@@ -2,14 +2,14 @@
 
 import * as React from "react";
 import { Card } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Pie, PieChart, Cell, ResponsiveContainer, Label } from "recharts";
 
 type Slice = { name: string; value: number; color: string };
 
 export function EmployeeRingChart({ data, total }: { data: Slice[]; total?: number }) {
   const computedTotal = total ?? data.reduce((s, d) => s + d.value, 0);
-  const config = Object.fromEntries(data.map((d) => [d.name, { label: d.name, color: d.color }])) as any;
+  const config = Object.fromEntries(data.map((d) => [d.name, { label: d.name, color: d.color }])) as ChartConfig;
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [outerR, setOuterR] = React.useState(92);
   const [innerR, setInnerR] = React.useState(72);

@@ -7,7 +7,7 @@ import { CardTableColumnHeader } from "@/components/card-table/card-table-column
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EllipsisVertical, Trash2, Pin } from "lucide-react";
+import { EllipsisVertical, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
@@ -48,8 +48,8 @@ export function EmployeeTable() {
     const copy = [...employees];
     copy.sort((a, b) => {
       const key = sortedBy as keyof EmployeeRow;
-      const av = (a[key] ?? "") as any;
-      const bv = (b[key] ?? "") as any;
+      const av = (a[key] ?? "") as string;
+      const bv = (b[key] ?? "") as string;
       if (typeof av === "number" && typeof bv === "number") return av - bv;
       return String(av).localeCompare(String(bv));
     });

@@ -41,8 +41,8 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile, onChan
     const copy = [...data];
     copy.sort((a, b) => {
       const key = sortedBy as keyof FolderItemRow;
-      const av = (a[key] ?? "") as any;
-      const bv = (b[key] ?? "") as any;
+      const av = (a[key] ?? "") as string;
+      const bv = (b[key] ?? "") as string;
       return String(av).localeCompare(String(bv));
     });
     setRows(copy);
@@ -50,8 +50,8 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile, onChan
 
   // Listen to global queue to add finished items to table
   React.useEffect(() => {
-    const handler = (e: any) => {
-      const item = e.detail as { id: string; name: string; targetPath?: string } | undefined;
+    const handler = (e: Event) => {
+      const item = (e as CustomEvent<{ id: string; name: string; targetPath?: string }>).detail;
       if (!item) return;
       // Only add to this table if it matches current folder title or no path provided
       if (!item.targetPath || item.targetPath === title) {

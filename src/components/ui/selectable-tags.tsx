@@ -163,7 +163,7 @@ export function SelectableTags({
                   value={`create-${searchValue}`}
                   className="cursor-pointer text-primary"
                 >
-                  Create "{searchValue}"
+                  Create &ldquo;{searchValue}&rdquo;
                 </TagsItem>
               )}
             </TagsGroup>

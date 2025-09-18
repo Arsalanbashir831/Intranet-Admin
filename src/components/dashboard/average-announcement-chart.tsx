@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Card } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ArrowUpRight, ChevronDown, CalendarIcon } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -12,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import type { DateRange } from "react-day-picker";
 
 export function AverageAnnouncementChart({ data }: { data: { month: string; value: number }[] }) {
-    const config = { value: { label: "Average Announcement Rate", color: "#F4F2F3" } } as any;
+    const config = { value: { label: "Average Announcement Rate", color: "#F4F2F3" } } as ChartConfig;
     const [granularity, setGranularity] = React.useState("Month");
     const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
         from: new Date(2023, 0, 1),

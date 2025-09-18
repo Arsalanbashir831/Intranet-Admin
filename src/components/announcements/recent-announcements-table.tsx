@@ -42,8 +42,8 @@ export function RecentAnnouncementsTable() {
     const copy = [...announcements];
     copy.sort((a, b) => {
       const key = sortedBy as keyof Announcement;
-      const av = (a[key] ?? "") as any;
-      const bv = (b[key] ?? "") as any;
+      const av = (a[key] ?? "") as string;
+      const bv = (b[key] ?? "") as string;
       if (typeof av === "number" && typeof bv === "number") return av - bv;
       return String(av).localeCompare(String(bv));
     });

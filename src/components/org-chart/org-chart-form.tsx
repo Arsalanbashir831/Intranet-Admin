@@ -4,7 +4,7 @@ import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dropzone } from "@/components/ui/dropzone";
-import { SelectableTags, createSelectableItems, type SelectableItem } from "@/components/ui/selectable-tags";
+import { SelectableTags, createSelectableItems } from "@/components/ui/selectable-tags";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 export type OrgChartInitialValues = {

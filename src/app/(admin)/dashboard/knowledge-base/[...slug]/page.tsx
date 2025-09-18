@@ -43,8 +43,8 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: { slug
   const [openNewFile, setOpenNewFile] = React.useState(false);
 
   React.useEffect(() => {
-    const handler = (e: any) => {
-      const row = e.detail as FolderItemRow;
+    const handler = (e: Event) => {
+      const row = (e as CustomEvent<FolderItemRow>).detail;
       if (!row || row.kind !== "folder") return;
       const encodedName = encodeURIComponent(row.file);
       router.push(`/dashboard/knowledge-base/${[...segments, encodedName].join("/")}`);

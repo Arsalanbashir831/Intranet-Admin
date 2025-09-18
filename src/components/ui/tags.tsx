@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import {
   type ComponentProps,
   createContext,
@@ -210,7 +210,7 @@ export type TagsEmptyProps = ComponentProps<typeof CommandEmpty>;
 
 export const TagsEmpty = ({
   children,
-  className,
+  // className,
   ...props
 }: TagsEmptyProps) => (
   <CommandEmpty {...props}>{children ?? "No tags found."}</CommandEmpty>

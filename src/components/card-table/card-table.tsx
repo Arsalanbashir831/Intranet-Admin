@@ -9,6 +9,7 @@ import {
   getPaginationRowModel,
   SortingState,
   useReactTable,
+  Row,
 } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -19,14 +20,14 @@ type CardTableProps<TData, TValue> = {
   data: TData[];
   className?: string;
   toolbar?: React.ReactNode;
-  footer?: (table: any) => React.ReactNode;
+  footer?: (table: ReturnType<typeof useReactTable<TData>>) => React.ReactNode;
   rowClassName?: (row: TData) => string | undefined;
   sorting?: SortingState;
   onSortingChange?: (state: SortingState) => void;
   headerClassName?: string;
-  onRowClick?: (row: any) => void;
+  onRowClick?: (row: Row<TData>) => void;
   noResultsContent?: React.ReactNode;
-  wrapRow?: (rowElement: React.ReactNode, row: any) => React.ReactNode;
+  wrapRow?: (rowElement: React.ReactNode, row: Row<TData>) => React.ReactNode;
 };
 
 export function CardTable<TData, TValue>({
@@ -45,9 +46,10 @@ export function CardTable<TData, TValue>({
 }: CardTableProps<TData, TValue>) {
   const [internalSorting, setInternalSorting] = React.useState<SortingState>([]);
   const sorting = controlledSorting ?? internalSorting;
-  const setSorting = (updater: any) => {
+  const setSorting = (updater: SortingState | ((prev: SortingState) => SortingState)) => {
     if (onSortingChange) {
-      const next = typeof updater === "function" ? updater(internalSorting) : updater;
+      const next =
+        typeof updater === "function" ? updater(internalSorting) : updater;
       onSortingChange(next);
     } else {
       setInternalSorting(updater);
