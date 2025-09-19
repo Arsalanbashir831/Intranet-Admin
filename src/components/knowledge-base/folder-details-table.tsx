@@ -143,7 +143,7 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile, onChan
   return (
     <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile} onChangeAccess={onChangeAccess}>
       <Card
-        className="border-[#FFF6F6] p-5 shadow-none"
+        className="border-[#FFF6F6] p-5 shadow-none hover:bg-[#fffbfd]"
         onDragOver={(e) => {
           e.preventDefault();
         }}

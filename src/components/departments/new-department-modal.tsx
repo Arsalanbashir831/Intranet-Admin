@@ -16,9 +16,11 @@ import {
 } from "@/components/ui/combobox";
 import { ChevronDown } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useBranches } from "@/hooks/queries/use-branches";
+import { useLocations } from "@/hooks/queries/use-locations";
 import { useEmployees } from "@/hooks/queries/use-employees";
 import { useCreateDepartment } from "@/hooks/queries/use-departments";
+import { useCreateBranch } from "@/hooks/queries/use-branches";
+import { toast } from "sonner";
 
 interface NewDepartmentModalProps {
   open: boolean;
@@ -26,15 +28,19 @@ interface NewDepartmentModalProps {
 }
 
 export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
-  const { data: branchesData, isLoading: branchesLoading } = useBranches();
+  const { data: locationsData, isLoading: locationsLoading } = useLocations();
   const { data: employeesData, isLoading: employeesLoading } = useEmployees();
   const createDepartment = useCreateDepartment();
+  const createBranch = useCreateBranch();
 
   // Transform API data
   const branches = useMemo(() => {
-    if (!branchesData?.results) return [];
-    return branchesData.results.map((branch: any) => branch.name || branch.branch_name);
-  }, [branchesData]);
+    const list = Array.isArray(locationsData) ? locationsData : (locationsData?.results ?? []);
+    return (list as any[]).map((l) => ({
+      id: String(l.id),
+      label: l.name || `Location ${l.id}`,
+    }));
+  }, [locationsData]);
 
   const managers = useMemo(() => {
     if (!employeesData?.results) return [];
@@ -50,8 +56,8 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
   const [branchManagers, setBranchManagers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleManagerChange = (branch: string, manager: string) => {
-    setBranchManagers((prev) => ({ ...prev, [branch]: manager }));
+  const handleManagerChange = (branchId: string, manager: string) => {
+    setBranchManagers((prev) => ({ ...prev, [branchId]: manager }));
   };
 
   const handleSubmit = async () => {
@@ -59,20 +65,59 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
 
     setIsSubmitting(true);
     try {
-      // Create department with branch managers
-      await createDepartment.mutateAsync({
-        name: departmentName,
-        branch_managers: Object.entries(branchManagers).map(([branch, managerId]) => ({
-          branch: branch,
-          manager: parseInt(managerId)
-        }))
-      });
+      // Step 1: Create department (only name)
+      const dept = await createDepartment.mutateAsync({ name: departmentName });
+
+      const deptId = (dept as any)?.id ?? undefined;
+      if (!deptId) {
+        toast.error("Department created but no ID returned.");
+      }
+
+      // Step 2: For each location with a selected manager, create a branch
+      const entries = Object.entries(branchManagers).filter(([, managerId]) => !!managerId);
+
+      if (deptId && entries.length > 0) {
+        const results = await Promise.allSettled(
+          entries.map(([locationId, managerId]) =>
+            createBranch.mutateAsync({
+              department: Number(deptId),
+              location: Number(locationId),
+              manager: Number(managerId),
+            })
+          )
+        );
+
+        const createdCount = results.filter((r) => r.status === "fulfilled").length;
+        const failedCount = results.filter((r) => r.status === "rejected").length;
+        const skippedCount = Object.keys(branchManagers).length - entries.length;
+
+        if (createdCount > 0) {
+          toast.success(`Department and ${createdCount} branch${createdCount > 1 ? "es" : ""} created.`);
+        } else {
+          toast.success("Department created.");
+        }
+        if (failedCount > 0) {
+          toast.error(`${failedCount} branch creation${failedCount > 1 ? "s" : ""} failed.`);
+        }
+        if (skippedCount > 0) {
+          toast.message(`${skippedCount} location${skippedCount > 1 ? "s were" : " was"} skipped (no manager selected).`);
+        }
+      } else {
+        // No branches to create
+        toast.success("Department created.");
+        const total = Object.keys(branchManagers).length;
+        const skippedCount = total; // all skipped if none with manager
+        if (skippedCount > 0) {
+          toast.message(`${skippedCount} location${skippedCount > 1 ? "s were" : " was"} skipped (no manager selected).`);
+        }
+      }
 
       setOpen(false);
       setDepartmentName("");
       setBranchManagers({});
     } catch (error) {
-      console.error("Error creating department:", error);
+      console.error("Error creating department or branches:", error);
+      toast.error("Failed to create department. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -109,31 +154,31 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
             <span>Manager</span>
           </div>
           <div className="divide-y divide-[#E4E4E4]">
-            {branchesLoading || employeesLoading ? (
+            {locationsLoading || employeesLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-sm text-muted-foreground">Loading data...</div>
               </div>
             ) : (
-              branches.map((branch, idx) => (
+              branches.map((branch) => (
                 <div
-                  key={`${branch}-${idx}`}
+                  key={branch.id}
                   className="grid grid-cols-[1fr_1fr] items-center px-3 py-2"
                 >
-                  <div className="text-sm text-[#667085]">{branch}</div>
+                  <div className="text-sm text-[#667085]">{branch.label}</div>
                   <div>
                     <Combobox
                       data={managers as unknown as { value: string; label: string; username: string; avatar: string }[]}
                       type="Manager"
-                      value={branchManagers[branch] ?? ""}
-                      onValueChange={(v) => handleManagerChange(branch, v)}
+                      value={branchManagers[branch.id] ?? ""}
+                      onValueChange={(v) => handleManagerChange(branch.id, v)}
                     >
                       <ComboboxTrigger className="w-full justify-between border-none shadow-none pl-0 hover:bg-transparent">
                         <span className="flex w-full items-center justify-between gap-2">
-                          {branchManagers[branch] ? (
+                          {branchManagers[branch.id] ? (
                             <span className="flex items-center gap-2 truncate">
                               {(() => {
                                 const sel = managers.find(
-                                  (m) => m.value === branchManagers[branch]
+                                  (m) => m.value === branchManagers[branch.id]
                                 );
                                 if (!sel) return null;
                                 const initials = sel.label
