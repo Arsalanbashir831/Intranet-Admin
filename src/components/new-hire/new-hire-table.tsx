@@ -7,7 +7,7 @@ import { CardTableColumnHeader } from "@/components/card-table/card-table-column
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EllipsisVertical, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";

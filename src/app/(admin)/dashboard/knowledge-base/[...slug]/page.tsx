@@ -63,7 +63,6 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: { slug
             data={items}
             onNewFolder={openNewFolderModal}
             onNewFile={() => setOpenNewFile(true)}
-            onChangeAccess={() => {}}
           />
         </div>
       {/* </ScrollArea> */}

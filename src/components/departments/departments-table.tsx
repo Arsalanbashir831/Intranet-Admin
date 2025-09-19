@@ -16,8 +16,8 @@ import { PinRowButton } from "../card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
-import { useDepartments } from "@/hooks/queries/use-departments";
 import { useBranches } from "@/hooks/queries/use-branches";
+import type { components } from "@/types/api";
 
 export type DepartmentRow = {
   id: string;
@@ -35,16 +35,23 @@ export function DepartmentsTable({ className }: { className?: string }) {
 
   // Transform API data to match our UI structure
   const departments: DepartmentRow[] = React.useMemo(() => {
-    const list = Array.isArray(branchesData) ? branchesData : (branchesData?.results ?? []);
+    const list = Array.isArray(branchesData)
+      ? (branchesData as components["schemas"]["Branch"][])
+      : ((branchesData?.results ?? []) as components["schemas"]["Branch"][]);
     if (!list) return [];
 
-    return (list as any[]).map((item: any) => ({
+    type BranchWithExtras = components["schemas"]["Branch"] & {
+      employee_count?: number | string;
+      manager_detail?: components["schemas"]["Employee"] & { profile_picture_url?: string };
+    };
+
+    return (list as BranchWithExtras[]).map((item) => ({
       id: String(item.id),
       department: item.department_detail?.name ?? "N/A",
       location: item.location_detail?.name ?? "N/A",
       managerName: item.manager_detail?.full_name || item.manager_detail?.user_email || "--",
-      managerAvatar: item.manager_detail?.profile_picture || undefined,
-      staffCount: item.employee_count || 0,
+      managerAvatar: item.manager_detail?.profile_picture_url || item.manager_detail?.profile_picture || undefined,
+      staffCount: Number(item.employee_count ?? 0) || 0,
     }));
   }, [branchesData]);
 

@@ -32,9 +32,10 @@ export function useProfile() {
     queryKey: profileKeys.profile(),
     queryFn: getProfile,
     enabled: hasAccessToken(),
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: unknown) => {
+      const err = error as { response?: { status?: number } };
       // Do not retry on 401/403
-      const status = error?.response?.status;
+      const status = err?.response?.status;
       if (status === 401 || status === 403) return false;
       return failureCount < 2;
     },

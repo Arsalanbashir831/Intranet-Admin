@@ -65,12 +65,12 @@ export const updateProfilePartial = async (data: Partial<UserProfileUpdateReques
   return response.data;
 };
 
-export const getExtendedProfile = async (): Promise<any> => {
+export const getExtendedProfile = async (): Promise<unknown> => {
   const response = await api.get(API_ROUTES.PROFILE.EXTENDED);
   return response.data;
 };
 
-export const createExtendedProfile = async (data: any): Promise<any> => {
+export const createExtendedProfile = async (data: unknown): Promise<unknown> => {
   const response = await api.post(API_ROUTES.PROFILE.EXTENDED, data);
   return response.data;
 };
@@ -82,7 +82,7 @@ export const getProfilePicture = async (): Promise<Blob> => {
   return response.data;
 };
 
-export const uploadProfilePicture = async (file: File): Promise<any> => {
+export const uploadProfilePicture = async (file: File): Promise<unknown> => {
   const formData = new FormData();
   formData.append('profile_picture', file);
   

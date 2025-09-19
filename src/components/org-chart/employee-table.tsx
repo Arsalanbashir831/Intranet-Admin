@@ -18,6 +18,7 @@ import { ROUTES } from "@/constants/routes";
 import { useEmployees, useDeleteEmployee } from "@/hooks/queries/use-employees";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
+import type { components } from "@/types/api";
 
 export type EmployeeRow = {
   id: string;
@@ -35,21 +36,21 @@ export type EmployeeRow = {
 export function EmployeeTable() {
   const router = useRouter();
   const [sortedBy, setSortedBy] = React.useState<string>("name");
-  const { data: apiData, isLoading } = useEmployees();
+  const { data: apiData } = useEmployees();
   const deleteEmployee = useDeleteEmployee();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const data = React.useMemo<EmployeeRow[]>(() => {
     const list = Array.isArray(apiData) ? apiData : (apiData?.results ?? []);
-    return (list as any[]).map((e) => ({
-      id: String(e.id ?? e.id),
-      name: e.full_name ?? e.name ?? "",
-      avatar: e.profile_picture_url ?? e.avatar,
-      location: e.department_location ?? e.location ?? "",
-      email: e.email ?? e.user_email ?? "",
-      department: e.department_name ?? e.department ?? "",
+    return (list as components["schemas"]["Employee"][]).map((e) => ({
+      id: String(e.id),
+      name: e.full_name ?? "",
+      avatar: e.profile_picture ?? undefined,
+      location: e.branch_name ?? "",
+      email: e.user_email ?? "",
+      department: e.branch_name ?? "",
       role: e.emp_role ?? e.job_title ?? "",
-      reportingTo: e.supervisor_name ?? e.reportingTo ?? null,
-      reportingAvatar: e.reportingAvatar,
+      reportingTo: e.supervisor_name ?? null,
+      reportingAvatar: undefined,
     }));
   }, [apiData]);
   const { pinnedIds, togglePin } = usePinnedRows<EmployeeRow>(data);

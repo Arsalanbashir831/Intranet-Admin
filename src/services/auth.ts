@@ -1,6 +1,6 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
-import type { paths, components } from "@/types/api";
+import type { components } from "@/types/api";
 
 export type LoginRequest = components["schemas"]["CustomTokenObtainPairRequest"];
 // The actual response from Django JWT might include access/refresh tokens

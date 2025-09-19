@@ -9,7 +9,7 @@ import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { EllipsisVertical, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useEmployees } from "@/hooks/queries/use-employees";
 
 export type DepartmentEmployeeRow = {
@@ -33,15 +33,16 @@ export function DepartmentsDetailTable({ departmentId }: DepartmentsDetailTableP
 
   // Transform API data to match our UI structure
   const employees: DepartmentEmployeeRow[] = React.useMemo(() => {
-    if (!employeesData?.results) return [];
+    const list = Array.isArray(employeesData) ? employeesData : employeesData?.results;
+    if (!list) return [];
 
-    return employeesData.results.map((emp: any) => ({
-      id: emp.id.toString(),
-      name: emp.name || emp.full_name || "N/A",
-      email: emp.email || "N/A",
-      address: emp.address || emp.location || "N/A",
-      role: emp.role || emp.position || "N/A",
-      avatar: emp.avatar || emp.profile_image,
+    return list.map((emp: { id: number | string; full_name?: string; user_email?: string; address?: string; job_title?: string; emp_role?: string; profile_picture?: string; profile_picture_url?: string }) => ({
+      id: String(emp.id),
+      name: emp.full_name || "N/A",
+      email: emp.user_email || "N/A",
+      address: emp.address || "N/A",
+      role: emp.job_title || emp.emp_role || "N/A",
+      avatar: emp.profile_picture_url || emp.profile_picture,
     }));
   }, [employeesData]);
 

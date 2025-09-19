@@ -1,4 +1,3 @@
-import { CircleQuestionMark, Link } from "lucide-react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { TopbarSearch } from "./topbar-search";
 import { ProfileDropdown } from "./profile-dropdown";

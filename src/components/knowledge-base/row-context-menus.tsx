@@ -9,11 +9,10 @@ import {
 } from "@/components/ui/context-menu";
 import { FolderPlus, FilePlus, Pen, Trash2 } from "lucide-react";
 
-export function TableContextMenu({ children, onNewFolder, onNewFile, onChangeAccess }: {
+export function TableContextMenu({ children, onNewFolder, onNewFile }: {
   children: React.ReactNode;
   onNewFolder?: () => void;
   onNewFile?: () => void;
-  onChangeAccess?: () => void;
 }) {
   return (
     <ContextMenu>
@@ -32,10 +31,9 @@ export function TableContextMenu({ children, onNewFolder, onNewFile, onChangeAcc
   );
 }
 
-export function RowContextMenu({ children, onRename, onChangeAccess, onDelete }: {
+export function RowContextMenu({ children, onRename, onDelete }: {
   children: React.ReactNode;
   onRename?: () => void;
-  onChangeAccess?: () => void;
   onDelete?: () => void;
 }) {
   return (

@@ -10,7 +10,7 @@ import { useEmployees } from "@/hooks/queries/use-employees";
 export type ChecklistItemData = { id: string; title: string; body: string };
 
 type ApiEmployee = {
-  id: number;
+  id: number | string;
   full_name: string;
   username?: string;
   department_name?: string;
@@ -19,11 +19,11 @@ type ApiEmployee = {
 
 export function NewHirePlanForm() {
   const [assignees, setAssignees] = React.useState<string[]>([]);
-  const { data, isLoading } = useEmployees();
+  const { data } = useEmployees();
   const employees: ApiEmployee[] = React.useMemo(() => {
     // Support both paginated and array responses
     const list = Array.isArray(data) ? data : (data?.results ?? []);
-    return (list as any[]).map((e) => ({
+    return (list as { id: number | string; full_name?: string; name?: string; username?: string; department_name?: string; department?: string; profile_picture_url?: string; profile_picture?: string }[]).map((e) => ({
       id: e.id,
       full_name: e.full_name ?? e.name ?? "",
       username: e.username,

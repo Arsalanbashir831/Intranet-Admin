@@ -36,19 +36,29 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
   // Transform API data
   const branches = useMemo(() => {
     const list = Array.isArray(locationsData) ? locationsData : (locationsData?.results ?? []);
-    return (list as any[]).map((l) => ({
+    return list.map((l: { id: number | string; name?: string }) => ({
       id: String(l.id),
       label: l.name || `Location ${l.id}`,
     }));
   }, [locationsData]);
 
   const managers = useMemo(() => {
-    if (!employeesData?.results) return [];
-    return employeesData.results.map((emp: any) => ({
-      value: emp.id.toString(),
-      label: emp.name || emp.full_name,
-      username: emp.username || emp.email?.split('@')[0] || 'user',
-      avatar: emp.avatar || emp.profile_image,
+    const list = Array.isArray(employeesData) ? employeesData : employeesData?.results;
+    if (!list) return [] as { value: string; label: string; username: string; avatar?: string }[];
+    type ManagerLite = {
+      id: number | string;
+      full_name?: string;
+      name?: string;
+      username?: string;
+      email?: string;
+      profile_picture?: string;
+      profile_picture_url?: string;
+    };
+    return (list as ManagerLite[]).map((emp) => ({
+      value: String(emp.id),
+      label: emp.name || emp.full_name || "",
+      username: emp.username || (emp.email ? emp.email.split('@')[0] : "user"),
+      avatar: emp.profile_picture_url || emp.profile_picture,
     }));
   }, [employeesData]);
 
@@ -68,7 +78,7 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
       // Step 1: Create department (only name)
       const dept = await createDepartment.mutateAsync({ name: departmentName });
 
-      const deptId = (dept as any)?.id ?? undefined;
+      const deptId = (dept as { id?: number | string })?.id ?? undefined;
       if (!deptId) {
         toast.error("Department created but no ID returned.");
       }

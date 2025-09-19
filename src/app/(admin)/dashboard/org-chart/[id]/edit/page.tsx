@@ -14,6 +14,14 @@ export default function EditOrgChartPage() {
 
   const { data: employee, isLoading, isError } = useEmployee(String(id));
 
+  const expanded = employee as unknown as {
+    branch_detail?: {
+      department_detail?: { id?: number };
+      location_detail?: { id?: number };
+    };
+    profile_picture_url?: string;
+  } | undefined;
+
   const initialValues: OrgChartInitialValues | undefined = employee
     ? {
         first_name: employee.first_name || (employee.full_name ? String(employee.full_name).split(" ")[0] : ""),
@@ -22,10 +30,10 @@ export default function EditOrgChartPage() {
         city: employee.user_city || "",
         phone: employee.phone_number || "",
         email: employee.user_email,
-        // Pull expanded details defensively from runtime payload
-        departmentIds: (employee as any)?.branch_detail?.department_detail?.id ? [String((employee as any).branch_detail.department_detail.id)] : [],
-        branch: (employee as any)?.branch_detail?.location_detail?.id ? String((employee as any).branch_detail.location_detail.id) : undefined,
-        profileImageUrl: (employee as any)?.profile_picture_url || employee.profile_picture || undefined,
+        // Pull expanded details defensively from runtime payload without using any
+        departmentIds: expanded?.branch_detail?.department_detail?.id ? [String(expanded.branch_detail.department_detail.id)] : [],
+        branch: expanded?.branch_detail?.location_detail?.id ? String(expanded.branch_detail.location_detail.id) : undefined,
+        profileImageUrl: expanded?.profile_picture_url || employee.profile_picture || undefined,
         qualificationAndEducation: employee.qualification_details || "",
         job_title: employee.job_title || "",
         emp_role: employee.emp_role || "",

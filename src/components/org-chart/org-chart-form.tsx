@@ -8,7 +8,8 @@ import { SelectableTags, createSelectableItems } from "@/components/ui/selectabl
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { useCreateEmployee, useUpdateEmployee } from "@/hooks/queries/use-employees";
 import { useDepartments } from "@/hooks/queries/use-departments";
-import { useLocations } from "@/hooks/queries/use-locations"; 
+import { useLocations } from "@/hooks/queries/use-locations";
+import type { components } from "@/types/api"; 
 
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -36,12 +37,12 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
 
   const departments = React.useMemo(() => {
     const list = Array.isArray(deptData) ? deptData : (deptData?.results ?? []);
-    return (list as any[]).map((d) => ({ id: String(d.id), name: d.name }));
+    return (list as components["schemas"]["Department"][]).map((d) => ({ id: String(d.id), name: d.name }));
   }, [deptData]);
 
   const locations = React.useMemo(() => {
     const list = Array.isArray(locationData) ? locationData : (locationData?.results ?? []);
-    return (list as any[]).map((l) => ({ id: String(l.id), name: l.name }));
+    return (list as { id: number | string; name: string }[]).map((l) => ({ id: String(l.id), name: l.name }));
   }, [locationData]);
 
   // Single-select department, location, and manager
@@ -85,11 +86,11 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
       return;
     }
 
-    const payload: any = {
+    const payload = {
       email,
-      ...(isEdit ? {} : { password }),
+      ...(isEdit ? {} : { password: password! }),
       first_name: firstName,
-      last_name: lastName || undefined,
+      last_name: lastName,
       phone_number: String(data.get("phone_number") || "") || undefined,
       user_city: String(data.get("user_city") || "") || undefined,
       address: String(data.get("address") || "") || undefined,
@@ -98,7 +99,7 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
       emp_role: empRole || undefined,
       join_date: joinDate || undefined,
       branch: selectedLocationId ? Number(selectedLocationId) : undefined,
-    };
+    } as components["schemas"]["EmployeeCreateRequest"];
 
     try {
       if (isEdit && employeeId) {
@@ -109,14 +110,15 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
         toast.success("Employee created successfully");
       }
       router.push(ROUTES.ADMIN.ORG_CHART);
-    } catch (error: any) {
-      const dataErr = error?.response?.data;
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: Record<string, unknown> } };
+      const dataErr = err?.response?.data;
       const messages: string[] = [];
       if (dataErr && typeof dataErr === 'object') {
         for (const key of Object.keys(dataErr)) {
-          const value = (dataErr as any)[key];
+          const value = dataErr[key];
           if (Array.isArray(value)) {
-            value.forEach((msg: any) => messages.push(`${key}: ${String(msg)}`));
+            value.forEach((msg: unknown) => messages.push(`${key}: ${String(msg)}`));
           } else if (typeof value === 'string') {
             messages.push(`${key}: ${value}`);
           }

@@ -40,8 +40,9 @@ export function LoginForm() {
       toast.success("Login successful!");
       // The login mutation will handle the redirect via the auth context
       router.push(ROUTES.ADMIN.DASHBOARD);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.detail || "Login failed. Please try again.");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { detail?: string } } };
+      toast.error(err.response?.data?.detail || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -9,7 +9,7 @@ import { CardTableColumnHeader } from "@/components/card-table/card-table-column
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { AccessLevelDropdown } from "@/components/card-table/access-level-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { EllipsisVertical, Pencil, Trash2, Folder as FolderIcon, FileText } from "lucide-react";
+import { Pencil, Trash2, Folder as FolderIcon, FileText } from "lucide-react";
 import { TableContextMenu, RowContextMenu } from "@/components/knowledge-base/row-context-menus";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
 
@@ -28,10 +28,9 @@ type Props = {
   data: FolderItemRow[];
   onNewFolder?: () => void;
   onNewFile?: () => void;
-  onChangeAccess?: () => void;
 };
 
-export function FolderDetailsTable({ title, data, onNewFolder, onNewFile, onChangeAccess }: Props) {
+export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Props) {
   const [sortedBy, setSortedBy] = React.useState<string>("file");
   const [rows, setRows] = React.useState<FolderItemRow[]>(data);
   const [accessFilter, setAccessFilter] = React.useState<string[]>([]);
@@ -141,7 +140,7 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile, onChan
   ];
 
   return (
-    <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile} onChangeAccess={onChangeAccess}>
+    <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile}>
       <Card
         className="border-[#FFF6F6] p-5 shadow-none hover:bg-[#fffbfd]"
         onDragOver={(e) => {
@@ -178,10 +177,9 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile, onChan
         data={rows}
         headerClassName="grid-cols-[1.4fr_1fr_1fr_0.8fr]"
         rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_0.8fr] cursor-pointer"}
-        wrapRow={(rowEl, row) => (
+        wrapRow={(rowEl) => (
           <RowContextMenu
             onRename={() => {}}
-            onChangeAccess={onChangeAccess}
             onDelete={() => {}}
           >
             {rowEl}

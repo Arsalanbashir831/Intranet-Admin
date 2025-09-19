@@ -30,22 +30,22 @@ interface EmployeeProfileCardProps {
 
 export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCardProps) {
     const { data } = useEmployee(employeeId ?? "");
-    const e: any = data ?? employee;
+    const e: unknown = data ?? employee;
     const resolved: Employee | null = e ? {
-        id: String(e.id ?? e.id),
-        name: e.full_name ?? e.name ?? "",
-        role: e.emp_role ?? e.job_title ?? "",
-        email: e.email ?? e.user_email ?? "",
-        phone: e.phone ?? e.phone_number ?? "",
-        joinDate: e.join_date ? new Date(e.join_date).toLocaleDateString() : "",
-        department: (e.branch_detail && e.branch_detail.department_detail && e.branch_detail.department_detail.name) ?? e.department_name ?? e.department ?? "",
-        reportingTo: e.supervisor_name ?? e.reportingTo ?? "--",
-        address: e.address ?? "",
-        city: e.user_city ?? e.city ?? "",
-        branch: e.branch_name ?? e.branch ?? "",
-        status: e.active ? "ACTIVE" : "INACTIVE",
-        bio: e.qualification_details ?? "",
-        profileImage: e.profile_picture_url ?? e.profile_picture ?? "",
+        id: String((e as { id?: number | string }).id ?? ""),
+        name: (e as { full_name?: string; name?: string }).full_name ?? (e as { full_name?: string; name?: string }).name ?? "",
+        role: (e as { emp_role?: string; job_title?: string }).emp_role ?? (e as { emp_role?: string; job_title?: string }).job_title ?? "",
+        email: (e as { email?: string; user_email?: string }).email ?? (e as { email?: string; user_email?: string }).user_email ?? "",
+        phone: (e as { phone?: string; phone_number?: string }).phone ?? (e as { phone?: string; phone_number?: string }).phone_number ?? "",
+        joinDate: (e as { join_date?: string }).join_date ? new Date((e as { join_date?: string }).join_date!).toLocaleDateString() : "",
+        department: ((e as { branch_detail?: { department_detail?: { name?: string } } }).branch_detail?.department_detail?.name) ?? (e as { department_name?: string; department?: string }).department_name ?? (e as { department_name?: string; department?: string }).department ?? "",
+        reportingTo: (e as { supervisor_name?: string; reportingTo?: string }).supervisor_name ?? (e as { supervisor_name?: string; reportingTo?: string }).reportingTo ?? "--",
+        address: (e as { address?: string }).address ?? "",
+        city: (e as { user_city?: string; city?: string }).user_city ?? (e as { user_city?: string; city?: string }).city ?? "",
+        branch: (e as { branch_name?: string; branch?: string }).branch_name ?? (e as { branch_name?: string; branch?: string }).branch ?? "",
+        status: (e as { active?: boolean }).active ? "ACTIVE" : "INACTIVE",
+        bio: (e as { qualification_details?: string }).qualification_details ?? "",
+        profileImage: (e as { profile_picture_url?: string; profile_picture?: string }).profile_picture_url ?? (e as { profile_picture_url?: string; profile_picture?: string }).profile_picture ?? "",
     } : null;
 
     if (!resolved) {
@@ -68,18 +68,6 @@ export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCar
             }}
         />
     );
-
-    const detailItems = employee ? [
-        { iconSrc: "/icons/id-badge.svg", label: "User ID", value: employee.id },
-        { iconSrc: "/icons/envelope.svg", label: "E-mail", value: employee.email },
-        { iconSrc: "/icons/smartphone.svg", label: "Phone Number", value: employee.phone },
-        { iconSrc: "/icons/calendar.svg", label: "Join Date", value: employee.joinDate },
-        { iconSrc: "/icons/hierarchy.svg", label: "Department", value: employee.department },
-        { iconSrc: "/icons/manager.svg", label: "Reporting to", value: employee.reportingTo },
-        { iconSrc: "/icons/map-pin.svg", label: "Address", value: employee.address },
-        { iconSrc: "/icons/map-pin.svg", label: "City", value: employee.city },
-        { iconSrc: "/icons/branch.svg", label: "Branch", value: employee.branch },
-    ] : [];
 
     return (
         <Card className="border-none rounded-lg shadow-[0px_4px_30px_0px_#2E2D740c] gap-0">

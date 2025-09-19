@@ -56,8 +56,8 @@ export class ApiClient {
       API_ROUTES.AUTH.REFRESH_TOKEN,
       refreshToken ? { refresh: refreshToken } : undefined
     );
-    const newAccess = (data as any).access as string;
-    const newRefresh = (data as any).refresh as string | undefined;
+    const newAccess = (data as { access?: string; refresh?: string }).access as string;
+    const newRefresh = (data as { access?: string; refresh?: string }).refresh as string | undefined;
 
     if (typeof window !== "undefined") {
       setAuthCookies(newAccess, newRefresh ?? refreshToken ?? "");

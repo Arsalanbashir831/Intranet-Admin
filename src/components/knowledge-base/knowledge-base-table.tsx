@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
-import { EllipsisVertical, FolderIcon, Pencil, Trash2 } from "lucide-react";
+import { FolderIcon, Trash2 } from "lucide-react";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "@/components/card-table/pin-row-button";
 import { useRouter } from "next/navigation";

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useRefreshToken } from "@/hooks/queries/use-auth";
 import { useProfile } from "@/hooks/queries/use-profile";
 import { ROUTES } from "@/constants/routes";
 import { getAuthTokens, clearAuthCookies } from "@/lib/cookies";
@@ -23,7 +22,6 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -32,7 +30,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const refreshToken = useRefreshToken();
   const { data: profile, isLoading: profileLoading, error: profileError } = useProfile();
 
   // Check for existing tokens on mount
@@ -133,11 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
-    // This is handled by the useLogin hook in the login form
-    // The auth context will be updated when the login mutation succeeds
-  };
-
   const logout = () => {
     setUser(null);
     clearAuthCookies();
@@ -149,7 +141,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isAuthenticated: !!user,
     isLoading: isLoading || profileLoading,
-    login,
     logout,
   };
 
