@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 import { useDepartments } from "@/hooks/queries/use-departments";
+import { useBranches } from "@/hooks/queries/use-branches";
 
 export type DepartmentRow = {
   id: string;
@@ -29,22 +30,23 @@ export type DepartmentRow = {
 
 export function DepartmentsTable({ className }: { className?: string }) {
   const [sortedBy, setSortedBy] = React.useState<string>("name");
-  const { data: departmentsData, isLoading, error } = useDepartments();
+  const { data: branchesData, isLoading, error } = useBranches();
   const router = useRouter();
 
   // Transform API data to match our UI structure
   const departments: DepartmentRow[] = React.useMemo(() => {
-    if (!departmentsData?.results) return [];
+    const list = Array.isArray(branchesData) ? branchesData : (branchesData?.results ?? []);
+    if (!list) return [];
 
-    return departmentsData.results.map((dept: any) => ({
-      id: dept.id.toString(),
-      department: dept.name || dept.department_name || "N/A",
-      location: dept.branch?.name || dept.location || "N/A",
-      managerName: dept.manager?.name || dept.manager_name || "--",
-      managerAvatar: dept.manager?.avatar || dept.manager_avatar,
-      staffCount: dept.staff_count || dept.employee_count || 0,
+    return (list as any[]).map((item: any) => ({
+      id: String(item.id),
+      department: item.department_detail?.name ?? "N/A",
+      location: item.location_detail?.name ?? "N/A",
+      managerName: item.manager_detail?.full_name || item.manager_detail?.user_email || "--",
+      managerAvatar: item.manager_detail?.profile_picture || undefined,
+      staffCount: item.employee_count || 0,
     }));
-  }, [departmentsData]);
+  }, [branchesData]);
 
   const [data, setData] = React.useState<DepartmentRow[]>(departments);
   const { pinnedIds, togglePin, ordered } = usePinnedRows<DepartmentRow>(data);

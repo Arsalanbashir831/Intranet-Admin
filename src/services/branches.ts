@@ -4,9 +4,9 @@ import type { paths, components } from "@/types/api";
 
 export type BranchListResponse = paths["/api/branches/"]["get"]["responses"][200]["content"]["application/json"];
 export type BranchDetailResponse = paths["/api/branches/{id}/"]["get"]["responses"][200]["content"]["application/json"];
-export type BranchCreateRequest = components["schemas"]["BranchCreateRequest"];
+export type BranchCreateRequest = components["schemas"]["BranchRequest"];
 export type BranchCreateResponse = paths["/api/branches/"]["post"]["responses"][201]["content"]["application/json"];
-export type BranchUpdateRequest = components["schemas"]["BranchUpdateRequest"];
+export type BranchUpdateRequest = components["schemas"]["BranchRequest"];
 export type BranchUpdateResponse = paths["/api/branches/{id}/"]["put"]["responses"][200]["content"]["application/json"];
 
 export async function listBranches(params?: Record<string, unknown>) {

@@ -18,13 +18,20 @@ export const API_ROUTES = {
         UPDATE: (id: number | string) => `/departments/${id}/`,
         DELETE: (id: number | string) => `/departments/${id}/`,
     },
-    BRANCHES: {
-        LIST: "/branches/",
-        DETAIL: (id: number | string) => `/branches/${id}/`,
-        CREATE: "/branches/",
-        UPDATE: (id: number | string) => `/branches/${id}/`,
-        DELETE: (id: number | string) => `/branches/${id}/`,
-    },
+        LOCATIONS: {
+            LIST: "/locations/",
+            DETAIL: (id: number | string) => `/locations/${id}/`,
+            CREATE: "/locations/",
+            UPDATE: (id: number | string) => `/locations/${id}/`,
+            DELETE: (id: number | string) => `/locations/${id}/`,
+        },
+        BRANCHES: {
+            LIST: "/branches/",
+            DETAIL: (id: number | string) => `/branches/${id}/`,
+            CREATE: "/branches/",
+            UPDATE: (id: number | string) => `/branches/${id}/`,
+            DELETE: (id: number | string) => `/branches/${id}/`,
+        },
     PROFILE: {
         GET: "/user/profile/",
         UPDATE: "/user/profile/update/",

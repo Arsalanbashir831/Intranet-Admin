@@ -1,10 +1,10 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-// Lucide icons removed in favor of public icons
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
+import { useEmployee } from "@/hooks/queries/use-employees";
 
 interface Employee {
     id: string;
@@ -24,10 +24,33 @@ interface Employee {
 }
 
 interface EmployeeProfileCardProps {
-    employee: Employee;
+    employee?: Employee;
+    employeeId?: number | string;
 }
 
-export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
+export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCardProps) {
+    const { data } = useEmployee(employeeId ?? "");
+    const e: any = data ?? employee;
+    const resolved: Employee | null = e ? {
+        id: String(e.id ?? e.id),
+        name: e.full_name ?? e.name ?? "",
+        role: e.emp_role ?? e.job_title ?? "",
+        email: e.email ?? e.user_email ?? "",
+        phone: e.phone ?? e.phone_number ?? "",
+        joinDate: e.join_date ? new Date(e.join_date).toLocaleDateString() : "",
+        department: (e.branch_detail && e.branch_detail.department_detail && e.branch_detail.department_detail.name) ?? e.department_name ?? e.department ?? "",
+        reportingTo: e.supervisor_name ?? e.reportingTo ?? "--",
+        address: e.address ?? "",
+        city: e.user_city ?? e.city ?? "",
+        branch: e.branch_name ?? e.branch ?? "",
+        status: e.active ? "ACTIVE" : "INACTIVE",
+        bio: e.qualification_details ?? "",
+        profileImage: e.profile_picture_url ?? e.profile_picture ?? "",
+    } : null;
+
+    if (!resolved) {
+        return <Card className="border-none rounded-lg shadow-[0px_4px_30px_0px_#2E2D740c] gap-0 p-8">Loading...</Card>;
+    }
     // Helper to render an icon from public/icons with brand color using CSS mask
     const PublicIcon = ({ src }: { src: string }) => (
         <span
@@ -46,7 +69,7 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
         />
     );
 
-    const detailItems = [
+    const detailItems = employee ? [
         { iconSrc: "/icons/id-badge.svg", label: "User ID", value: employee.id },
         { iconSrc: "/icons/envelope.svg", label: "E-mail", value: employee.email },
         { iconSrc: "/icons/smartphone.svg", label: "Phone Number", value: employee.phone },
@@ -56,7 +79,7 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
         { iconSrc: "/icons/map-pin.svg", label: "Address", value: employee.address },
         { iconSrc: "/icons/map-pin.svg", label: "City", value: employee.city },
         { iconSrc: "/icons/branch.svg", label: "Branch", value: employee.branch },
-    ];
+    ] : [];
 
     return (
         <Card className="border-none rounded-lg shadow-[0px_4px_30px_0px_#2E2D740c] gap-0">
@@ -65,9 +88,9 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
                 <div className="flex items-start gap-6 flex-1">
                     {/* Profile Picture */}
                     <Avatar className="size-36">
-                        <AvatarImage src={employee.profileImage} alt={employee.name} />
+                        <AvatarImage src={resolved.profileImage} alt={resolved.name} />
                         <AvatarFallback className="text-lg font-semibold bg-gray-100 text-gray-600">
-                            {employee.name.split(' ').map(n => n[0]).join('')}
+                            {resolved.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                     </Avatar>
 
@@ -79,21 +102,21 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
                                     variant="secondary"
                                     className="bg-[#1A9882] text-white rounded-full px-3 py-1 text-xs"
                                 >
-                                    {employee.status}
+                                    {resolved.status}
                                 </Badge>
                             </div>
 
                             <h1 className="text-base font-semibold text-[#1D1F2C] mb-1">
-                                {employee.name}
+                                {resolved.name}
                             </h1>
 
                             <p className="text-sm text-[#667085] mb-4">
-                                {employee.role}
+                                {resolved.role}
                             </p>
                         </div>
-                        <p className="text-[#667085] leading-relaxed max-w-3xl border border-[#E2E8F0] rounded-md p-4">
-                            {employee.bio}
-                        </p>
+                        <div className="text-[#667085] leading-relaxed max-w-3xl border border-[#E2E8F0] rounded-md p-4 prose prose-sm sm:prose-base focus:outline-none prose-p:leading-relaxed prose-pre:p-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 [&_ul_li_p]:inline [&_ol_li_p]:inline [&_ul_li_p]:m-0 [&_ol_li_p]:m-0 flex-1"
+                             dangerouslySetInnerHTML={{ __html: resolved.bio }}
+                        />
                     </div>
                 </div>
 
@@ -104,7 +127,17 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
             <div className="p-8 pt-0">
                 {/* Details Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {detailItems.map((item, index) => (
+                    {[
+                        { iconSrc: "/icons/id-badge.svg", label: "User ID", value: resolved.id },
+                        { iconSrc: "/icons/envelope.svg", label: "E-mail", value: resolved.email },
+                        { iconSrc: "/icons/smartphone.svg", label: "Phone Number", value: resolved.phone },
+                        { iconSrc: "/icons/calendar.svg", label: "Join Date", value: resolved.joinDate },
+                        { iconSrc: "/icons/hierarchy.svg", label: "Department", value: resolved.department },
+                        { iconSrc: "/icons/manager.svg", label: "Reporting to", value: resolved.reportingTo },
+                        { iconSrc: "/icons/map-pin.svg", label: "Address", value: resolved.address },
+                        { iconSrc: "/icons/map-pin.svg", label: "City", value: resolved.city },
+                        { iconSrc: "/icons/branch.svg", label: "Branch", value: resolved.branch },
+                    ].map((item, index) => (
                         <div key={index} className="flex items-center gap-3">
                             {/* Icon from public/icons */}
                             <div className="w-10 h-10 rounded-full bg-[#F0F1F3] grid place-items-center flex-shrink-0">

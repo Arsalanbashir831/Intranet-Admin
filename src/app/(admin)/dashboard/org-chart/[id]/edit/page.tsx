@@ -1,40 +1,61 @@
+"use client";
 
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { OrgChartForm, type OrgChartInitialValues } from "@/components/org-chart/org-chart-form";
 // import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { useParams } from "next/navigation";
+import { useEmployee } from "@/hooks/queries/use-employees";
 
-interface EditOrgChartPageProps {
-  params: Promise<{ id: string }>
-}
+export default function EditOrgChartPage() {
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
 
-export default async function EditOrgChartPage({ params }: EditOrgChartPageProps) {
-  const { id } = await params;
+  const { data: employee, isLoading, isError } = useEmployee(String(id));
 
-  // Dummy data for now; replace with API-fetched values later
-  const initialValues: OrgChartInitialValues = {
-    name: "Linda Blair",
-    address: "3890 Poplar Dr.",
-    city: "Lahore",
-    phone: "050 414 8778",
-    email: "lindablair@mail.com",
-    reportingTo: "Flores",
-    departmentIds: ["1"],
-    branch: "Lahore",
-    profileImageUrl: "https://images.unsplash.com/photo-1593696954577-ab3d39317b97?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGZyZWUlMjBpbWFnZXN8ZW58MHx8MHx8fDA%3D",
-    qualificationAndEducation:
-      `<p><mark data-color="#FFFF00" style="background-color: rgb(255, 255, 0); color: inherit;">Bachelor's in Human Resources, University of California.</mark></p>`,
-  };
+  const initialValues: OrgChartInitialValues | undefined = employee
+    ? {
+        first_name: employee.first_name || (employee.full_name ? String(employee.full_name).split(" ")[0] : ""),
+        last_name: employee.last_name || (employee.full_name ? String(employee.full_name).split(" ").slice(1).join(" ") : ""),
+        address: employee.address || "",
+        city: employee.user_city || "",
+        phone: employee.phone_number || "",
+        email: employee.user_email,
+        // Pull expanded details defensively from runtime payload
+        departmentIds: (employee as any)?.branch_detail?.department_detail?.id ? [String((employee as any).branch_detail.department_detail.id)] : [],
+        branch: (employee as any)?.branch_detail?.location_detail?.id ? String((employee as any).branch_detail.location_detail.id) : undefined,
+        profileImageUrl: (employee as any)?.profile_picture_url || employee.profile_picture || undefined,
+        qualificationAndEducation: employee.qualification_details || "",
+        job_title: employee.job_title || "",
+        emp_role: employee.emp_role || "",
+        join_date: employee.join_date || "",
+      }
+    : undefined;
+
+  let submitFn: (() => void) | null = null;
 
   return (
     <>
-      <PageHeader title="Org Chart/Directory" crumbs={[{ label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }, { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART }, { label: "Edit", href: ROUTES.ADMIN.ORG_CHART_PROFILE_ID_EDIT(id) }]} action={<div className="flex gap-2"><Button variant='outline' className="border-primary">Save As Draft</Button><Button>Save</Button></div>} />
-      {/* <ScrollArea className="h-[calc(100vh-10rem)]"> */}
-        <div className="px-4 md:px-12 py-4">
-          <OrgChartForm initialValues={initialValues} />
-        </div>
-      {/* </ScrollArea> */}
+      <PageHeader
+        title="Org Chart/Directory"
+        crumbs={[{ label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }, { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART }, 
+          { label: employee?.full_name || "Employee", href: ROUTES.ADMIN.ORG_CHART_PROFILE_ID(String(id)) },
+          { label: "Edit", href: ROUTES.ADMIN.ORG_CHART_PROFILE_ID_EDIT(String(id)) }]}
+        action={<div className="flex gap-2"><Button onClick={() => submitFn?.()}>Save</Button></div>}
+      />
+      <div className="px-4 md:px-12 py-4">
+        {isLoading && <div>Loading employee...</div>}
+        {isError && <div>Failed to load employee.</div>}
+        {initialValues && (
+          <OrgChartForm
+            initialValues={initialValues}
+            isEdit
+            employeeId={String(id)}
+            onRegisterSubmit={(fn) => { submitFn = fn; }}
+          />
+        )}
+      </div>
     </>
   );
 }

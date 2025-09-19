@@ -5,19 +5,36 @@ import { SelectableTags, type SelectableItem } from "@/components/ui/selectable-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChecklistCard } from "./checklist-card";
 import { Card } from "../ui/card";
+import { useEmployees } from "@/hooks/queries/use-employees";
 
 export type ChecklistItemData = { id: string; title: string; body: string };
 
-type User = { id: string; name: string; username: string; department: string; avatar?: string };
-const users: User[] = [
-  { id: "albert-flores", name: "Albert Flores", username: "albert", department: "HR", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60" },
-  { id: "jenny-wilson", name: "Jenny Wilson", username: "jenny", department: "Finance", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=60" },
-  { id: "devon-lane", name: "Devon Lane", username: "devon", department: "IT", avatar: "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=200&auto=format&fit=crop&q=60" },
-];
+type ApiEmployee = {
+  id: number;
+  full_name: string;
+  username?: string;
+  department_name?: string;
+  profile_picture_url?: string;
+};
 
 export function NewHirePlanForm() {
   const [assignees, setAssignees] = React.useState<string[]>([]);
-  const selectableItems: SelectableItem[] = users.map((u) => ({ id: u.id, label: u.name }));
+  const { data, isLoading } = useEmployees();
+  const employees: ApiEmployee[] = React.useMemo(() => {
+    // Support both paginated and array responses
+    const list = Array.isArray(data) ? data : (data?.results ?? []);
+    return (list as any[]).map((e) => ({
+      id: e.id,
+      full_name: e.full_name ?? e.name ?? "",
+      username: e.username,
+      department_name: e.department_name ?? e.department,
+      profile_picture_url: e.profile_picture_url ?? e.profile_picture,
+    }));
+  }, [data]);
+  const selectableItems: SelectableItem[] = React.useMemo(
+    () => employees.map((u) => ({ id: String(u.id), label: u.full_name })),
+    [employees]
+  );
 
   const left: ChecklistItemData[] = [
     { id: "1", title: "Task Title..", body: "Task body about this task.." },
@@ -48,21 +65,21 @@ export function NewHirePlanForm() {
             searchPlaceholder="Search people..."
             emptyMessage="No people found."
             renderSelected={(id) => {
-              const u = users.find((x) => x.id === id);
+              const u = employees.find((x) => String(x.id) === id);
               if (!u) return null;
-              const initials = u.name
+              const initials = (u.full_name || "")
                 .split(" ")
                 .map((n) => n[0])
                 .join("");
               return (
                 <div className="flex items-center gap-2">
                   <Avatar className="size-6">
-                    <AvatarImage src={u.avatar} alt={u.name} />
+                    <AvatarImage src={u.profile_picture_url} alt={u.full_name} />
                     <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="leading-tight text-left">
-                    <div className="text-xs text-[#2E2E2E]">{u.name}</div>
-                    <div className="text-[10px] text-muted-foreground">{u.department}</div>
+                    <div className="text-xs text-[#2E2E2E]">{u.full_name}</div>
+                    <div className="text-[10px] text-muted-foreground">{u.department_name ?? "—"}</div>
                   </div>
                 </div>
               );

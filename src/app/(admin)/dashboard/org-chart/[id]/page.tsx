@@ -10,23 +10,6 @@ interface ProfilePageProps {
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
     const { id } = await params;
-    // In a real app, you'd fetch employee data based on params.id
-    const employeeData = {
-        id: "ID-011221",
-        name: "Linda Blair",
-        role: "HR",
-        email: "lindablair@mail.com",
-        phone: "050 414 8778",
-        joinDate: "12/12/2022",
-        department: "HR",
-        reportingTo: "Flores",
-        address: "3890 Poplar Dr.",
-        city: "Lahore",
-        branch: "Lahore",
-        status: "Active Employee",
-        bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-        profileImage: "", // Placeholder for now
-    };
 
     return (
         <>
@@ -35,7 +18,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 crumbs={[
                     { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
                     { label: "Org Chart / Directory", href: ROUTES.ADMIN.ORG_CHART },
-                    { label: "Linda Blair", href: ROUTES.ADMIN.ORG_CHART_PROFILE_ID(id) }
+                    { label: "Employee", href: ROUTES.ADMIN.ORG_CHART_PROFILE_ID(id) }
                 ]}
                 action={
                     <Link href={ROUTES.ADMIN.ORG_CHART_PROFILE_ID_EDIT(id)}>
@@ -46,11 +29,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 }
             />
 
-            
-
-            {/* Profile Details Card */}
             <div className="px-4 md:px-12 py-6">
-                <EmployeeProfileCard employee={employeeData} />
+                {/* Updated EmployeeProfileCard to fetch by id internally */}
+                <EmployeeProfileCard employeeId={id} />
             </div>
         </>
     );
