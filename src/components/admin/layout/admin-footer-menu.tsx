@@ -12,8 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Settings, LogOut, Users, ChevronUp, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/auth-context";
+import { useLogout } from "@/hooks/queries/use-auth";
 
 export function AdminFooterMenu() {
+  const { user } = useAuth();
+  const logoutMutation = useLogout();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,9 +28,9 @@ export function AdminFooterMenu() {
         >
           <span className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0">
             <Avatar className="size-8 bg-white text-black rounded-[4px]">
-              <AvatarFallback>A</AvatarFallback>
+              <AvatarFallback>{user?.name?.split(" ")[0]}</AvatarFallback>
             </Avatar>
-            <span className="text-base group-data-[collapsible=icon]:hidden">Admin Team's</span>
+            <span className="text-base group-data-[collapsible=icon]:hidden">{user?.name}</span>
           </span>
           <span className="flex flex-col items-center text-white/90 group-data-[collapsible=icon]:hidden">
             <ChevronUp className="size-4" />
@@ -39,7 +44,7 @@ export function AdminFooterMenu() {
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <Users className="mr-2 size-4" />
-            Manage Members
+            Manage Employees
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Settings className="mr-2 size-4" />
@@ -47,9 +52,9 @@ export function AdminFooterMenu() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-red-600 focus:text-red-600">
+        <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => logoutMutation.mutate()}>
           <LogOut className="mr-2 size-4 text-destructive" />
-          Sign out
+          {logoutMutation.isPending ? "Signing out..." : "Sign out"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

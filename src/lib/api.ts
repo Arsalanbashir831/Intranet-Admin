@@ -1,6 +1,7 @@
 // lib/api.ts
 import { API_ROUTES } from "@/constants/api-routes";
 import { ROUTES } from "@/constants/routes";
+import { getAuthTokens, setAuthCookies, clearAuthCookies } from "@/lib/cookies";
 import axios, {
   AxiosError,
   AxiosInstance,
@@ -8,7 +9,7 @@ import axios, {
 } from "axios";
 
 const BACKEND_URL =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_BASE_URL) || 
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_BASE_URL) ||
   "/api"; // fallback to Next.js API proxy
 
 interface PendingRequest {
@@ -38,9 +39,9 @@ export class ApiClient {
   private attachAccessToken(config: InternalAxiosRequestConfig) {
     try {
       if (typeof window !== "undefined") {
-        const token = window.localStorage.getItem("accessToken");
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
+        const { accessToken } = getAuthTokens();
+        if (accessToken && config.headers) {
+          config.headers.Authorization = `Bearer ${accessToken}`;
         }
       }
     } catch {
@@ -50,11 +51,34 @@ export class ApiClient {
   }
 
   private async refreshAccessToken(): Promise<string> {
-    const { data } = await this.axios.post(API_ROUTES.AUTH.REFRESH_TOKEN);
-    const newToken = data.access_token as string;
-    localStorage.setItem("accessToken", newToken);
-    this.axios.defaults.headers.common.Authorization = `Bearer ${newToken}`;
-    return newToken;
+    const { refreshToken } = getAuthTokens();
+    const { data } = await this.axios.post(
+      API_ROUTES.AUTH.REFRESH_TOKEN,
+      refreshToken ? { refresh: refreshToken } : undefined
+    );
+    const newAccess = (data as any).access as string;
+    const newRefresh = (data as any).refresh as string | undefined;
+
+    if (typeof window !== "undefined") {
+      setAuthCookies(newAccess, newRefresh ?? refreshToken ?? "");
+    }
+
+    this.axios.defaults.headers.common.Authorization = `Bearer ${newAccess}`;
+    return newAccess;
+  }
+
+  private setCookie(name: string, value: string, days: number = 7) {
+    if (typeof document !== "undefined") {
+      const expires = new Date();
+      expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+      document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+    }
+  }
+
+  private removeCookie(name: string) {
+    if (typeof document !== "undefined") {
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+    }
   }
 
   private processQueue(error: unknown, token: string | null = null) {
@@ -102,18 +126,15 @@ export class ApiClient {
         return this.axios.request(originalReq);
       } catch (refreshError) {
         this.processQueue(refreshError, null);
-        localStorage.removeItem("accessToken");
         if (typeof window !== "undefined") {
-          // Check if not already on login page or if it's an auth related path
-          const loginPath = ROUTES.AUTH_LOGIN.replace(/\/$/, "");
+          clearAuthCookies();
+          
+          // Check if not already on login page
+          const loginPath = ROUTES.AUTH.LOGIN.replace(/\/$/, "");
           const currentPath = window.location.pathname.replace(/\/$/, "");
           if (currentPath !== loginPath) {
-            // Trigger a more controlled logout via context if possible, or redirect.
-            // For now, keeping the redirect but it's often better if UserContext handles this.
-            console.error(
-              "ApiClient: Token refresh failed, redirecting to login."
-            );
-            window.location.href = ROUTES.AUTH_LOGIN;
+            console.error("ApiClient: Token refresh failed, redirecting to login.");
+            window.location.href = ROUTES.AUTH.LOGIN;
           }
         }
         return Promise.reject(refreshError);

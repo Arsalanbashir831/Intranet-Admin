@@ -1,11 +1,16 @@
 import { PageHeader } from "@/components/page-header";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES } from "@/constants/routes";
-import { Card } from "@/components/ui/card";
 import * as React from "react";
 import { DepartmentsDetailTable } from "@/components/departments/departments-detail-table";
 
-export default function DepartmentDetailsPage({ params }: { params: { id: string } }) {
+interface DepartmentDetailsPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default async function DepartmentDetailsPage({ params }: DepartmentDetailsPageProps) {
+  const { id } = await params;
   return (
     <>
       <PageHeader
@@ -17,10 +22,10 @@ export default function DepartmentDetailsPage({ params }: { params: { id: string
         ]}
       />
       {/* <ScrollArea className="h-[calc(100vh-10rem)]"> */}
-        <div className="px-4 md:px-12 py-4">
-            <DepartmentsDetailTable />
-        </div>
-        {/* </ScrollArea> */}
+      <div className="px-4 md:px-12 py-4">
+        <DepartmentsDetailTable departmentId={id} />
+      </div>
+      {/* </ScrollArea> */}
     </>
   );
 }

@@ -10,6 +10,8 @@ import { AdminSidebar } from "@/components/admin/layout/admin-sidebar";
 import { AdminTopbar } from "@/components/admin/layout/admin-topbar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { AuthProvider } from "@/contexts/auth-context";
+import { AuthGuard } from "@/components/auth/auth-guard";
 
 type AdminLayoutProps = {
   children: ReactNode;
@@ -24,21 +26,25 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [queryClient] = useState(() => new QueryClient());
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <AdminSidebar />
-        <SidebarInset className="flex flex-col">
-            <AdminTopbar />
-            <div>
-              <UploadQueueProvider>
-                {children}
-                <QueueMount />
-              </UploadQueueProvider>
-            </div>
-        </SidebarInset>
-      </SidebarProvider>
-      {process.env.NODE_ENV !== "production" ? (
-        <ReactQueryDevtools initialIsOpen={false} />
-      ) : null}
+      <AuthProvider>
+        <AuthGuard requireAuth={true}>
+          <SidebarProvider>
+            <AdminSidebar />
+            <SidebarInset className="flex flex-col">
+              <AdminTopbar />
+              <div>
+                <UploadQueueProvider>
+                  {children}
+                  <QueueMount />
+                </UploadQueueProvider>
+              </div>
+            </SidebarInset>
+          </SidebarProvider>
+        </AuthGuard>
+        {process.env.NODE_ENV !== "production" ? (
+          <ReactQueryDevtools initialIsOpen={false} />
+        ) : null}
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

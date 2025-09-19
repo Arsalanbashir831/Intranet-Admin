@@ -10,6 +10,7 @@ import { CardTablePagination } from "@/components/card-table/card-table-paginati
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EllipsisVertical, Trash2 } from "lucide-react";
+import { useEmployees } from "@/hooks/queries/use-employees";
 
 export type DepartmentEmployeeRow = {
   id: string;
@@ -20,20 +21,30 @@ export type DepartmentEmployeeRow = {
   avatar?: string;
 };
 
-const employees: DepartmentEmployeeRow[] = [
-  { id: "1", name: "Albert Flores", email: "Fisherman12@gmail.com", address: "3890 Poplar Dr.", role: "Director", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60" },
-  { id: "2", name: "Albert Flores", email: "Janecooper@gmail.com", address: "8080 Railroad St.", role: "Manager", avatar: "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=200&auto=format&fit=crop&q=60" },
-  { id: "3", name: "Albert Flores", email: "Fisherman12@gmail.com", address: "7529 E. Pecan St.", role: "HOD", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=60" },
-  { id: "4", name: "Albert Flores", email: "Janecooper@gmail.com", address: "8558 Green Rd.", role: "CEO", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60" },
-  { id: "5", name: "Albert Flores", email: "Joneshighman@gmail.com", address: "3605 Parker Rd.", role: "Director" },
-  { id: "6", name: "Albert Flores", email: "Savannhabae@yahoo.com", address: "3890 Poplar Dr.", role: "Director" },
-  { id: "7", name: "Albert Flores", email: "Ester123@gmail.com", address: "775 Rolling Green Rd.", role: "Lead" },
-  { id: "8", name: "Albert Flores", email: "Fisherman12@gmail.com", address: "3605 Parker Rd.", role: "Lead" },
-  { id: "9", name: "Albert Flores", email: "Ester123@gmail.com", address: "3605 Parker Rd.", role: "HOD" },
-];
+interface DepartmentsDetailTableProps {
+  departmentId?: string;
+}
 
-export function DepartmentsDetailTable() {
+export function DepartmentsDetailTable({ departmentId }: DepartmentsDetailTableProps) {
   const [sortedBy, setSortedBy] = React.useState<string>("name");
+  const { data: employeesData, isLoading, error } = useEmployees(
+    departmentId ? { department: departmentId } : undefined
+  );
+
+  // Transform API data to match our UI structure
+  const employees: DepartmentEmployeeRow[] = React.useMemo(() => {
+    if (!employeesData?.results) return [];
+
+    return employeesData.results.map((emp: any) => ({
+      id: emp.id.toString(),
+      name: emp.name || emp.full_name || "N/A",
+      email: emp.email || "N/A",
+      address: emp.address || emp.location || "N/A",
+      role: emp.role || emp.position || "N/A",
+      avatar: emp.avatar || emp.profile_image,
+    }));
+  }, [employeesData]);
+
   const [data, setData] = React.useState<DepartmentEmployeeRow[]>(employees);
 
   React.useEffect(() => {
@@ -46,7 +57,27 @@ export function DepartmentsDetailTable() {
       return String(av).localeCompare(String(bv));
     });
     setData(copy);
-  }, [sortedBy]);
+  }, [employees, sortedBy]);
+
+  if (isLoading) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
+        <div className="flex items-center justify-center h-32">
+          <div className="text-sm text-muted-foreground">Loading employees...</div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
+        <div className="flex items-center justify-center h-32">
+          <div className="text-sm text-red-500">Error loading employees</div>
+        </div>
+      </Card>
+    );
+  }
 
   const columns: ColumnDef<DepartmentEmployeeRow>[] = [
     {
@@ -102,7 +133,7 @@ export function DepartmentsDetailTable() {
           <Button size="icon" variant="ghost" className="text-[#D64575]">
             <Trash2 className="size-4" />
           </Button>
-          
+
         </div>
       ),
     },
@@ -112,7 +143,7 @@ export function DepartmentsDetailTable() {
     <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
       <CardTableToolbar
         title="Marketing Staff Directory"
-        onSearchChange={() => {}}
+        onSearchChange={() => { }}
         sortOptions={[
           { label: "Employee Name", value: "name" },
           { label: "Employee Email", value: "email" },
@@ -121,7 +152,7 @@ export function DepartmentsDetailTable() {
         ]}
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}
-        onFilterClick={() => {}}
+        onFilterClick={() => { }}
       />
       <CardTable<DepartmentEmployeeRow, unknown>
         columns={columns}

@@ -7,7 +7,7 @@ import { CardTableColumnHeader } from "@/components/card-table/card-table-column
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EllipsisVertical, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
@@ -16,6 +16,7 @@ import { PinRowButton } from "../card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
+import { useDepartments } from "@/hooks/queries/use-departments";
 
 export type DepartmentRow = {
   id: string;
@@ -26,21 +27,27 @@ export type DepartmentRow = {
   staffCount: number;
 };
 
-const departments: DepartmentRow[] = [
-  { id: "1", department: "HR", location: "Bochum", managerName: "Albert Flores", managerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60", staffCount: 492 },
-  { id: "2", department: "Marketing", location: "Wuppertal", managerName: "Albert Flores", managerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60", staffCount: 357 },
-  { id: "3", department: "Finance", location: "Greensboro (NC)", managerName: "Albert Flores", managerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60", staffCount: 738 },
-  { id: "4", department: "Marketing", location: "Greensboro (NC)", managerName: "Albert Flores", managerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60", staffCount: 357 },
-  { id: "5", department: "Executive", location: "Hampton (VA)", managerName: "Albert Flores", managerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60", staffCount: 703 },
-  { id: "6", department: "Marketing", location: "Hampton (VA)", managerName: "Albert Flores", managerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60", staffCount: 357 },
-  { id: "7", department: "Legal", location: "Rubtsovsk,", managerName: "Albert Flores", managerAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60", staffCount: 154 },
-];
-
 export function DepartmentsTable({ className }: { className?: string }) {
-  const [sortedBy, setSortedBy] = React.useState<string>("department");
+  const [sortedBy, setSortedBy] = React.useState<string>("name");
+  const { data: departmentsData, isLoading, error } = useDepartments();
+  const router = useRouter();
+
+  // Transform API data to match our UI structure
+  const departments: DepartmentRow[] = React.useMemo(() => {
+    if (!departmentsData?.results) return [];
+
+    return departmentsData.results.map((dept: any) => ({
+      id: dept.id.toString(),
+      department: dept.name || dept.department_name || "N/A",
+      location: dept.branch?.name || dept.location || "N/A",
+      managerName: dept.manager?.name || dept.manager_name || "--",
+      managerAvatar: dept.manager?.avatar || dept.manager_avatar,
+      staffCount: dept.staff_count || dept.employee_count || 0,
+    }));
+  }, [departmentsData]);
+
   const [data, setData] = React.useState<DepartmentRow[]>(departments);
   const { pinnedIds, togglePin, ordered } = usePinnedRows<DepartmentRow>(data);
-  const router = useRouter();
 
   React.useEffect(() => {
     const copy = [...departments];
@@ -53,6 +60,26 @@ export function DepartmentsTable({ className }: { className?: string }) {
     });
     setData(copy);
   }, [departments, sortedBy]);
+
+  if (isLoading) {
+    return (
+      <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className)}>
+        <div className="flex items-center justify-center h-32">
+          <div className="text-sm text-muted-foreground">Loading departments...</div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className)}>
+        <div className="flex items-center justify-center h-32">
+          <div className="text-sm text-red-500">Error loading departments</div>
+        </div>
+      </Card>
+    );
+  }
   const columns: ColumnDef<DepartmentRow>[] = [
     {
       accessorKey: "department",
@@ -97,7 +124,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
           <Button size="icon" variant="ghost" className="text-[#D64575]">
             <Trash2 className="size-4" />
           </Button>
-          
+
           <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
