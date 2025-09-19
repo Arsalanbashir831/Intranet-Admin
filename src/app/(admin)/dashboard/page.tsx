@@ -21,14 +21,7 @@ export default function AdminHomePage() {
             />
           </div>
           <div className="flex flex-col">
-          <EmployeeRingChart
-            data={[
-              { name: "Lawyers", value: 60.13, color: "#FF6B6B" },
-              { name: "Finance", value: 25.57, color: "#38BDF8" },
-              { name: "Technical support", value: 5.89, color: "#22C55E" },
-              { name: "HR", value: 4.41, color: "#F59E0B" },
-            ]}
-          />
+          <EmployeeRingChart />
           </div>
         </div>
 

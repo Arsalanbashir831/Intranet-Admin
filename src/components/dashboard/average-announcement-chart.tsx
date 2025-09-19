@@ -42,12 +42,12 @@ export function AverageAnnouncementChart({ data }: { data: { month: string; valu
                         <ArrowUpRight className="size-3" /> 12%
                     </div>
                 </div>
-                <div className="flex items-center gap-2 w-full md:w-auto">
+                <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                        className="h-8 w-full md:w-[210px] justify-between text-left text-xs font-normal"
+                                className="!h-8 w-full md:w-[210px] justify-between text-left text-xs font-normal border-black"
                             >
                                 <span className="truncate">{rangeLabel}</span>
                                 <CalendarIcon className="h-4 w-4 opacity-50" />
@@ -65,7 +65,7 @@ export function AverageAnnouncementChart({ data }: { data: { month: string; valu
                         </PopoverContent>
                     </Popover>
                     <Select value={granularity} onValueChange={setGranularity}>
-                    <SelectTrigger className="h-8 w-full md:w-[110px] text-xs">
+                        <SelectTrigger className="!h-8 rounded-[4px] w-full md:w-[110px] text-xs border-black">
                             <SelectValue placeholder="Month" />
                         </SelectTrigger>
                         <SelectContent>

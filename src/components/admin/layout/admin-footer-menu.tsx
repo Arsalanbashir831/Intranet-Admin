@@ -19,15 +19,15 @@ export function AdminFooterMenu() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="w-full justify-between p-3 text-white hover:bg-white/10"
+          className="w-full justify-between p-3 text-white hover:bg-white/10 group-data-[collapsible=icon]:justify-center"
         >
-          <span className="flex items-center gap-3">
+          <span className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0">
             <Avatar className="size-8 bg-white text-black rounded-[4px]">
               <AvatarFallback>A</AvatarFallback>
             </Avatar>
-            <span className="text-base">Admin Team’s</span>
+            <span className="text-base group-data-[collapsible=icon]:hidden">Admin Team's</span>
           </span>
-          <span className="flex flex-col items-center text-white/90">
+          <span className="flex flex-col items-center text-white/90 group-data-[collapsible=icon]:hidden">
             <ChevronUp className="size-4" />
             <ChevronDown className="size-4 -mt-1" />
           </span>

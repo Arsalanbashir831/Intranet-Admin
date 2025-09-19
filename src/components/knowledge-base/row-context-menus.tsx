@@ -27,10 +27,6 @@ export function TableContextMenu({ children, onNewFolder, onNewFile, onChangeAcc
           <FilePlus className="size-4" />
           New File
         </ContextMenuItem>
-        <ContextMenuItem onSelect={onChangeAccess} className="gap-2">
-          <Pen className="size-4" />
-          Change Access Level
-        </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -49,10 +45,6 @@ export function RowContextMenu({ children, onRename, onChangeAccess, onDelete }:
         <ContextMenuItem onSelect={onRename} className="gap-2">
           <Pen className="size-4" />
           Rename
-        </ContextMenuItem>
-        <ContextMenuItem onSelect={onChangeAccess} className="gap-2">
-          <Pen className="size-4" />
-          Change Access Level
         </ContextMenuItem>
         <ContextMenuItem onSelect={onDelete} className="gap-2 text-[#D64575]">
           <Trash2 className="size-4" />

@@ -50,10 +50,10 @@ export function StatCards({ items, className }: { items: StatCardItem[]; classNa
 export function DefaultStatCards() {
   const items = React.useMemo<StatCardItem[]>(
     () => [
-      { id: "policies", label: "Policies", value: 83, iconPath: "/icons/wallet.svg", padTo: 0 },
+      { id: "branches", label: "Office Branches", value: 10, iconPath: "/icons/building-apartment.svg", padTo: 0 },
       { id: "departments", label: "Departments", value: 7, iconPath: "/icons/user-hierarchy.svg", padTo: 2 },
-      { id: "kb", label: "KB Articles", value: "+3,052", iconPath: "/icons/note-blank.svg", padTo: 0 },
-      { id: "people", label: "People", value: 131, iconPath: "/icons/users.svg", padTo: 0 },
+      { id: "policies", label: "Policies", value: 83, iconPath: "/icons/page-folded.svg", padTo: 0 },
+      { id: "people", label: "People", value: 131, iconPath: "/icons/users-filled.svg", padTo: 0 },
     ],
     []
   );

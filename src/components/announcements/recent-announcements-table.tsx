@@ -12,6 +12,8 @@ import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "../card-table/pin-row-button";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 
 export type Announcement = {
   id: string;
@@ -37,6 +39,10 @@ export function RecentAnnouncementsTable() {
   const [sortedBy, setSortedBy] = React.useState<string>("name");
   const [data, setData] = React.useState<Announcement[]>(announcements);
   const { pinnedIds, togglePin, ordered } = usePinnedRows<Announcement>(data);
+  const router = useRouter();
+  const handleRowClick = (row: Announcement) => {
+    router.push(ROUTES.ADMIN.COMPANY_HUB_EDIT_ID(row.id));
+  };
 
   React.useEffect(() => {
     const copy = [...announcements];
@@ -83,9 +89,7 @@ export function RecentAnnouncementsTable() {
           <Button size="icon" variant="ghost" className="text-[#D64575]">
             <Trash2 className="size-4" />
           </Button>
-          <Button size="icon" variant="ghost" className="text-[#667085]">
-            <EllipsisVertical className="size-4" />
-          </Button>
+          
           <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
@@ -111,7 +115,8 @@ export function RecentAnnouncementsTable() {
         columns={columns}
         data={ordered}
         headerClassName="grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr]"}
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr] cursor-pointer"}
+        onRowClick={(row) => handleRowClick(row.original)}
         footer={(table) => <CardTablePagination table={table} />}
       />
     </Card>

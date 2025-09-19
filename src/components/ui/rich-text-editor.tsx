@@ -28,7 +28,6 @@ import {
   List,
   ListOrdered,
   Image as ImageIcon,
-  Upload,
   Type,
   ChevronUp,
   ChevronDown,
@@ -36,7 +35,7 @@ import {
   BaselineIcon,
 } from "lucide-react";
 import { Input } from "./input";
-import { ScrollArea, ScrollBar } from "./scroll-area";
+// import { ScrollArea, ScrollBar } from "./scroll-area";
 
 export interface RichTextEditorProps {
   content?: string;
@@ -243,9 +242,6 @@ export function RichTextEditor({
 
   return (
     <div className={cn("rounded-md border border-[#E2E8F0]", className)}>
-      <ScrollArea className="h-full">
-        <ScrollBar orientation="horizontal" />
-
         {/* Toolbar */}
         <div className="flex items-center gap-1 border-b border-[#E2E8F0] text-muted-foreground text-sm">
           {/* Font Size */}
@@ -272,129 +268,98 @@ export function RichTextEditor({
 
           <div className="flex items-center gap-2">
             {/* Text Color */}
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn("size-6 p-0 text-[#475569]", editor?.isActive("textStyle") && "bg-muted")}
-                onClick={() => setShowTextColorPicker(!showTextColorPicker)}
-              >
-                <BaselineIcon className="size-4" />
-              </Button>
-
-              {/* Text Color Picker */}
-              {showTextColorPicker && (
-                <div className="absolute z-20 mt-2 bg-white border rounded-lg shadow-lg p-3" data-color-picker>
-                  {/* Quick Color Presets */}
-                  <div className="mb-3">
-                    <div className="text-xs text-muted-foreground mb-2">Quick Colors</div>
-                    <div className="grid grid-cols-6 gap-1">
-                      {quickTextColors.map((color) => (
-                        <Button
-                          key={color}
-                          variant="ghost"
-                          size="sm"
-                          className={cn(
-                            "w-6 h-6 rounded border-2 transition-all hover:scale-110",
-                            textColor === color ? "border-gray-400 ring-2 ring-gray-300" : "border-gray-200 hover:border-gray-300"
-                          )}
-                          style={{ backgroundColor: color }}
-                          onClick={() => handleTextColorChange(color)}
-                          title={color}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Color Picker */}
-                  <div className="border-t pt-3">
-                    <div className="text-xs text-muted-foreground mb-2">Custom Color</div>
-                    <HexColorPicker
-                      color={textColor}
-                      onChange={handleTextColorChange}
-                      style={{ width: "200px" }}
-                    />
-                  </div>
-
-                  <div className="mt-3 flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Text Color</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => setShowTextColorPicker(false)}
-                    >
-                      Done
-                    </Button>
+            <Popover open={showTextColorPicker} onOpenChange={setShowTextColorPicker}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn("size-6 p-0 text-[#475569]", editor?.isActive("textStyle") && "bg-muted")}
+                >
+                  <BaselineIcon className="size-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[220px] p-3" align="start" data-color-picker>
+                <div className="mb-3">
+                  <div className="text-xs text-muted-foreground mb-2">Quick Colors</div>
+                  <div className="grid grid-cols-6 gap-1">
+                    {quickTextColors.map((color, idx) => (
+                      <Button
+                        key={`${color}-${idx}`}
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "w-6 h-6 rounded border-2 transition-all hover:scale-110",
+                          textColor === color ? "border-gray-400 ring-2 ring-gray-300" : "border-gray-200 hover:border-gray-300"
+                        )}
+                        style={{ backgroundColor: color }}
+                        onClick={() => handleTextColorChange(color)}
+                        title={color}
+                      />
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
+                <div className="border-t pt-3">
+                  <div className="text-xs text-muted-foreground mb-2">Custom Color</div>
+                  <HexColorPicker color={textColor} onChange={handleTextColorChange} style={{ width: "200px" }} />
+                </div>
+                <div className="mt-3 flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Text Color</span>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setShowTextColorPicker(false)}>
+                    Done
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
 
             {/* Highlight Color */}
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn("size-6 p-0 text-[#475569]", editor?.isActive("highlight") && "bg-muted")}
-                onClick={toggleHighlight}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  setShowHighlightColorPicker(!showHighlightColorPicker);
-                }}
-                title="Left click: Toggle highlight | Right click: Change color"
-              >
-                <HighlighterIcon className="size-4" />
-              </Button>
-
-              {/* Highlight Color Picker */}
-              {showHighlightColorPicker && (
-                <div className="absolute z-20 mt-2 bg-white border rounded-lg shadow-lg p-3" data-color-picker>
-                  {/* Quick Color Presets */}
-                  <div className="mb-3">
-                    <div className="text-xs text-muted-foreground mb-2">Quick Colors</div>
-                    <div className="grid grid-cols-6 gap-1">
-                      {quickHighlightColors.map((color) => (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          key={color}
-                          className={cn(
-                            "w-6 h-6 rounded border-2 transition-all hover:scale-110",
-                            highlightColor === color ? " ring-2 ring-gray-300" : "border-gray-200 hover:border-gray-300"
-                          )}
-                          style={{ backgroundColor: color }}
-                          onClick={() => handleHighlightColorChange(color)}
-                          title={color}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Color Picker */}
-                  <div className="border-t pt-3">
-                    <div className="text-xs text-muted-foreground mb-2">Custom Color</div>
-                    <HexColorPicker
-                      color={highlightColor}
-                      onChange={handleHighlightColorChange}
-                      style={{ width: "200px" }}
-                    />
-                  </div>
-
-                  <div className="mt-3 flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Highlight Color</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => setShowHighlightColorPicker(false)}
-                    >
-                      Done
-                    </Button>
+            <Popover open={showHighlightColorPicker} onOpenChange={setShowHighlightColorPicker}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn("size-6 p-0 text-[#475569]", editor?.isActive("highlight") && "bg-muted")}
+                  onClick={toggleHighlight}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setShowHighlightColorPicker(true);
+                  }}
+                  title="Left click: Toggle highlight | Right click: Change color"
+                >
+                  <HighlighterIcon className="size-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[220px] p-3" align="start" data-color-picker>
+                <div className="mb-3">
+                  <div className="text-xs text-muted-foreground mb-2">Quick Colors</div>
+                  <div className="grid grid-cols-6 gap-1">
+                    {quickHighlightColors.map((color, idx) => (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        key={`${color}-${idx}`}
+                        className={cn(
+                          "w-6 h-6 rounded border-2 transition-all hover:scale-110",
+                          highlightColor === color ? " ring-2 ring-gray-300" : "border-gray-200 hover:border-gray-300"
+                        )}
+                        style={{ backgroundColor: color }}
+                        onClick={() => handleHighlightColorChange(color)}
+                        title={color}
+                      />
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
+                <div className="border-t pt-3">
+                  <div className="text-xs text-muted-foreground mb-2">Custom Color</div>
+                  <HexColorPicker color={highlightColor} onChange={handleHighlightColorChange} style={{ width: "200px" }} />
+                </div>
+                <div className="mt-3 flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">Highlight Color</span>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setShowHighlightColorPicker(false)}>
+                    Done
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
 
             {/* Bold */}
             <Button
@@ -553,19 +518,6 @@ export function RichTextEditor({
             </PopoverContent>
           </Popover>
 
-          {/* Upload */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="size-6 p-0 text-[#475569]"
-            onClick={() => {
-              // Handle file upload
-              console.log("Upload file");
-            }}
-          >
-            <Upload className="size-4" />
-          </Button>
-
           {/* Separator */}
           <Separator orientation="vertical" className="!h-10 mx-1 bg-[#E2E8F0]" />
 
@@ -583,7 +535,7 @@ export function RichTextEditor({
           </Button>
         </div>
 
-      </ScrollArea>
+      
 
       {/* Editor Content */}
       <div

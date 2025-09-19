@@ -2,17 +2,19 @@
 
 import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
+import { useRouter } from "next/navigation";
 import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EllipsisVertical, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "../card-table/pin-row-button";
+import { ROUTES } from "@/constants/routes";
 
 export type EmployeeRow = {
   id: string;
@@ -40,9 +42,14 @@ const employees: EmployeeRow[] = [
 ];
 
 export function EmployeeTable() {
+  const router = useRouter();
   const [sortedBy, setSortedBy] = React.useState<string>("name");
   const [data, setData] = React.useState<EmployeeRow[]>(employees);
   const { pinnedIds, togglePin } = usePinnedRows<EmployeeRow>(data);
+
+  const handleRowClick = (row: { original: EmployeeRow }) => {
+    router.push(ROUTES.ADMIN.ORG_CHART_PROFILE_ID(row.original.id));
+  };
 
   React.useEffect(() => {
     const copy = [...employees];
@@ -122,9 +129,7 @@ export function EmployeeTable() {
           <Button size="icon" variant="ghost" className="text-[#D64575]">
             <Trash2 className="size-4" />
           </Button>
-          <Button size="icon" variant="ghost" className="text-[#667085]">
-            <EllipsisVertical className="size-4" />
-          </Button>
+          
           <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
@@ -152,7 +157,8 @@ export function EmployeeTable() {
         columns={columns}
         data={data}
         headerClassName="grid-cols-[1.2fr_1fr_1.2fr_0.9fr_0.8fr_1fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.2fr_0.9fr_0.8fr_1fr_0.8fr]"}
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.2fr_0.9fr_0.8fr_1fr_0.8fr] cursor-pointer"}
+        onRowClick={handleRowClick}
         footer={(table) => <CardTablePagination table={table} />}
       />
     </Card>

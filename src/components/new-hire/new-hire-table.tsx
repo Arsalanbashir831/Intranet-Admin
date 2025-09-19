@@ -119,9 +119,7 @@ export function NewHireTable() {
           <Button size="icon" variant="ghost" className="text-[#D64575]">
             <Trash2 className="size-4" />
           </Button>
-          <Button size="icon" variant="ghost" className="text-[#667085]">
-            <EllipsisVertical className="size-4" />
-          </Button>
+          
           <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),

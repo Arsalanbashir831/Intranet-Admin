@@ -134,9 +134,7 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile, onChan
           <Button size="icon" variant="ghost" className="text-[#2563EB]">
             <Pencil className="size-4" />
           </Button>
-          <Button size="icon" variant="ghost" className="text-[#667085]">
-            <EllipsisVertical className="size-4" />
-          </Button>
+          
         </div>
       ),
     },

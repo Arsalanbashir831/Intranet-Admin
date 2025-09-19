@@ -7,6 +7,7 @@ export const ROUTES = {
         // Admin sections
         COMPANY_HUB: "/dashboard/company-hub",
         COMPANY_HUB_NEW: "/dashboard/company-hub/new",
+        COMPANY_HUB_EDIT_ID: (id: string) => `/dashboard/company-hub/${id}`,
         KNOWLEDGE_BASE: "/dashboard/knowledge-base",
         KNOWLEDGE_BASE_FOLDER_ID: (id: string) => `/dashboard/knowledge-base/${id}`,
         NEW_HIRE_PLAN: "/dashboard/new-hire-plan",
