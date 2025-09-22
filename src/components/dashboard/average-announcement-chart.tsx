@@ -24,7 +24,7 @@ export function AverageAnnouncementChart({ data }: { data: { month: string; valu
         const to = dateRange?.to;
         if (!from || !to) return "Select range";
         const fmt = (d: Date) =>
-            d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+            new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(d);
         return `${fmt(from)} - ${fmt(to)}`;
     }, [dateRange]);
 

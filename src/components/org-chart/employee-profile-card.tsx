@@ -37,7 +37,9 @@ export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCar
         role: (e as { emp_role?: string; job_title?: string }).emp_role ?? (e as { emp_role?: string; job_title?: string }).job_title ?? "",
         email: (e as { email?: string; user_email?: string }).email ?? (e as { email?: string; user_email?: string }).user_email ?? "",
         phone: (e as { phone?: string; phone_number?: string }).phone ?? (e as { phone?: string; phone_number?: string }).phone_number ?? "",
-        joinDate: (e as { join_date?: string }).join_date ? new Date((e as { join_date?: string }).join_date!).toLocaleDateString() : "",
+        joinDate: (e as { join_date?: string }).join_date
+            ? new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }).format(new Date((e as { join_date?: string }).join_date!))
+            : "",
         department: ((e as { branch_detail?: { department_detail?: { name?: string } } }).branch_detail?.department_detail?.name) ?? (e as { department_name?: string; department?: string }).department_name ?? (e as { department_name?: string; department?: string }).department ?? "",
         reportingTo: (e as { supervisor_name?: string; reportingTo?: string }).supervisor_name ?? (e as { supervisor_name?: string; reportingTo?: string }).reportingTo ?? "--",
         address: (e as { address?: string }).address ?? "",

@@ -35,7 +35,8 @@ export function ChecklistCard({
         </div>
 
         <NewTaskModal type={variant} open={open} setOpen={setOpen} onCreate={({ title: t }: { title: string }) => {
-          const id = Math.random().toString(36).slice(2, 9);
+          // Stable id generation to avoid SSR/CSR mismatch: timestamp-based, but normalized at creation time
+          const id = `task-${Date.now()}`;
           setItems((prev) => [{ id, title: t || "Task Title..", body: "Task body about this task.." }, ...prev]);
         }} />
       </Card>

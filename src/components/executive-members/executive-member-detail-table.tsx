@@ -138,13 +138,13 @@ export function ExecutiveMemberDetailTable({ executiveId }: ExecutiveMemberDetai
               <div>
                 <label className="text-sm text-[#667085]">Member Since</label>
                 <p className="text-sm text-[#1D1F2C]">
-                  {new Date(executiveMember.created_at).toLocaleDateString()}
+                  {new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }).format(new Date(executiveMember.created_at))}
                 </p>
               </div>
               <div>
                 <label className="text-sm text-[#667085]">Last Updated</label>
                 <p className="text-sm text-[#1D1F2C]">
-                  {new Date(executiveMember.updated_at).toLocaleDateString()}
+                  {new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }).format(new Date(executiveMember.updated_at))}
                 </p>
               </div>
             </div>
