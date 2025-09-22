@@ -35,6 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "New Hire Plan", href: ROUTES.ADMIN.NEW_HIRE_PLAN, iconSrc: "/icons/clipboard-text.svg", description: "Employee onboarding plans" },
   { label: "Departments", href: ROUTES.ADMIN.DEPARTMENTS, iconSrc: "/icons/users.svg", description: "Department management" },
   { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART, iconSrc: "/icons/user-hierarchy.svg", description: "Organization structure" },
+  { label: "Executive Members", href: ROUTES.ADMIN.EXECUTIVE_MEMBERS, iconSrc: "/icons/user-star.svg", description: "Executive team management" },
 ];
 
 export function AdminSidebar() {

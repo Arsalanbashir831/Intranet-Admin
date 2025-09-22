@@ -20,6 +20,10 @@ export const ROUTES = {
     ORG_CHART_NEW: "/dashboard/org-chart/new",
     ORG_CHART_PROFILE_ID: (id: string) => `/dashboard/org-chart/${id}`,
     ORG_CHART_PROFILE_ID_EDIT: (id: string) => `/dashboard/org-chart/${id}/edit`,
+    EXECUTIVE_MEMBERS: "/dashboard/executive-members",
+    EXECUTIVE_MEMBERS_NEW: "/dashboard/executive-members/new",
+    EXECUTIVE_MEMBERS_ID: (id: string) => `/dashboard/executive-members/${id}`,
+    EXECUTIVE_MEMBERS_ID_EDIT: (id: string) => `/dashboard/executive-members/${id}/edit`,
     PROFILE: "/dashboard/profile",
   }
 

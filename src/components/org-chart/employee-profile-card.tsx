@@ -73,7 +73,7 @@ export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCar
         <Card className="border-none rounded-lg shadow-[0px_4px_30px_0px_#2E2D740c] gap-0">
             {/* Profile Header Section */}
             <div className="px-8 py-6">
-                <div className="flex items-start gap-6 flex-1">
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-6 flex-1">
                     {/* Profile Picture */}
                     <Avatar className="size-36">
                         <AvatarImage src={resolved.profileImage} alt={resolved.name} />
@@ -83,7 +83,7 @@ export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCar
                     </Avatar>
 
                     {/* Profile Info */}
-                    <div className="flex items-start justify-between gap-10 w-full">
+                    <div className="flex flex-col md:flex-row items-start justify-between md:gap-10 w-full">
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-3 mb-2">
                                 <Badge
