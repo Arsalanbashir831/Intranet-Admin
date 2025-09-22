@@ -33,9 +33,9 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Company Hub", href: ROUTES.ADMIN.COMPANY_HUB, iconSrc: "/icons/building.svg", description: "Company information and settings" },
   { label: "Knowledge Base", href: ROUTES.ADMIN.KNOWLEDGE_BASE, iconSrc: "/icons/note-blank.svg", description: "Documents and resources" },
   { label: "New Hire Plan", href: ROUTES.ADMIN.NEW_HIRE_PLAN, iconSrc: "/icons/clipboard-text.svg", description: "Employee onboarding plans" },
-  { label: "Departments", href: ROUTES.ADMIN.DEPARTMENTS, iconSrc: "/icons/users.svg", description: "Department management" },
-  { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART, iconSrc: "/icons/user-hierarchy.svg", description: "Organization structure" },
-  { label: "Executive Members", href: ROUTES.ADMIN.EXECUTIVE_MEMBERS, iconSrc: "/icons/user-star.svg", description: "Executive team management" },
+  { label: "Departments", href: ROUTES.ADMIN.DEPARTMENTS, iconSrc: "/icons/user-hierarchy.svg", description: "Department management" },
+  { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART, iconSrc: "/icons/users.svg", description: "Organization structure" },
+  { label: "Executive Members", href: ROUTES.ADMIN.EXECUTIVE_MEMBERS, iconSrc: "/icons/users.svg", description: "Executive team management" },
 ];
 
 export function AdminSidebar() {
