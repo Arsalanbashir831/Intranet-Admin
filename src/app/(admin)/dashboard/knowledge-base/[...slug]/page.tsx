@@ -22,9 +22,10 @@ function getFolderData(pathSegments: string[]): { name: string; items: FolderIte
   return { name, items };
 }
 
-export default function KnowledgeBaseFolderCatchAll({ params }: { params: { slug?: string[] } }) {
+export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promise<{ slug?: string[] }> }) {
   const router = useRouter();
-  const segments = params.slug ?? [];
+  const { slug } = React.use(params);
+  const segments = slug ?? [];
   const decodedSegments = React.useMemo(() => segments.map((s) => {
     try { return decodeURIComponent(s); } catch { return s; }
   }), [segments]);

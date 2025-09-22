@@ -177,8 +177,9 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
         data={rows}
         headerClassName="grid-cols-[1.4fr_1fr_1fr_0.8fr]"
         rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_0.8fr] cursor-pointer"}
-        wrapRow={(rowEl) => (
+        wrapRow={(rowEl, row) => (
           <RowContextMenu
+            key={row.id}
             onRename={() => {}}
             onDelete={() => {}}
           >
