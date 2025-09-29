@@ -26,7 +26,7 @@ export default function OrgChartPage() {
       />
       {/* <ScrollArea className="h-[calc(100vh-10rem)]"> */}
         <div className="px-4 md:px-12 py-4">
-          <EmployeeTable />;
+          <EmployeeTable />
         </div>
       {/* </ScrollArea> */}
     </>

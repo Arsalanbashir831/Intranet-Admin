@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/combobox";
 import { ChevronDown } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useLocations } from "@/hooks/queries/use-locations";
+import { useBranches } from "@/hooks/queries/use-branches";
 import { useEmployees } from "@/hooks/queries/use-employees";
 import { useCreateDepartment } from "@/hooks/queries/use-departments";
 import { useCreateBranch } from "@/hooks/queries/use-branches";
@@ -28,19 +28,19 @@ interface NewDepartmentModalProps {
 }
 
 export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
-  const { data: locationsData, isLoading: locationsLoading } = useLocations();
+  const { data: branchesData, isLoading: branchesLoading } = useBranches();
   const { data: employeesData, isLoading: employeesLoading } = useEmployees();
   const createDepartment = useCreateDepartment();
   const createBranch = useCreateBranch();
 
   // Transform API data
   const branches = useMemo(() => {
-    const list = Array.isArray(locationsData) ? locationsData : (locationsData?.results ?? []);
+    const list = Array.isArray(branchesData) ? branchesData : (branchesData?.results ?? []);
     return list.map((l: { id: number | string; name?: string }) => ({
       id: String(l.id),
       label: l.name || `Location ${l.id}`,
     }));
-  }, [locationsData]);
+  }, [branchesData]);
 
   const managers = useMemo(() => {
     const list = Array.isArray(employeesData) ? employeesData : employeesData?.results;
@@ -164,12 +164,12 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
             <span>Manager</span>
           </div>
           <div className="divide-y divide-[#E4E4E4]">
-            {locationsLoading || employeesLoading ? (
+            {branchesLoading || employeesLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-sm text-muted-foreground">Loading data...</div>
               </div>
             ) : (
-              branches.map((branch) => (
+              branches.map((branch: { id: string; label: string }) => (
                 <div
                   key={branch.id}
                   className="grid grid-cols-[1fr_1fr] items-center px-3 py-2"

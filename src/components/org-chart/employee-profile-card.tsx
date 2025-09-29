@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
 import { useEmployee } from "@/hooks/queries/use-employees";
+import type { components } from "@/types/api";
 
 interface Employee {
     id: string;
@@ -28,27 +29,51 @@ interface EmployeeProfileCardProps {
     employeeId?: number | string;
 }
 
+// Types from OpenAPI
+type ApiEmployee = components["schemas"]["Employee"];
+
+// Small helper types for fields not captured in OpenAPI schema
+interface BranchRef { branch_name?: string }
+interface DepartmentRef { dept_name?: string }
+interface ManagerRef { emp_name?: string }
+interface BranchDepartmentRef {
+    branch?: BranchRef;
+    department?: DepartmentRef;
+    manager?: ManagerRef | null;
+}
+
+// Type guard for the wrapped detail response
+const isDetailWrapper = (value: unknown): value is { employee: ApiEmployee } => {
+    return Boolean(value) && typeof value === "object" && "employee" in (value as Record<string, unknown>);
+};
+
 export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCardProps) {
     const { data } = useEmployee(employeeId ?? "");
-    const e: unknown = data ?? employee;
-    const resolved: Employee | null = e ? {
-        id: String((e as { id?: number | string }).id ?? ""),
-        name: (e as { full_name?: string; name?: string }).full_name ?? (e as { full_name?: string; name?: string }).name ?? "",
-        role: (e as { emp_role?: string; job_title?: string }).emp_role ?? (e as { emp_role?: string; job_title?: string }).job_title ?? "",
-        email: (e as { email?: string; user_email?: string }).email ?? (e as { email?: string; user_email?: string }).user_email ?? "",
-        phone: (e as { phone?: string; phone_number?: string }).phone ?? (e as { phone?: string; phone_number?: string }).phone_number ?? "",
-        joinDate: (e as { join_date?: string }).join_date
-            ? new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }).format(new Date((e as { join_date?: string }).join_date!))
-            : "",
-        department: ((e as { branch_detail?: { department_detail?: { name?: string } } }).branch_detail?.department_detail?.name) ?? (e as { department_name?: string; department?: string }).department_name ?? (e as { department_name?: string; department?: string }).department ?? "",
-        reportingTo: (e as { supervisor_name?: string; reportingTo?: string }).supervisor_name ?? (e as { supervisor_name?: string; reportingTo?: string }).reportingTo ?? "--",
-        address: (e as { address?: string }).address ?? "",
-        city: (e as { user_city?: string; city?: string }).user_city ?? (e as { user_city?: string; city?: string }).city ?? "",
-        branch: (e as { branch_name?: string; branch?: string }).branch_name ?? (e as { branch_name?: string; branch?: string }).branch ?? "",
-        status: (e as { active?: boolean }).active ? "ACTIVE" : "INACTIVE",
-        bio: (e as { qualification_details?: string }).qualification_details ?? "",
-        profileImage: (e as { profile_picture_url?: string; profile_picture?: string }).profile_picture_url ?? (e as { profile_picture_url?: string; profile_picture?: string }).profile_picture ?? "",
-    } : null;
+
+    // Unwrap to ApiEmployee or use optional prop fallback
+    const apiEmployee: ApiEmployee | undefined = isDetailWrapper(data) ? data.employee : (data as ApiEmployee | undefined);
+
+    // Extract nested fields safely without using any
+    const branchDepartment: BranchDepartmentRef | undefined = (apiEmployee as unknown as { branch_department?: BranchDepartmentRef } | undefined)?.branch_department;
+    const hireDate: string | undefined = (apiEmployee as unknown as { hire_date?: string } | undefined)?.hire_date
+        ?? (apiEmployee as unknown as { join_date?: string } | undefined)?.join_date;
+
+    const resolved: Employee | null = apiEmployee ? {
+        id: String((apiEmployee as unknown as { id?: number | string }).id ?? ""),
+        name: String((apiEmployee as unknown as { emp_name?: string; name?: string }).emp_name ?? (apiEmployee as unknown as { name?: string }).name ?? ""),
+        role: String((apiEmployee as unknown as { role?: string }).role ?? ""),
+        email: String((apiEmployee as unknown as { email?: string }).email ?? ""),
+        phone: String((apiEmployee as unknown as { phone?: string }).phone ?? ""),
+        joinDate: hireDate ? new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }).format(new Date(hireDate)) : "",
+        department: String(branchDepartment?.department?.dept_name ?? ""),
+        reportingTo: String(branchDepartment?.manager?.emp_name ?? "--"),
+        address: String((apiEmployee as unknown as { address?: string }).address ?? ""),
+        city: String((apiEmployee as unknown as { city?: string }).city ?? ""),
+        branch: String(branchDepartment?.branch?.branch_name ?? ""),
+        status: "ACTIVE",
+        bio: String((apiEmployee as unknown as { bio?: string }).bio ?? ""),
+        profileImage: String((apiEmployee as unknown as { profile_picture?: string }).profile_picture ?? ""),
+    } : (employee ?? null);
 
     if (!resolved) {
         return <Card className="border-none rounded-lg shadow-[0px_4px_30px_0px_#2E2D740c] gap-0 p-8">Loading...</Card>;
@@ -105,12 +130,12 @@ export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCar
                             </p>
                         </div>
                         <div className="text-[#667085] leading-relaxed max-w-3xl border border-[#E2E8F0] rounded-md p-4 prose prose-sm sm:prose-base focus:outline-none prose-p:leading-relaxed prose-pre:p-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 [&_ul_li_p]:inline [&_ol_li_p]:inline [&_ul_li_p]:m-0 [&_ol_li_p]:m-0 flex-1"
-                             dangerouslySetInnerHTML={{ __html: resolved.bio }}
+                            dangerouslySetInnerHTML={{ __html: resolved.bio }}
                         />
                     </div>
                 </div>
 
-            <Separator className="bg-[#E0E2E7] mt-6" />
+                <Separator className="bg-[#E0E2E7] mt-6" />
             </div>
 
 

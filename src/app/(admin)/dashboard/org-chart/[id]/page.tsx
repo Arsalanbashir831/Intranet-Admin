@@ -5,11 +5,11 @@ import { EmployeeProfileCard } from "@/components/org-chart/employee-profile-car
 import Link from "next/link";
 
 interface ProfilePageProps {
-    params: Promise<{ id: string }>
+    params: { id: string }
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
-    const { id } = await params;
+export default function ProfilePage({ params }: ProfilePageProps) {
+    const { id } = params;
 
     return (
         <>

@@ -18,7 +18,6 @@ import { ROUTES } from "@/constants/routes";
 import { useEmployees, useDeleteEmployee } from "@/hooks/queries/use-employees";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
-import type { components } from "@/types/api";
 
 export type EmployeeRow = {
   id: string;
@@ -40,16 +39,19 @@ export function EmployeeTable() {
   const deleteEmployee = useDeleteEmployee();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const data = React.useMemo<EmployeeRow[]>(() => {
-    const list = Array.isArray(apiData) ? apiData : (apiData?.results ?? []);
-    return (list as components["schemas"]["Employee"][]).map((e) => ({
+    const employeesContainer = (apiData as any)?.employees;
+    const list = Array.isArray(employeesContainer?.results)
+      ? employeesContainer.results
+      : (Array.isArray(apiData) ? apiData : (apiData?.results ?? []));
+    return (list as any[]).map((e) => ({
       id: String(e.id),
-      name: e.full_name ?? "",
+      name: String(e.emp_name ?? ""),
       avatar: e.profile_picture ?? undefined,
-      location: e.branch_name ?? "",
-      email: e.user_email ?? "",
-      department: e.branch_name ?? "",
-      role: e.emp_role ?? e.job_title ?? "",
-      reportingTo: e.supervisor_name ?? null,
+      location: String(e?.branch_department?.branch?.branch_name ?? ""),
+      email: String(e.email ?? ""),
+      department: String(e?.branch_department?.department?.dept_name ?? ""),
+      role: String(e.role ?? ""),
+      reportingTo: e?.branch_department?.manager?.emp_name ?? null,
       reportingAvatar: undefined,
     }));
   }, [apiData]);
