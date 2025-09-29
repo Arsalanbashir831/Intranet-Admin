@@ -100,8 +100,8 @@ export class ApiClient {
     // Ensure API_ROUTES.AUTH.LOGIN is the exact URL path string used in the apiCaller.
     // If API_ROUTES.AUTH.LOGIN includes the base URL, you might need to compare against error.config.url directly
     // or ensure originalReq.url is just the path segment.
-    // Assuming originalReq.url is the path relative to baseURL (e.g., "/auth/login")
-    if (originalReq.url === API_ROUTES.AUTH.LOGIN) {
+    // Assuming originalReq.url is the path relative to baseURL (e.g., "/token/")
+    if (originalReq.url === API_ROUTES.AUTH.OBTAIN_TOKEN) {
       console.log("ApiClient: Login attempt failed. Bypassing token refresh.");
       return Promise.reject(error);
     }

@@ -4,603 +4,39 @@
  */
 
 export interface paths {
-    "/api/announcements/": {
+    "/api/executives/executives/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * List all announcements
-         * @description Retrieve a list of announcements based on access permissions
-         */
-        get: operations["announcements_list"];
+        get: operations["api_executives_executives_list"];
         put?: never;
-        /**
-         * Create a new announcement
-         * @description Create a new announcement (admin/moderator only)
-         */
-        post: operations["announcements_create"];
+        post: operations["api_executives_executives_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/announcements/{id}/": {
+    "/api/executives/executives/{id}/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get announcement details
-         * @description Retrieve details of a specific announcement
-         */
-        get: operations["announcements_retrieve"];
-        /**
-         * Update announcement
-         * @description Update an existing announcement (admin/moderator only)
-         */
-        put: operations["announcements_update"];
+        get: operations["api_executives_executives_retrieve"];
+        put: operations["api_executives_executives_update"];
         post?: never;
-        /**
-         * Delete announcement
-         * @description Delete an announcement (admin/moderator only)
-         */
-        delete: operations["announcements_destroy"];
+        delete: operations["api_executives_executives_destroy"];
         options?: never;
         head?: never;
-        /**
-         * Partially update announcement
-         * @description Partially update an existing announcement (admin/moderator only)
-         */
-        patch: operations["announcements_partial_update"];
+        patch: operations["api_executives_executives_partial_update"];
         trace?: never;
     };
-    "/api/announcements/{id}/mark_viewed/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Mark announcement as viewed
-         * @description Mark an announcement as viewed by the current user
-         */
-        post: operations["announcements_mark_viewed_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/announcements/{id}/statistics/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get announcement statistics
-         * @description Get view statistics for an announcement (admin/moderator only)
-         */
-        get: operations["announcements_statistics_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/announcements/my_announcements/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get my announcements
-         * @description Get announcements relevant to the current user
-         */
-        get: operations["announcements_my_announcements_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/attachments/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all attachments
-         * @description Retrieve a list of all attachments with filtering capabilities
-         */
-        get: operations["attachments_list"];
-        put?: never;
-        /**
-         * Upload one or more attachments
-         * @description Upload one or more files as attachments to any content object. Send as multipart/form-data. Use 'files' field for multiple files (files=[...]), or 'file' for a single file (for backward compatibility). Returns a list of created attachments if multiple files are uploaded, or a single object for one file.
-         */
-        post: operations["attachments_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/attachments/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get attachment details
-         * @description Retrieve details of a specific attachment
-         */
-        get: operations["attachments_retrieve"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete attachment
-         * @description Delete an attachment and its file
-         */
-        delete: operations["attachments_destroy"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/attachments/{id}/download/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Download attachment file
-         * @description Download the actual file content of an attachment
-         */
-        get: operations["attachments_download_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/attachments/for_content/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get attachments for specific content
-         * @description Get all attachments for a specific content object
-         */
-        get: operations["attachments_for_content_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/change-password/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Change password endpoint for authenticated users */
-        post: operations["auth_change_password_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/login/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Custom login view with additional features */
-        post: operations["auth_login_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/logout/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Logout endpoint that blacklists the refresh token */
-        post: operations["auth_logout_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/password-reset/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Password reset request endpoint */
-        post: operations["auth_password_reset_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/password-reset-confirm/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Password reset confirmation endpoint */
-        post: operations["auth_password_reset_confirm_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/profile/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Get current user's basic profile information */
-        get: operations["auth_profile_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/register/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description User registration endpoint */
-        post: operations["auth_register_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/status/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Check if user is authenticated and return status */
-        get: operations["auth_status_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/token/refresh/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Custom token refresh view with blacklist check */
-        post: operations["auth_token_refresh_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/branches/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all branches
-         * @description Retrieve a list of all branches
-         */
-        get: operations["branches_list"];
-        put?: never;
-        /**
-         * Create a new branch
-         * @description Create a new branch (admin/moderator only)
-         */
-        post: operations["branches_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/branches/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get branch details
-         * @description Retrieve details of a specific branch
-         */
-        get: operations["branches_retrieve"];
-        /**
-         * Update branch
-         * @description Update an existing branch (admin/moderator only)
-         */
-        put: operations["branches_update"];
-        post?: never;
-        /**
-         * Delete branch
-         * @description Delete a branch (admin/moderator only)
-         */
-        delete: operations["branches_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * Partially update branch
-         * @description Partially update an existing branch (admin/moderator only)
-         */
-        patch: operations["branches_partial_update"];
-        trace?: never;
-    };
-    "/api/branches/{id}/employees/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Get all employees for this branch */
-        get: operations["branches_employees_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/contenttypes/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description List all content types (models) in the project. */
-        get: operations["contenttypes_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/departments/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all departments
-         * @description Retrieve a list of all departments with employee counts
-         */
-        get: operations["departments_list"];
-        put?: never;
-        /**
-         * Create a new department
-         * @description Create a new department (admin/moderator only)
-         */
-        post: operations["departments_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/departments/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get department details
-         * @description Retrieve details of a specific department
-         */
-        get: operations["departments_retrieve"];
-        /**
-         * Update department
-         * @description Update an existing department (admin/moderator only)
-         */
-        put: operations["departments_update"];
-        post?: never;
-        /**
-         * Delete department
-         * @description Delete a department (admin/moderator only)
-         */
-        delete: operations["departments_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * Partially update department
-         * @description Partially update an existing department (admin/moderator only)
-         */
-        patch: operations["departments_partial_update"];
-        trace?: never;
-    };
-    "/api/departments/{id}/employees/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Get all employees for this department */
-        get: operations["departments_employees_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/employees/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all employees
-         * @description Retrieve a list of all employees with filtering and search capabilities
-         */
-        get: operations["employees_list"];
-        put?: never;
-        /**
-         * Create a new employee
-         * @description Create a new employee record (admin/moderator only)
-         */
-        post: operations["employees_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/employees/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get employee details
-         * @description Retrieve details of a specific employee
-         */
-        get: operations["employees_retrieve"];
-        /**
-         * Update employee
-         * @description Update an existing employee record (admin/moderator only)
-         */
-        put: operations["employees_update"];
-        post?: never;
-        /**
-         * Delete employee
-         * @description Delete an employee record (admin/moderator only)
-         */
-        delete: operations["employees_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * Partially update employee
-         * @description Partially update an existing employee record (admin/moderator only)
-         */
-        patch: operations["employees_partial_update"];
-        trace?: never;
-    };
-    "/api/employees/{id}/hierarchy/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get employee hierarchy
-         * @description Get the organizational hierarchy for a specific employee
-         */
-        get: operations["employees_hierarchy_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/employees/{id}/update-password/": {
+    "/api/executives/executives/{id}/delete-profile-picture/": {
         parameters: {
             query?: never;
             header?: never;
@@ -610,445 +46,13 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Update employee password
-         * @description Update password for a specific employee
-         */
-        patch: operations["employees_update_password_partial_update"];
-        trace?: never;
-    };
-    "/api/employees/search/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Search employees
-         * @description Advanced search for employees with multiple criteria
-         */
-        get: operations["employees_search_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
+        delete: operations["api_executives_executives_delete_profile_picture_destroy"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/kb/files/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List knowledge base files
-         * @description Retrieve a list of accessible knowledge base files
-         */
-        get: operations["kb_files_list"];
-        put?: never;
-        /**
-         * Upload a new file
-         * @description Upload a new file to the knowledge base
-         */
-        post: operations["kb_files_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/kb/files/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get file details
-         * @description Retrieve details of a specific file
-         */
-        get: operations["kb_files_retrieve"];
-        /**
-         * Update file
-         * @description Update an existing file (metadata only)
-         */
-        put: operations["kb_files_update"];
-        post?: never;
-        /**
-         * Delete file
-         * @description Delete a file from the knowledge base
-         */
-        delete: operations["kb_files_destroy"];
-        options?: never;
-        head?: never;
-        /** @description ViewSet for managing knowledge base files */
-        patch: operations["kb_files_partial_update"];
-        trace?: never;
-    };
-    "/api/kb/files/{id}/download/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Download file
-         * @description Download a knowledge base file
-         */
-        get: operations["kb_files_download_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/kb/files/{id}/statistics/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get file statistics
-         * @description Get download statistics for a file (admin only)
-         */
-        get: operations["kb_files_statistics_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/kb/files/search/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Search files
-         * @description Advanced search for knowledge base files
-         */
-        get: operations["kb_files_search_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/kb/folders/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List knowledge base folders
-         * @description Retrieve a list of accessible knowledge base folders
-         */
-        get: operations["kb_folders_list"];
-        put?: never;
-        /**
-         * Create a new folder
-         * @description Create a new knowledge base folder
-         */
-        post: operations["kb_folders_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/kb/folders/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get folder details
-         * @description Retrieve details of a specific folder including its files
-         */
-        get: operations["kb_folders_retrieve"];
-        /**
-         * Update folder
-         * @description Update an existing folder
-         */
-        put: operations["kb_folders_update"];
-        post?: never;
-        /**
-         * Delete folder
-         * @description Delete a folder and all its contents
-         */
-        delete: operations["kb_folders_destroy"];
-        options?: never;
-        head?: never;
-        /** @description ViewSet for managing knowledge base folders */
-        patch: operations["kb_folders_partial_update"];
-        trace?: never;
-    };
-    "/api/kb/folders/{id}/contents/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get folder contents
-         * @description Get all files and subfolders in a specific folder
-         */
-        get: operations["kb_folders_contents_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/locations/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all locations
-         * @description Retrieve a list of all locations
-         */
-        get: operations["locations_list"];
-        put?: never;
-        /**
-         * Create a new location
-         * @description Create a new location (admin/moderator only)
-         */
-        post: operations["locations_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/locations/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get location details
-         * @description Retrieve details of a specific location
-         */
-        get: operations["locations_retrieve"];
-        /**
-         * Update location
-         * @description Update an existing location (admin/moderator only)
-         */
-        put: operations["locations_update"];
-        post?: never;
-        /**
-         * Delete location
-         * @description Delete a location (admin/moderator only)
-         */
-        delete: operations["locations_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * Partially update location
-         * @description Partially update an existing location (admin/moderator only)
-         */
-        patch: operations["locations_partial_update"];
-        trace?: never;
-    };
-    "/api/locations/{id}/statistics/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get department statistics
-         * @description Get statistics for a specific department
-         */
-        get: operations["locations_statistics_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/onboarding/plans/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List onboarding plans
-         * @description Retrieve a list of onboarding plans with filtering capabilities
-         */
-        get: operations["onboarding_plans_list"];
-        put?: never;
-        /**
-         * Create a new onboarding plan
-         * @description Create a new onboarding plan (admin/moderator only)
-         */
-        post: operations["onboarding_plans_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/onboarding/plans/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get onboarding plan details
-         * @description Retrieve details of a specific onboarding plan
-         */
-        get: operations["onboarding_plans_retrieve"];
-        /**
-         * Update onboarding plan
-         * @description Update an existing onboarding plan (admin/moderator only)
-         */
-        put: operations["onboarding_plans_update"];
-        post?: never;
-        /**
-         * Delete onboarding plan
-         * @description Delete an onboarding plan (admin/moderator only)
-         */
-        delete: operations["onboarding_plans_destroy"];
-        options?: never;
-        head?: never;
-        /** @description ViewSet for managing onboarding plans */
-        patch: operations["onboarding_plans_partial_update"];
-        trace?: never;
-    };
-    "/api/onboarding/plans/{id}/statistics/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get plan statistics
-         * @description Get completion statistics for an onboarding plan
-         */
-        get: operations["onboarding_plans_statistics_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/onboarding/plans/my_plans/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get my onboarding plans
-         * @description Get onboarding plans assigned to the current user
-         */
-        get: operations["onboarding_plans_my_plans_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/onboarding/tasks/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List onboarding tasks
-         * @description Retrieve a list of onboarding tasks
-         */
-        get: operations["onboarding_tasks_list"];
-        put?: never;
-        /**
-         * Create a new task
-         * @description Create a new onboarding task (admin/moderator only)
-         */
-        post: operations["onboarding_tasks_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/onboarding/tasks/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get task details
-         * @description Retrieve details of a specific task
-         */
-        get: operations["onboarding_tasks_retrieve"];
-        /**
-         * Update task
-         * @description Update an existing task
-         */
-        put: operations["onboarding_tasks_update"];
-        post?: never;
-        /**
-         * Delete task
-         * @description Delete a task (admin/moderator only)
-         */
-        delete: operations["onboarding_tasks_destroy"];
-        options?: never;
-        head?: never;
-        /** @description ViewSet for managing onboarding tasks */
-        patch: operations["onboarding_tasks_partial_update"];
-        trace?: never;
-    };
-    "/api/onboarding/tasks/{id}/complete/": {
+    "/api/executives/executives/{id}/upload-profile-picture/": {
         parameters: {
             query?: never;
             header?: never;
@@ -1057,71 +61,110 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Mark task as completed
-         * @description Mark a task as completed
-         */
-        post: operations["onboarding_tasks_complete_create"];
+        post: operations["api_executives_executives_upload_profile_picture_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/onboarding/training-items/": {
+    "/api/knowledge/announcement-attachments/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * List training items
-         * @description Retrieve a list of training items
-         */
-        get: operations["onboarding_training_items_list"];
+        get: operations["api_knowledge_announcement_attachments_list"];
         put?: never;
-        /**
-         * Create a new training item
-         * @description Create a new training item (admin/moderator only)
-         */
-        post: operations["onboarding_training_items_create"];
+        post: operations["api_knowledge_announcement_attachments_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/onboarding/training-items/{id}/": {
+    "/api/knowledge/announcement-attachments/{id}/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get training item details
-         * @description Retrieve details of a specific training item
-         */
-        get: operations["onboarding_training_items_retrieve"];
-        /**
-         * Update training item
-         * @description Update an existing training item
-         */
-        put: operations["onboarding_training_items_update"];
+        get: operations["api_knowledge_announcement_attachments_retrieve"];
+        put: operations["api_knowledge_announcement_attachments_update"];
         post?: never;
-        /**
-         * Delete training item
-         * @description Delete a training item (admin/moderator only)
-         */
-        delete: operations["onboarding_training_items_destroy"];
+        delete: operations["api_knowledge_announcement_attachments_destroy"];
         options?: never;
         head?: never;
-        /** @description ViewSet for managing training items */
-        patch: operations["onboarding_training_items_partial_update"];
+        patch: operations["api_knowledge_announcement_attachments_partial_update"];
         trace?: never;
     };
-    "/api/onboarding/training-items/{id}/complete/": {
+    "/api/knowledge/announcements/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_knowledge_announcements_list"];
+        put?: never;
+        post: operations["api_knowledge_announcements_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge/announcements/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_knowledge_announcements_retrieve"];
+        put: operations["api_knowledge_announcements_update"];
+        post?: never;
+        delete: operations["api_knowledge_announcements_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["api_knowledge_announcements_partial_update"];
+        trace?: never;
+    };
+    "/api/knowledge/files/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_knowledge_files_list"];
+        put?: never;
+        post: operations["api_knowledge_files_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge/files/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_knowledge_files_retrieve"];
+        put: operations["api_knowledge_files_update"];
+        post?: never;
+        delete: operations["api_knowledge_files_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["api_knowledge_files_partial_update"];
+        trace?: never;
+    };
+    "/api/knowledge/files/bulk-upload/": {
         parameters: {
             query?: never;
             header?: never;
@@ -1130,18 +173,158 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Mark training as completed
-         * @description Mark a training item as completed
-         */
-        post: operations["onboarding_training_items_complete_create"];
+        post: operations["api_knowledge_files_bulk_upload_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/user/delete-account/": {
+    "/api/knowledge/folders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_knowledge_folders_list"];
+        put?: never;
+        post: operations["api_knowledge_folders_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/knowledge/folders/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_knowledge_folders_retrieve"];
+        put: operations["api_knowledge_folders_update"];
+        post?: never;
+        delete: operations["api_knowledge_folders_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["api_knowledge_folders_partial_update"];
+        trace?: never;
+    };
+    "/api/knowledge/folders/tree/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_knowledge_folders_tree_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/newhire/attachment-files/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_newhire_attachment_files_list"];
+        put?: never;
+        post: operations["api_newhire_attachment_files_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/newhire/attachment-files/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_newhire_attachment_files_retrieve"];
+        put: operations["api_newhire_attachment_files_update"];
+        post?: never;
+        delete: operations["api_newhire_attachment_files_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["api_newhire_attachment_files_partial_update"];
+        trace?: never;
+    };
+    "/api/newhire/attachments/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_newhire_attachments_list"];
+        put?: never;
+        post: operations["api_newhire_attachments_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/newhire/attachments/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_newhire_attachments_retrieve"];
+        put: operations["api_newhire_attachments_update"];
+        post?: never;
+        delete: operations["api_newhire_attachments_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["api_newhire_attachments_partial_update"];
+        trace?: never;
+    };
+    "/api/newhire/checklists/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_newhire_checklists_list"];
+        put?: never;
+        post: operations["api_newhire_checklists_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/newhire/checklists/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api_newhire_checklists_retrieve"];
+        put: operations["api_newhire_checklists_update"];
+        post?: never;
+        delete: operations["api_newhire_checklists_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["api_newhire_checklists_partial_update"];
+        trace?: never;
+    };
+    "/api/token/": {
         parameters: {
             query?: never;
             header?: never;
@@ -1150,138 +333,16 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post?: never;
-        /** @description Delete user account (soft delete by deactivating) */
-        delete: operations["user_delete_account_destroy"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/user/profile/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Get current user's basic profile information */
-        get: operations["user_profile_retrieve"];
-        put?: never;
-        post?: never;
+        /** @description Takes a set of user credentials and returns an access and refresh JSON web
+         *     token pair to prove the authentication of those credentials. */
+        post: operations["api_token_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/user/profile/extended/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Get extended profile */
-        get: operations["user_profile_extended_retrieve"];
-        put?: never;
-        /** @description Create or update extended profile */
-        post: operations["user_profile_extended_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/user/profile/picture/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Get current profile picture */
-        get: operations["user_profile_picture_retrieve"];
-        put?: never;
-        /** @description Upload or update profile picture */
-        post: operations["user_profile_picture_create"];
-        /** @description Delete profile picture */
-        delete: operations["user_profile_picture_destroy"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/user/profile/update/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** @description Update current user's profile information */
-        put: operations["user_profile_update_update"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** @description Update current user's profile information */
-        patch: operations["user_profile_update_partial_update"];
-        trace?: never;
-    };
-    "/api/user/statistics/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Get user statistics (admin only) */
-        get: operations["user_statistics_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/user/users/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description List users (admin functionality) */
-        get: operations["user_users_list"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/user/users/{id}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Get specific user's profile information (public view) */
-        get: operations["user_users_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/user/users/{user_id}/role/": {
+    "/api/token/refresh/": {
         parameters: {
             query?: never;
             header?: never;
@@ -1290,15 +351,16 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post?: never;
+        /** @description Takes a refresh type JSON web token and returns an access type JSON web
+         *     token if the refresh token is valid. */
+        post: operations["api_token_refresh_create"];
         delete?: never;
         options?: never;
         head?: never;
-        /** @description Update user role (admin only) */
-        patch: operations["user_users_role_partial_update"];
+        patch?: never;
         trace?: never;
     };
-    "/api/user/users/{user_id}/status/": {
+    "/api/token/verify/": {
         parameters: {
             query?: never;
             header?: never;
@@ -1307,25 +369,9 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** @description Update user status (admin/moderator only) */
-        patch: operations["user_users_status_partial_update"];
-        trace?: never;
-    };
-    "/api/user/users/search/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description Search users by username, email, or name */
-        get: operations["user_users_search_retrieve"];
-        put?: never;
-        post?: never;
+        /** @description Takes a token and indicates if it is valid.  This view provides no
+         *     information about a token's fitness for a particular use. */
+        post: operations["api_token_verify_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1336,1224 +382,166 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /**
-         * @description * `ALL` - All employees
-         *     * `PRIVATE` - Only me (private)
-         *     * `ADMINS` - Admins only
-         *     * `DEPTS` - Specific departments
-         *     * `PEOPLE` - Specific people
-         * @enum {string}
-         */
-        AccessLevelEnum: "ALL" | "PRIVATE" | "ADMINS" | "DEPTS" | "PEOPLE";
-        /** @description Detailed serializer for Announcement model */
         Announcement: {
             readonly id: number;
-            /** @description Type of announcement
-             *
-             *     * `ANN` - Announcement
-             *     * `POL` - Policy
-             *     * `NEWS` - Company News
-             *     * `EVENT` - Event */
-            type: components["schemas"]["TypeEnum"];
-            /** @description Announcement title */
             title: string;
-            /** @description Announcement description/content */
-            description: string;
-            /** @description Brief summary of the announcement */
-            summary?: string;
-            /** @description Publication status
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["StatusF76Enum"];
-            /** @description User who posted the announcement */
-            readonly posted_by: number | null;
-            readonly author_name: string;
-            /** @description List of tags for categorizing the announcement */
-            tags?: unknown;
-            /** @description Priority level of the announcement
-             *
-             *     * `low` - Low
-             *     * `normal` - Normal
-             *     * `high` - High
-             *     * `urgent` - Urgent */
-            priority?: components["schemas"]["PriorityC93Enum"];
-            /**
-             * Format: date-time
-             * @description Date and time when announcement was published
-             */
-            readonly published_at: string | null;
-            /**
-             * Format: date-time
-             * @description Expiration date for the announcement
-             */
-            expires_at?: string | null;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
-            readonly is_published: string;
-            readonly is_expired: string;
-            readonly attachments_detail: components["schemas"]["AttachmentList"][];
-            readonly view_count: string;
-            readonly has_viewed: string;
+            body: string;
+            type?: components["schemas"]["AnnouncementTypeEnum"];
+            hash_tags?: unknown;
+            is_active?: boolean;
+            inherits_parent_permissions?: boolean;
+            permitted_branches?: number[];
+            permitted_departments?: number[];
+            permitted_employees?: number[];
+            created_by?: number | null;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
             readonly updated_at: string;
+            readonly attachments: {
+                [key: string]: unknown;
+            }[];
+            readonly effective_permissions: {
+                [key: string]: unknown;
+            };
         };
-        /** @description Serializer for creating announcements */
-        AnnouncementCreate: {
-            /** @description Type of announcement
-             *
-             *     * `ANN` - Announcement
-             *     * `POL` - Policy
-             *     * `NEWS` - Company News
-             *     * `EVENT` - Event */
-            type: components["schemas"]["TypeEnum"];
-            /** @description Announcement title */
-            title: string;
-            /** @description Announcement description/content */
-            description: string;
-            /** @description Brief summary of the announcement */
-            summary?: string;
-            /** @description Publication status
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["StatusF76Enum"];
-            /** @description List of tags for categorizing the announcement */
-            tags?: unknown;
-            /** @description Priority level of the announcement
-             *
-             *     * `low` - Low
-             *     * `normal` - Normal
-             *     * `high` - High
-             *     * `urgent` - Urgent */
-            priority?: components["schemas"]["PriorityC93Enum"];
-            /**
-             * Format: date-time
-             * @description Expiration date for the announcement
-             */
-            expires_at?: string | null;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
-        };
-        /** @description Serializer for creating announcements */
-        AnnouncementCreateRequest: {
-            /** @description Type of announcement
-             *
-             *     * `ANN` - Announcement
-             *     * `POL` - Policy
-             *     * `NEWS` - Company News
-             *     * `EVENT` - Event */
-            type: components["schemas"]["TypeEnum"];
-            /** @description Announcement title */
-            title: string;
-            /** @description Announcement description/content */
-            description: string;
-            /** @description Brief summary of the announcement */
-            summary?: string;
-            /** @description Publication status
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["StatusF76Enum"];
-            /** @description List of tags for categorizing the announcement */
-            tags?: unknown;
-            /** @description Priority level of the announcement
-             *
-             *     * `low` - Low
-             *     * `normal` - Normal
-             *     * `high` - High
-             *     * `urgent` - Urgent */
-            priority?: components["schemas"]["PriorityC93Enum"];
-            /**
-             * Format: date-time
-             * @description Expiration date for the announcement
-             */
-            expires_at?: string | null;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
-        };
-        /** @description Simplified serializer for announcement listing */
-        AnnouncementList: {
+        AnnouncementAttachment: {
             readonly id: number;
-            /** @description Type of announcement
-             *
-             *     * `ANN` - Announcement
-             *     * `POL` - Policy
-             *     * `NEWS` - Company News
-             *     * `EVENT` - Event */
-            type: components["schemas"]["TypeEnum"];
-            /** @description Announcement title */
-            title: string;
-            /** @description Brief summary of the announcement */
-            summary?: string;
-            /** @description Publication status
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["StatusF76Enum"];
-            readonly author_name: string;
-            /** @description List of tags for categorizing the announcement */
-            tags?: unknown;
-            /** @description Priority level of the announcement
-             *
-             *     * `low` - Low
-             *     * `normal` - Normal
-             *     * `high` - High
-             *     * `urgent` - Urgent */
-            priority?: components["schemas"]["PriorityC93Enum"];
-            /**
-             * Format: date-time
-             * @description Date and time when announcement was published
-             */
-            published_at?: string | null;
-            readonly view_count: string;
-            readonly attachment_count: string;
+            announcement: number;
+            name: string;
+            description?: string;
+            /** Format: uri */
+            file: string;
+            readonly file_url: string | null;
+            inherits_parent_permissions?: boolean;
+            permitted_branches?: number[];
+            permitted_departments?: number[];
+            permitted_employees?: number[];
+            uploaded_by?: number | null;
             /** Format: date-time */
-            readonly created_at: string;
+            readonly uploaded_at: string;
+            readonly size: number;
+            readonly content_type: string;
+            readonly effective_permissions: {
+                [key: string]: unknown;
+            };
         };
-        /** @description Detailed serializer for Announcement model */
-        AnnouncementRequest: {
-            /** @description Type of announcement
-             *
-             *     * `ANN` - Announcement
-             *     * `POL` - Policy
-             *     * `NEWS` - Company News
-             *     * `EVENT` - Event */
-            type: components["schemas"]["TypeEnum"];
-            /** @description Announcement title */
-            title: string;
-            /** @description Announcement description/content */
-            description: string;
-            /** @description Brief summary of the announcement */
-            summary?: string;
-            /** @description Publication status
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["StatusF76Enum"];
-            /** @description List of tags for categorizing the announcement */
-            tags?: unknown;
-            /** @description Priority level of the announcement
-             *
-             *     * `low` - Low
-             *     * `normal` - Normal
-             *     * `high` - High
-             *     * `urgent` - Urgent */
-            priority?: components["schemas"]["PriorityC93Enum"];
-            /**
-             * Format: date-time
-             * @description Expiration date for the announcement
-             */
-            expires_at?: string | null;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
-        };
-        /** @description Serializer for Attachment model */
+        /**
+         * @description * `announcement` - Announcement
+         *     * `policy` - Policy
+         * @enum {string}
+         */
+        AnnouncementTypeEnum: "announcement" | "policy";
         Attachment: {
             readonly id: number;
-            /**
-             * Format: uri
-             * @description Attached file
-             */
-            file: string;
-            /** @description Original filename when uploaded */
-            readonly original_filename: string;
-            /** @description File size in bytes */
-            readonly file_size: number;
-            /** @description MIME type of the file */
-            mime_type?: string;
-            /** @description User who uploaded the file */
-            readonly uploaded_by: number | null;
-            readonly uploaded_by_name: string;
-            /** @description Optional description of the attachment */
-            description?: string;
+            checklist: number;
+            title: string;
+            detail?: string | null;
+            type?: components["schemas"]["AttachmentTypeEnum"];
             /** Format: date-time */
             readonly created_at: string;
-            content_type: number;
-            object_id: number;
-            readonly content_type_name: string;
-            readonly file_extension: string;
-            readonly is_image: string;
-            readonly is_document: string;
-            readonly file_url: string;
+            readonly files: components["schemas"]["AttachmentFile"][];
         };
-        /** @description Simplified serializer for attachment listing */
-        AttachmentList: {
+        AttachmentFile: {
             readonly id: number;
-            /** @description Original filename when uploaded */
-            original_filename: string;
-            /** @description File size in bytes */
-            file_size: number;
-            readonly uploaded_by_name: string;
-            /** Format: date-time */
-            readonly created_at: string;
-            readonly file_extension: string;
-            /** @description Optional description of the attachment */
-            description?: string;
-            readonly file_url: string;
-        };
-        /** @description Simplified serializer for attachment listing */
-        AttachmentListRequest: {
-            /** @description Original filename when uploaded */
-            original_filename: string;
-            /** @description File size in bytes */
-            file_size: number;
-            /** @description Optional description of the attachment */
-            description?: string;
-        };
-        /** @description Serializer for Attachment model */
-        AttachmentRequest: {
-            /**
-             * Format: binary
-             * @description Attached file
-             */
+            attachment: number;
+            /** Format: uri */
             file: string;
-            /** @description MIME type of the file */
-            mime_type?: string;
-            /** @description Optional description of the attachment */
-            description?: string;
-            content_type: number;
-            object_id: number;
+            /** Format: date-time */
+            readonly uploaded_at: string;
         };
-        /** @enum {unknown} */
-        BlankEnum: "";
-        Branch: {
+        /**
+         * @description * `task` - Task
+         *     * `training` - Training
+         * @enum {string}
+         */
+        AttachmentTypeEnum: "task" | "training";
+        Checklist: {
             readonly id: number;
-            /** @description Department this branch belongs to */
-            department: number;
-            readonly department_detail: components["schemas"]["Department"];
-            /** @description Location for this branch */
-            location: number;
-            readonly location_detail: components["schemas"]["Locations"];
-            /** @description Manager (employee) for this branch */
-            manager: number;
-            readonly manager_detail: components["schemas"]["Employee"];
-            readonly employee_count: string;
+            title?: string | null;
+            detail?: string | null;
+            assigned_to: number[];
+            assigned_by: number;
+            readonly assigned_to_details: components["schemas"]["Employee"][];
+            readonly assigned_by_details: components["schemas"]["Employee"];
+            status?: components["schemas"]["StatusEnum"];
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
             readonly updated_at: string;
+            readonly attachments: components["schemas"]["Attachment"][];
         };
-        BranchRequest: {
-            /** @description Department this branch belongs to */
-            department: number;
-            /** @description Location for this branch */
-            location: number;
-            /** @description Manager (employee) for this branch */
-            manager: number;
-        };
-        /** @description Custom JWT token serializer with additional user information */
-        CustomTokenObtainPair: {
-            /** Format: email */
-            email: string;
-        };
-        /** @description Custom JWT token serializer with additional user information */
-        CustomTokenObtainPairRequest: {
-            /** Format: email */
-            email: string;
-            password: string;
-        };
-        /** @description Serializer for Department model */
-        Department: {
-            readonly id: number;
-            /** @description Department name */
-            name: string;
-            /** @description Department description and responsibilities */
-            description?: string;
-            readonly employee_count: string;
-            readonly locations: components["schemas"]["Locations"][];
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /** @description Serializer for Department model */
-        DepartmentRequest: {
-            /** @description Department name */
-            name: string;
-            /** @description Department description and responsibilities */
-            description?: string;
-        };
-        /** @description Employee serializer for read operations */
         Employee: {
             readonly id: number;
-            /** @description Unique employee identifier */
-            readonly employee_id: string;
-            /** @description Link to the user account */
-            user: number;
-            readonly first_name: string;
-            readonly last_name: string;
-            readonly user_email: string;
-            readonly phone_number: string;
-            readonly user_city: string;
-            readonly full_name: string;
-            readonly email: string;
-            readonly phone: string;
-            readonly city: string;
-            readonly profile_picture: string;
-            /** @description Employee's branch (organizational unit) */
-            branch?: number | null;
-            readonly branch_name: string;
-            readonly branch_detail: string;
-            /** @description Direct supervisor */
-            reports_to?: number | null;
-            readonly supervisor_name: string;
-            /** @description Full street address */
-            address?: string;
-            /** @description Education qualifications, certifications, and other credentials */
-            qualification_details?: string;
-            /** @description Employee's job title */
-            job_title?: string;
-            /** @description Employee's role or position in the organization */
-            emp_role?: string;
-            /**
-             * Format: date
-             * @description Date when employee joined the company
-             */
-            join_date?: string | null;
-            /** @description Type of employment
-             *
-             *     * `full_time` - Full Time
-             *     * `part_time` - Part Time
-             *     * `contract` - Contract
-             *     * `intern` - Intern
-             *     * `temporary` - Temporary */
-            employment_type?: components["schemas"]["EmploymentTypeEnum"];
-            /**
-             * Format: decimal
-             * @description Employee salary (confidential)
-             */
-            salary?: string | null;
-            /** @description Whether the employee is currently active */
-            active?: boolean;
-            /** @description Internal notes about the employee */
-            notes?: string;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /** @description Employee serializer for creating new employees with automatic user creation */
-        EmployeeCreate: {
-            /** @description Employee's branch (organizational unit) */
-            branch?: number | null;
-            /** @description Direct supervisor */
-            reports_to?: number | null;
-            /** @description Full street address */
-            address?: string;
-            /** @description Education qualifications, certifications, and other credentials */
-            qualification_details?: string;
-            /** @description Employee's job title */
-            job_title?: string;
-            /** @description Employee's role or position in the organization */
-            emp_role?: string;
-            /**
-             * Format: date
-             * @description Date when employee joined the company
-             */
-            join_date?: string | null;
-            /** @description Type of employment
-             *
-             *     * `full_time` - Full Time
-             *     * `part_time` - Part Time
-             *     * `contract` - Contract
-             *     * `intern` - Intern
-             *     * `temporary` - Temporary */
-            employment_type?: components["schemas"]["EmploymentTypeEnum"];
-            /**
-             * Format: decimal
-             * @description Employee salary (confidential)
-             */
-            salary?: string | null;
-            /** @description Whether the employee is currently active */
-            active?: boolean;
-            /** @description Internal notes about the employee */
-            notes?: string;
-        };
-        /** @description Employee serializer for creating new employees with automatic user creation */
-        EmployeeCreateRequest: {
-            /**
-             * Format: email
-             * @description Email for the user account
-             */
-            email: string;
-            /** @description Password for the user account */
-            password: string;
-            /** @description Employee's first name */
-            first_name: string;
-            /** @description Employee's last name */
-            last_name: string;
-            /** @description Employee's phone number */
-            phone_number?: string;
-            /** @description Employee's city */
-            user_city?: string;
-            /**
-             * Format: binary
-             * @description Employee's profile picture
-             */
-            profile_picture?: string;
-            /** @description Employee's branch (organizational unit) */
-            branch?: number | null;
-            /** @description Direct supervisor */
-            reports_to?: number | null;
-            /** @description Full street address */
-            address?: string;
-            /** @description Education qualifications, certifications, and other credentials */
-            qualification_details?: string;
-            /** @description Employee's job title */
-            job_title?: string;
-            /** @description Employee's role or position in the organization */
-            emp_role?: string;
-            /**
-             * Format: date
-             * @description Date when employee joined the company
-             */
-            join_date?: string | null;
-            /** @description Type of employment
-             *
-             *     * `full_time` - Full Time
-             *     * `part_time` - Part Time
-             *     * `contract` - Contract
-             *     * `intern` - Intern
-             *     * `temporary` - Temporary */
-            employment_type?: components["schemas"]["EmploymentTypeEnum"];
-            /**
-             * Format: decimal
-             * @description Employee salary (confidential)
-             */
-            salary?: string | null;
-            /** @description Whether the employee is currently active */
-            active?: boolean;
-            /** @description Internal notes about the employee */
-            notes?: string;
-        };
-        /** @description Employee serializer for list endpoint, returns full employee data with branch, department, location, and manager details */
-        EmployeeList: {
-            readonly id: number;
-            /** @description Unique employee identifier */
-            readonly employee_id: string;
-            /** @description Link to the user account */
-            user: number;
-            readonly first_name: string;
-            readonly last_name: string;
-            readonly user_email: string;
-            readonly phone_number: string;
-            readonly user_city: string;
-            readonly full_name: string;
-            readonly email: string;
-            readonly phone: string;
-            readonly city: string;
-            readonly profile_picture: string;
-            /** @description Employee's branch (organizational unit) */
-            branch?: number | null;
-            readonly branch_name: string;
-            readonly branch_detail: string;
-            /** @description Direct supervisor */
-            reports_to?: number | null;
-            readonly supervisor_name: string;
-            /** @description Full street address */
-            address?: string;
-            /** @description Education qualifications, certifications, and other credentials */
-            qualification_details?: string;
-            /** @description Employee's job title */
-            job_title?: string;
-            /** @description Employee's role or position in the organization */
-            emp_role?: string;
-            /**
-             * Format: date
-             * @description Date when employee joined the company
-             */
-            join_date?: string | null;
-            /** @description Type of employment
-             *
-             *     * `full_time` - Full Time
-             *     * `part_time` - Part Time
-             *     * `contract` - Contract
-             *     * `intern` - Intern
-             *     * `temporary` - Temporary */
-            employment_type?: components["schemas"]["EmploymentTypeEnum"];
-            /**
-             * Format: decimal
-             * @description Employee salary (confidential)
-             */
-            salary?: string | null;
-            /** @description Whether the employee is currently active */
-            active?: boolean;
-            /** @description Internal notes about the employee */
-            notes?: string;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /** @description Employee serializer for read operations */
-        EmployeeRequest: {
-            /** @description Link to the user account */
-            user: number;
-            /** @description Employee's branch (organizational unit) */
-            branch?: number | null;
-            /** @description Direct supervisor */
-            reports_to?: number | null;
-            /** @description Full street address */
-            address?: string;
-            /** @description Education qualifications, certifications, and other credentials */
-            qualification_details?: string;
-            /** @description Employee's job title */
-            job_title?: string;
-            /** @description Employee's role or position in the organization */
-            emp_role?: string;
-            /**
-             * Format: date
-             * @description Date when employee joined the company
-             */
-            join_date?: string | null;
-            /** @description Type of employment
-             *
-             *     * `full_time` - Full Time
-             *     * `part_time` - Part Time
-             *     * `contract` - Contract
-             *     * `intern` - Intern
-             *     * `temporary` - Temporary */
-            employment_type?: components["schemas"]["EmploymentTypeEnum"];
-            /**
-             * Format: decimal
-             * @description Employee salary (confidential)
-             */
-            salary?: string | null;
-            /** @description Whether the employee is currently active */
-            active?: boolean;
-            /** @description Internal notes about the employee */
-            notes?: string;
-        };
-        /** @description Employee serializer for updating existing employees */
-        EmployeeUpdate: {
-            first_name?: string;
-            last_name?: string;
-            phone_number?: string;
-            user_city?: string;
+            emp_name: string;
+            /** Format: email */
+            email?: string | null;
+            phone?: string | null;
+            role?: string | null;
+            education?: string | null;
+            bio?: string | null;
             /** Format: uri */
-            profile_picture?: string;
-            /** @description Employee's branch (organizational unit) */
-            branch?: number | null;
-            /** @description Direct supervisor */
-            reports_to?: number | null;
-            /** @description Full street address */
-            address?: string;
-            /** @description Education qualifications, certifications, and other credentials */
-            qualification_details?: string;
-            /** @description Employee's job title */
-            job_title?: string;
-            /** @description Employee's role or position in the organization */
-            emp_role?: string;
-            /**
-             * Format: date
-             * @description Date when employee joined the company
-             */
-            join_date?: string | null;
-            /** @description Type of employment
-             *
-             *     * `full_time` - Full Time
-             *     * `part_time` - Part Time
-             *     * `contract` - Contract
-             *     * `intern` - Intern
-             *     * `temporary` - Temporary */
-            employment_type?: components["schemas"]["EmploymentTypeEnum"];
-            /**
-             * Format: decimal
-             * @description Employee salary (confidential)
-             */
-            salary?: string | null;
-            /** @description Whether the employee is currently active */
-            active?: boolean;
-            /** @description Internal notes about the employee */
-            notes?: string;
+            profile_picture?: string | null;
+            branch_department: number;
         };
-        /** @description Employee serializer for updating existing employees */
-        EmployeeUpdateRequest: {
-            first_name?: string;
-            last_name?: string;
-            phone_number?: string;
-            user_city?: string;
-            /** Format: binary */
-            profile_picture?: string;
-            /** @description Employee's branch (organizational unit) */
-            branch?: number | null;
-            /** @description Direct supervisor */
-            reports_to?: number | null;
-            /** @description Full street address */
-            address?: string;
-            /** @description Education qualifications, certifications, and other credentials */
-            qualification_details?: string;
-            /** @description Employee's job title */
-            job_title?: string;
-            /** @description Employee's role or position in the organization */
-            emp_role?: string;
-            /**
-             * Format: date
-             * @description Date when employee joined the company
-             */
-            join_date?: string | null;
-            /** @description Type of employment
-             *
-             *     * `full_time` - Full Time
-             *     * `part_time` - Part Time
-             *     * `contract` - Contract
-             *     * `intern` - Intern
-             *     * `temporary` - Temporary */
-            employment_type?: components["schemas"]["EmploymentTypeEnum"];
-            /**
-             * Format: decimal
-             * @description Employee salary (confidential)
-             */
-            salary?: string | null;
-            /** @description Whether the employee is currently active */
-            active?: boolean;
-            /** @description Internal notes about the employee */
-            notes?: string;
-        };
-        /**
-         * @description * `full_time` - Full Time
-         *     * `part_time` - Part Time
-         *     * `contract` - Contract
-         *     * `intern` - Intern
-         *     * `temporary` - Temporary
-         * @enum {string}
-         */
-        EmploymentTypeEnum: "full_time" | "part_time" | "contract" | "intern" | "temporary";
-        /**
-         * @description * `M` - Male
-         *     * `F` - Female
-         *     * `O` - Other
-         *     * `P` - Prefer not to say
-         * @enum {string}
-         */
-        GenderEnum: "M" | "F" | "O" | "P";
-        /** @description Detailed serializer for KbFile model */
-        KbFile: {
+        Executive: {
             readonly id: number;
-            /** @description Folder containing this file */
+            name: string;
+            address: string;
+            city: string;
+            phone: string;
+            /** Format: email */
+            email: string;
+            role: string;
+            education: string;
+            bio?: string;
+            /** Format: uri */
+            profile_picture?: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        KnowledgeFile: {
+            readonly id: number;
             folder: number;
-            readonly folder_name: string;
-            /** @description File title/name */
-            title: string;
-            /** @description File description */
+            name: string;
             description?: string;
-            /**
-             * Format: uri
-             * @description The actual file
-             */
+            /** Format: uri */
             file: string;
-            readonly file_url: string;
-            /** @description File size in bytes */
-            readonly file_size: number;
-            /** @description File type/extension */
-            readonly file_type: string;
-            readonly file_extension: string;
-            /** @description File version */
-            version?: string;
-            /** @description Tags for categorizing the file */
-            tags?: unknown;
-            /** @description User who uploaded the file */
-            readonly created_by: number | null;
-            readonly author_name: string;
-            readonly is_image: string;
-            readonly is_document: string;
-            /** @description Number of times this file has been downloaded */
-            readonly download_count: number;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
+            readonly file_url: string | null;
+            inherits_parent_permissions?: boolean;
+            permitted_branches?: number[];
+            permitted_departments?: number[];
+            permitted_employees?: number[];
+            uploaded_by?: number | null;
             /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
+            readonly uploaded_at: string;
+            readonly size: number;
+            readonly content_type: string;
+            readonly effective_permissions: {
+                [key: string]: unknown;
+            };
         };
-        /** @description Serializer for creating KB files */
-        KbFileCreate: {
-            /** @description Folder containing this file */
-            folder: number;
-            /** @description File title/name */
-            title: string;
-            /** @description File description */
-            description?: string;
-            /** @description File version */
-            version?: string;
-            /** @description Tags for categorizing the file */
-            tags?: unknown;
-        };
-        /** @description Serializer for creating KB files */
-        KbFileCreateRequest: {
-            /** @description Folder containing this file */
-            folder: number;
-            /** @description File title/name */
-            title: string;
-            /** @description File description */
-            description?: string;
-            files?: string[];
-            /** Format: binary */
-            file?: string;
-            /** @description File version */
-            version?: string;
-            /** @description Tags for categorizing the file */
-            tags?: unknown;
-        };
-        /** @description Simplified serializer for file listing */
-        KbFileList: {
+        KnowledgeFolder: {
             readonly id: number;
-            /** @description File title/name */
-            title: string;
-            /** @description File description */
-            description?: string;
-            readonly folder_name: string;
-            /** @description File size in bytes */
-            file_size: number;
-            readonly file_extension: string;
-            /** @description File version */
-            version?: string;
-            readonly author_name: string;
-            /** @description Number of times this file has been downloaded */
-            download_count?: number;
-            readonly file_url: string;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /** @description Detailed serializer for KbFile model */
-        KbFileRequest: {
-            /** @description Folder containing this file */
-            folder: number;
-            /** @description File title/name */
-            title: string;
-            /** @description File description */
-            description?: string;
-            /**
-             * Format: binary
-             * @description The actual file
-             */
-            file: string;
-            /** @description File version */
-            version?: string;
-            /** @description Tags for categorizing the file */
-            tags?: unknown;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
-        };
-        KbFolder: {
-            readonly id: number;
-            /** @description Folder name (must be unique) */
             name: string;
-            /** @description Folder description */
             description?: string;
-            /** @description Parent folder for creating folder hierarchy */
             parent?: number | null;
-            readonly full_path: string;
-            readonly file_count: string;
-            readonly total_size: string;
-            /** @description User who created the folder */
-            readonly created_by: number | null;
-            readonly created_by_name: string;
-            readonly subfolders: string;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
+            inherits_parent_permissions?: boolean;
+            permitted_branches?: number[];
+            permitted_departments?: number[];
+            permitted_employees?: number[];
+            created_by?: number | null;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
             readonly updated_at: string;
+            readonly effective_permissions: {
+                [key: string]: unknown;
+            };
         };
-        /** @description Simplified serializer for folder listing */
-        KbFolderList: {
-            readonly id: number;
-            /** @description Folder name (must be unique) */
-            name: string;
-            /** @description Folder description */
-            description?: string;
-            /** @description Parent folder for creating folder hierarchy */
-            parent?: number | null;
-            readonly file_count: string;
-            readonly created_by_name: string;
-            /** Format: date-time */
-            readonly created_at: string;
-        };
-        KbFolderRequest: {
-            /** @description Folder name (must be unique) */
-            name: string;
-            /** @description Folder description */
-            description?: string;
-            /** @description Parent folder for creating folder hierarchy */
-            parent?: number | null;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
-        };
-        /** @description Serializer for Locations model */
-        Locations: {
-            readonly id: number;
-            /** @description Location name (e.g., 'Head Office', 'Branch 1') */
-            name: string;
-            /** @description Physical address of the location (optional) */
-            address?: string;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /** @description Serializer for Locations model */
-        LocationsRequest: {
-            /** @description Location name (e.g., 'Head Office', 'Branch 1') */
-            name: string;
-            /** @description Physical address of the location (optional) */
-            address?: string;
-        };
-        /** @description Detailed serializer for OnboardingPlan model */
-        OnboardingPlan: {
-            readonly id: number;
-            /** @description Plan title */
-            title: string;
-            /** @description Plan description and objectives */
-            description?: string;
-            /** @description Employees assigned to this plan */
-            assigned_employees: number[];
-            readonly assigned_employees_names: string;
-            /** @description Department this plan is for (optional) */
-            assigned_department?: number | null;
-            readonly assigned_department_name: string;
-            /** @description HR/Manager who created this plan */
-            readonly assigned_by: number | null;
-            readonly assigned_by_name: string;
-            /** @description Current status of the plan
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `COMP` - Completed
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["Status79bEnum"];
-            /**
-             * Format: date
-             * @description When the onboarding should start
-             */
-            start_date?: string | null;
-            /**
-             * Format: date
-             * @description Target completion date
-             */
-            target_completion_date?: string | null;
-            /**
-             * Format: date
-             * @description Actual completion date
-             */
-            actual_completion_date?: string | null;
-            readonly total_tasks: string;
-            readonly completed_tasks: string;
-            readonly total_training_items: string;
-            readonly completed_training_items: string;
-            readonly progress_percentage: string;
-            readonly is_overdue: string;
-            readonly tasks: components["schemas"]["OnboardingTask"][];
-            readonly training_items: components["schemas"]["TrainingItem"][];
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /** @description Serializer for creating onboarding plans */
-        OnboardingPlanCreate: {
-            /** @description Plan title */
-            title: string;
-            /** @description Plan description and objectives */
-            description?: string;
-            /** @description Employees assigned to this plan */
-            assigned_employees: number[];
-            /** @description Department this plan is for (optional) */
-            assigned_department?: number | null;
-            /** @description Current status of the plan
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `COMP` - Completed
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["Status79bEnum"];
-            /**
-             * Format: date
-             * @description When the onboarding should start
-             */
-            start_date?: string | null;
-            /**
-             * Format: date
-             * @description Target completion date
-             */
-            target_completion_date?: string | null;
-        };
-        /** @description Serializer for creating onboarding plans */
-        OnboardingPlanCreateRequest: {
-            /** @description Plan title */
-            title: string;
-            /** @description Plan description and objectives */
-            description?: string;
-            /** @description Employees assigned to this plan */
-            assigned_employees: number[];
-            /** @description Department this plan is for (optional) */
-            assigned_department?: number | null;
-            /** @description Current status of the plan
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `COMP` - Completed
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["Status79bEnum"];
-            /**
-             * Format: date
-             * @description When the onboarding should start
-             */
-            start_date?: string | null;
-            /**
-             * Format: date
-             * @description Target completion date
-             */
-            target_completion_date?: string | null;
-        };
-        /** @description Simplified serializer for plan listing */
-        OnboardingPlanList: {
-            readonly id: number;
-            /** @description Plan title */
-            title: string;
-            readonly assigned_employees_names: string;
-            readonly assigned_department_name: string;
-            /** @description Current status of the plan
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `COMP` - Completed
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["Status79bEnum"];
-            /**
-             * Format: date
-             * @description When the onboarding should start
-             */
-            start_date?: string | null;
-            /**
-             * Format: date
-             * @description Target completion date
-             */
-            target_completion_date?: string | null;
-            readonly progress_percentage: string;
-            readonly is_overdue: string;
-            /** Format: date-time */
-            readonly created_at: string;
-        };
-        /** @description Detailed serializer for OnboardingPlan model */
-        OnboardingPlanRequest: {
-            /** @description Plan title */
-            title: string;
-            /** @description Plan description and objectives */
-            description?: string;
-            /** @description Employees assigned to this plan */
-            assigned_employees: number[];
-            /** @description Department this plan is for (optional) */
-            assigned_department?: number | null;
-            /** @description Current status of the plan
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `COMP` - Completed
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["Status79bEnum"];
-            /**
-             * Format: date
-             * @description When the onboarding should start
-             */
-            start_date?: string | null;
-            /**
-             * Format: date
-             * @description Target completion date
-             */
-            target_completion_date?: string | null;
-            /**
-             * Format: date
-             * @description Actual completion date
-             */
-            actual_completion_date?: string | null;
-        };
-        /** @description Serializer for OnboardingTask model */
-        OnboardingTask: {
-            readonly id: number;
-            /** @description Onboarding plan this task belongs to */
-            plan: number;
-            /** @description Task title */
-            title: string;
-            /** @description Detailed task description */
-            description?: string;
-            /** @description Task priority
-             *
-             *     * `LOW` - Low
-             *     * `NORMAL` - Normal
-             *     * `HIGH` - High
-             *     * `URGENT` - Urgent */
-            priority?: components["schemas"]["OnboardingTaskPriorityEnum"];
-            /** @description Person responsible for this task */
-            assigned_to?: number | null;
-            readonly assigned_to_name: string;
-            /**
-             * Format: date
-             * @description Task due date
-             */
-            due_date?: string | null;
-            /**
-             * Format: decimal
-             * @description Estimated hours to complete
-             */
-            estimated_hours?: string | null;
-            /** @description Whether the task is completed */
-            is_completed?: boolean;
-            /** @description Person who completed the task */
-            completed_by?: number | null;
-            readonly completed_by_name: string;
-            /**
-             * Format: date-time
-             * @description When the task was completed
-             */
-            readonly completed_at: string | null;
-            /** @description Additional notes or comments */
-            notes?: string;
-            /** @description Order of task in the plan */
-            order?: number;
-            readonly is_overdue: string;
-            readonly attachments: components["schemas"]["Attachment"][];
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /**
-         * @description * `LOW` - Low
-         *     * `NORMAL` - Normal
-         *     * `HIGH` - High
-         *     * `URGENT` - Urgent
-         * @enum {string}
-         */
-        OnboardingTaskPriorityEnum: "LOW" | "NORMAL" | "HIGH" | "URGENT";
-        /** @description Serializer for OnboardingTask model */
-        OnboardingTaskRequest: {
-            /** @description Onboarding plan this task belongs to */
-            plan: number;
-            /** @description Task title */
-            title: string;
-            /** @description Detailed task description */
-            description?: string;
-            /** @description Task priority
-             *
-             *     * `LOW` - Low
-             *     * `NORMAL` - Normal
-             *     * `HIGH` - High
-             *     * `URGENT` - Urgent */
-            priority?: components["schemas"]["OnboardingTaskPriorityEnum"];
-            /** @description Person responsible for this task */
-            assigned_to?: number | null;
-            /**
-             * Format: date
-             * @description Task due date
-             */
-            due_date?: string | null;
-            /**
-             * Format: decimal
-             * @description Estimated hours to complete
-             */
-            estimated_hours?: string | null;
-            /** @description Whether the task is completed */
-            is_completed?: boolean;
-            /** @description Person who completed the task */
-            completed_by?: number | null;
-            /** @description Additional notes or comments */
-            notes?: string;
-            /** @description Order of task in the plan */
-            order?: number;
-        };
-        PaginatedAnnouncementListList: {
+        PaginatedAnnouncementAttachmentList: {
             /** @example 123 */
             count: number;
             /**
@@ -2566,7 +554,37 @@ export interface components {
              * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
-            results: components["schemas"]["AnnouncementList"][];
+            results: components["schemas"]["AnnouncementAttachment"][];
+        };
+        PaginatedAnnouncementList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Announcement"][];
+        };
+        PaginatedAttachmentFileList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["AttachmentFile"][];
         };
         PaginatedAttachmentList: {
             /** @example 123 */
@@ -2583,7 +601,7 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Attachment"][];
         };
-        PaginatedAttachmentListList: {
+        PaginatedChecklistList: {
             /** @example 123 */
             count: number;
             /**
@@ -2596,9 +614,9 @@ export interface components {
              * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
-            results: components["schemas"]["AttachmentList"][];
+            results: components["schemas"]["Checklist"][];
         };
-        PaginatedBranchList: {
+        PaginatedExecutiveList: {
             /** @example 123 */
             count: number;
             /**
@@ -2611,9 +629,9 @@ export interface components {
              * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
-            results: components["schemas"]["Branch"][];
+            results: components["schemas"]["Executive"][];
         };
-        PaginatedDepartmentList: {
+        PaginatedKnowledgeFileList: {
             /** @example 123 */
             count: number;
             /**
@@ -2626,9 +644,9 @@ export interface components {
              * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
-            results: components["schemas"]["Department"][];
+            results: components["schemas"]["KnowledgeFile"][];
         };
-        PaginatedEmployeeListList: {
+        PaginatedKnowledgeFolderList: {
             /** @example 123 */
             count: number;
             /**
@@ -2641,663 +659,160 @@ export interface components {
              * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
-            results: components["schemas"]["EmployeeList"][];
+            results: components["schemas"]["KnowledgeFolder"][];
         };
-        PaginatedKbFileListList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["KbFileList"][];
-        };
-        PaginatedKbFolderListList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["KbFolderList"][];
-        };
-        PaginatedLocationsList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["Locations"][];
-        };
-        PaginatedOnboardingPlanListList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["OnboardingPlanList"][];
-        };
-        PaginatedOnboardingTaskList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["OnboardingTask"][];
-        };
-        PaginatedTrainingItemList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["TrainingItem"][];
-        };
-        PaginatedUserListList: {
-            /** @example 123 */
-            count: number;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=4
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example http://api.example.org/accounts/?page=2
-             */
-            previous?: string | null;
-            results: components["schemas"]["UserList"][];
-        };
-        /** @description Detailed serializer for Announcement model */
-        PatchedAnnouncementRequest: {
-            /** @description Type of announcement
-             *
-             *     * `ANN` - Announcement
-             *     * `POL` - Policy
-             *     * `NEWS` - Company News
-             *     * `EVENT` - Event */
-            type?: components["schemas"]["TypeEnum"];
-            /** @description Announcement title */
+        PatchedAnnouncement: {
+            readonly id?: number;
             title?: string;
-            /** @description Announcement description/content */
-            description?: string;
-            /** @description Brief summary of the announcement */
-            summary?: string;
-            /** @description Publication status
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["StatusF76Enum"];
-            /** @description List of tags for categorizing the announcement */
-            tags?: unknown;
-            /** @description Priority level of the announcement
-             *
-             *     * `low` - Low
-             *     * `normal` - Normal
-             *     * `high` - High
-             *     * `urgent` - Urgent */
-            priority?: components["schemas"]["PriorityC93Enum"];
-            /**
-             * Format: date-time
-             * @description Expiration date for the announcement
-             */
-            expires_at?: string | null;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
+            body?: string;
+            type?: components["schemas"]["AnnouncementTypeEnum"];
+            hash_tags?: unknown;
+            is_active?: boolean;
+            inherits_parent_permissions?: boolean;
+            permitted_branches?: number[];
+            permitted_departments?: number[];
+            permitted_employees?: number[];
+            created_by?: number | null;
+            /** Format: date-time */
+            readonly created_at?: string;
+            /** Format: date-time */
+            readonly updated_at?: string;
+            readonly attachments?: {
+                [key: string]: unknown;
+            }[];
+            readonly effective_permissions?: {
+                [key: string]: unknown;
+            };
         };
-        PatchedBranchRequest: {
-            /** @description Department this branch belongs to */
-            department?: number;
-            /** @description Location for this branch */
-            location?: number;
-            /** @description Manager (employee) for this branch */
-            manager?: number;
-        };
-        /** @description Serializer for Department model */
-        PatchedDepartmentRequest: {
-            /** @description Department name */
+        PatchedAnnouncementAttachment: {
+            readonly id?: number;
+            announcement?: number;
             name?: string;
-            /** @description Department description and responsibilities */
             description?: string;
-        };
-        /** @description Serializer for updating employee password */
-        PatchedEmployeePasswordUpdateRequest: {
-            new_password?: string;
-            confirm_password?: string;
-        };
-        /** @description Employee serializer for updating existing employees */
-        PatchedEmployeeUpdateRequest: {
-            first_name?: string;
-            last_name?: string;
-            phone_number?: string;
-            user_city?: string;
-            /** Format: binary */
-            profile_picture?: string;
-            /** @description Employee's branch (organizational unit) */
-            branch?: number | null;
-            /** @description Direct supervisor */
-            reports_to?: number | null;
-            /** @description Full street address */
-            address?: string;
-            /** @description Education qualifications, certifications, and other credentials */
-            qualification_details?: string;
-            /** @description Employee's job title */
-            job_title?: string;
-            /** @description Employee's role or position in the organization */
-            emp_role?: string;
-            /**
-             * Format: date
-             * @description Date when employee joined the company
-             */
-            join_date?: string | null;
-            /** @description Type of employment
-             *
-             *     * `full_time` - Full Time
-             *     * `part_time` - Part Time
-             *     * `contract` - Contract
-             *     * `intern` - Intern
-             *     * `temporary` - Temporary */
-            employment_type?: components["schemas"]["EmploymentTypeEnum"];
-            /**
-             * Format: decimal
-             * @description Employee salary (confidential)
-             */
-            salary?: string | null;
-            /** @description Whether the employee is currently active */
-            active?: boolean;
-            /** @description Internal notes about the employee */
-            notes?: string;
-        };
-        /** @description Detailed serializer for KbFile model */
-        PatchedKbFileRequest: {
-            /** @description Folder containing this file */
-            folder?: number;
-            /** @description File title/name */
-            title?: string;
-            /** @description File description */
-            description?: string;
-            /**
-             * Format: binary
-             * @description The actual file
-             */
+            /** Format: uri */
             file?: string;
-            /** @description File version */
-            version?: string;
-            /** @description Tags for categorizing the file */
-            tags?: unknown;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
+            readonly file_url?: string | null;
+            inherits_parent_permissions?: boolean;
+            permitted_branches?: number[];
+            permitted_departments?: number[];
+            permitted_employees?: number[];
+            uploaded_by?: number | null;
+            /** Format: date-time */
+            readonly uploaded_at?: string;
+            readonly size?: number;
+            readonly content_type?: string;
+            readonly effective_permissions?: {
+                [key: string]: unknown;
+            };
         };
-        PatchedKbFolderRequest: {
-            /** @description Folder name (must be unique) */
-            name?: string;
-            /** @description Folder description */
-            description?: string;
-            /** @description Parent folder for creating folder hierarchy */
-            parent?: number | null;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
+        PatchedAttachment: {
+            readonly id?: number;
+            checklist?: number;
+            title?: string;
+            detail?: string | null;
+            type?: components["schemas"]["AttachmentTypeEnum"];
+            /** Format: date-time */
+            readonly created_at?: string;
+            readonly files?: components["schemas"]["AttachmentFile"][];
         };
-        /** @description Serializer for Locations model */
-        PatchedLocationsRequest: {
-            /** @description Location name (e.g., 'Head Office', 'Branch 1') */
+        PatchedAttachmentFile: {
+            readonly id?: number;
+            attachment?: number;
+            /** Format: uri */
+            file?: string;
+            /** Format: date-time */
+            readonly uploaded_at?: string;
+        };
+        PatchedChecklist: {
+            readonly id?: number;
+            title?: string | null;
+            detail?: string | null;
+            assigned_to?: number[];
+            assigned_by?: number;
+            readonly assigned_to_details?: components["schemas"]["Employee"][];
+            readonly assigned_by_details?: components["schemas"]["Employee"];
+            status?: components["schemas"]["StatusEnum"];
+            /** Format: date-time */
+            readonly created_at?: string;
+            /** Format: date-time */
+            readonly updated_at?: string;
+            readonly attachments?: components["schemas"]["Attachment"][];
+        };
+        PatchedExecutive: {
+            readonly id?: number;
             name?: string;
-            /** @description Physical address of the location (optional) */
             address?: string;
-        };
-        /** @description Detailed serializer for OnboardingPlan model */
-        PatchedOnboardingPlanRequest: {
-            /** @description Plan title */
-            title?: string;
-            /** @description Plan description and objectives */
-            description?: string;
-            /** @description Employees assigned to this plan */
-            assigned_employees?: number[];
-            /** @description Department this plan is for (optional) */
-            assigned_department?: number | null;
-            /** @description Current status of the plan
-             *
-             *     * `DRAFT` - Draft
-             *     * `PUB` - Published
-             *     * `COMP` - Completed
-             *     * `ARCH` - Archived */
-            status?: components["schemas"]["Status79bEnum"];
-            /**
-             * Format: date
-             * @description When the onboarding should start
-             */
-            start_date?: string | null;
-            /**
-             * Format: date
-             * @description Target completion date
-             */
-            target_completion_date?: string | null;
-            /**
-             * Format: date
-             * @description Actual completion date
-             */
-            actual_completion_date?: string | null;
-        };
-        /** @description Serializer for OnboardingTask model */
-        PatchedOnboardingTaskRequest: {
-            /** @description Onboarding plan this task belongs to */
-            plan?: number;
-            /** @description Task title */
-            title?: string;
-            /** @description Detailed task description */
-            description?: string;
-            /** @description Task priority
-             *
-             *     * `LOW` - Low
-             *     * `NORMAL` - Normal
-             *     * `HIGH` - High
-             *     * `URGENT` - Urgent */
-            priority?: components["schemas"]["OnboardingTaskPriorityEnum"];
-            /** @description Person responsible for this task */
-            assigned_to?: number | null;
-            /**
-             * Format: date
-             * @description Task due date
-             */
-            due_date?: string | null;
-            /**
-             * Format: decimal
-             * @description Estimated hours to complete
-             */
-            estimated_hours?: string | null;
-            /** @description Whether the task is completed */
-            is_completed?: boolean;
-            /** @description Person who completed the task */
-            completed_by?: number | null;
-            /** @description Additional notes or comments */
-            notes?: string;
-            /** @description Order of task in the plan */
-            order?: number;
-        };
-        /** @description Serializer for TrainingItem model */
-        PatchedTrainingItemRequest: {
-            /** @description Onboarding plan this training belongs to */
-            plan?: number;
-            /** @description Training item title */
-            title?: string;
-            /** @description Training description and objectives */
-            description?: string;
-            /** @description Type of training
-             *
-             *     * `reading` - Reading Material
-             *     * `video` - Video Training
-             *     * `course` - Online Course
-             *     * `workshop` - Workshop/Seminar
-             *     * `meeting` - Meeting/Session
-             *     * `practical` - Hands-on Practice
-             *     * `assessment` - Assessment/Quiz */
-            training_type?: components["schemas"]["TrainingTypeEnum"];
-            /**
-             * Format: uri
-             * @description URL for online training materials
-             */
-            url?: string;
-            /** @description Estimated time to complete (e.g., '2 hours', '1 day') */
-            estimated_duration?: string;
-            /** @description Whether this training is mandatory */
-            is_mandatory?: boolean;
-            /** @description Whether the training is completed */
-            is_completed?: boolean;
-            /** @description Person who completed the training */
-            completed_by?: number | null;
-            /** @description Person conducting the training */
-            trainer?: number | null;
-            /** @description Training notes or feedback */
-            notes?: string;
-            /** @description Order of training in the plan */
-            order?: number;
-        };
-        /** @description Serializer for updating user profile information */
-        PatchedUserProfileUpdateRequest: {
-            first_name?: string;
-            last_name?: string;
-            /** @description Phone number in international format */
-            phone_number?: string;
-            gender?: components["schemas"]["GenderEnum"] | components["schemas"]["BlankEnum"];
-            /** Format: date */
-            date_of_birth?: string | null;
             city?: string;
-            country?: string;
-            postal_code?: string;
-            /** @description Brief description about the user */
-            about?: string;
+            phone?: string;
+            /** Format: email */
+            email?: string;
+            role?: string;
+            education?: string;
+            bio?: string;
+            /** Format: uri */
+            profile_picture?: string | null;
+            /** Format: date-time */
+            readonly created_at?: string;
+            /** Format: date-time */
+            readonly updated_at?: string;
+        };
+        PatchedKnowledgeFile: {
+            readonly id?: number;
+            folder?: number;
+            name?: string;
+            description?: string;
+            /** Format: uri */
+            file?: string;
+            readonly file_url?: string | null;
+            inherits_parent_permissions?: boolean;
+            permitted_branches?: number[];
+            permitted_departments?: number[];
+            permitted_employees?: number[];
+            uploaded_by?: number | null;
+            /** Format: date-time */
+            readonly uploaded_at?: string;
+            readonly size?: number;
+            readonly content_type?: string;
+            readonly effective_permissions?: {
+                [key: string]: unknown;
+            };
+        };
+        PatchedKnowledgeFolder: {
+            readonly id?: number;
+            name?: string;
+            description?: string;
+            parent?: number | null;
+            inherits_parent_permissions?: boolean;
+            permitted_branches?: number[];
+            permitted_departments?: number[];
+            permitted_employees?: number[];
+            created_by?: number | null;
+            /** Format: date-time */
+            readonly created_at?: string;
+            /** Format: date-time */
+            readonly updated_at?: string;
+            readonly effective_permissions?: {
+                [key: string]: unknown;
+            };
         };
         /**
-         * @description * `low` - Low
-         *     * `normal` - Normal
-         *     * `high` - High
-         *     * `urgent` - Urgent
+         * @description * `draft` - Draft
+         *     * `publish` - Publish
          * @enum {string}
          */
-        PriorityC93Enum: "low" | "normal" | "high" | "urgent";
-        /**
-         * @description * `admin` - Admin
-         *     * `moderator` - Moderator
-         *     * `employee` - Employee
-         *     * `user` - User
-         * @enum {string}
-         */
-        RoleEnum: "admin" | "moderator" | "employee" | "user";
-        /**
-         * @description * `DRAFT` - Draft
-         *     * `PUB` - Published
-         *     * `COMP` - Completed
-         *     * `ARCH` - Archived
-         * @enum {string}
-         */
-        Status79bEnum: "DRAFT" | "PUB" | "COMP" | "ARCH";
-        /**
-         * @description * `active` - Active
-         *     * `inactive` - Inactive
-         *     * `suspended` - Suspended
-         *     * `pending` - Pending
-         * @enum {string}
-         */
-        StatusC0cEnum: "active" | "inactive" | "suspended" | "pending";
-        /**
-         * @description * `DRAFT` - Draft
-         *     * `PUB` - Published
-         *     * `ARCH` - Archived
-         * @enum {string}
-         */
-        StatusF76Enum: "DRAFT" | "PUB" | "ARCH";
+        StatusEnum: "draft" | "publish";
+        TokenObtainPair: {
+            username: string;
+            password: string;
+            readonly access: string;
+            readonly refresh: string;
+        };
         TokenRefresh: {
             readonly access: string;
             refresh: string;
         };
-        TokenRefreshRequest: {
-            refresh: string;
-        };
-        /** @description Serializer for TrainingItem model */
-        TrainingItem: {
-            readonly id: number;
-            /** @description Onboarding plan this training belongs to */
-            plan: number;
-            /** @description Training item title */
-            title: string;
-            /** @description Training description and objectives */
-            description?: string;
-            /** @description Type of training
-             *
-             *     * `reading` - Reading Material
-             *     * `video` - Video Training
-             *     * `course` - Online Course
-             *     * `workshop` - Workshop/Seminar
-             *     * `meeting` - Meeting/Session
-             *     * `practical` - Hands-on Practice
-             *     * `assessment` - Assessment/Quiz */
-            training_type?: components["schemas"]["TrainingTypeEnum"];
-            /**
-             * Format: uri
-             * @description URL for online training materials
-             */
-            url?: string;
-            /** @description Estimated time to complete (e.g., '2 hours', '1 day') */
-            estimated_duration?: string;
-            /** @description Whether this training is mandatory */
-            is_mandatory?: boolean;
-            /** @description Whether the training is completed */
-            is_completed?: boolean;
-            /** @description Person who completed the training */
-            completed_by?: number | null;
-            readonly completed_by_name: string;
-            /**
-             * Format: date-time
-             * @description When the training was completed
-             */
-            readonly completed_at: string | null;
-            /** @description Person conducting the training */
-            trainer?: number | null;
-            readonly trainer_name: string;
-            /** @description Training notes or feedback */
-            notes?: string;
-            /** @description Order of training in the plan */
-            order?: number;
-            readonly attachments: components["schemas"]["Attachment"][];
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /** @description Serializer for TrainingItem model */
-        TrainingItemRequest: {
-            /** @description Onboarding plan this training belongs to */
-            plan: number;
-            /** @description Training item title */
-            title: string;
-            /** @description Training description and objectives */
-            description?: string;
-            /** @description Type of training
-             *
-             *     * `reading` - Reading Material
-             *     * `video` - Video Training
-             *     * `course` - Online Course
-             *     * `workshop` - Workshop/Seminar
-             *     * `meeting` - Meeting/Session
-             *     * `practical` - Hands-on Practice
-             *     * `assessment` - Assessment/Quiz */
-            training_type?: components["schemas"]["TrainingTypeEnum"];
-            /**
-             * Format: uri
-             * @description URL for online training materials
-             */
-            url?: string;
-            /** @description Estimated time to complete (e.g., '2 hours', '1 day') */
-            estimated_duration?: string;
-            /** @description Whether this training is mandatory */
-            is_mandatory?: boolean;
-            /** @description Whether the training is completed */
-            is_completed?: boolean;
-            /** @description Person who completed the training */
-            completed_by?: number | null;
-            /** @description Person conducting the training */
-            trainer?: number | null;
-            /** @description Training notes or feedback */
-            notes?: string;
-            /** @description Order of training in the plan */
-            order?: number;
-        };
-        /**
-         * @description * `reading` - Reading Material
-         *     * `video` - Video Training
-         *     * `course` - Online Course
-         *     * `workshop` - Workshop/Seminar
-         *     * `meeting` - Meeting/Session
-         *     * `practical` - Hands-on Practice
-         *     * `assessment` - Assessment/Quiz
-         * @enum {string}
-         */
-        TrainingTypeEnum: "reading" | "video" | "course" | "workshop" | "meeting" | "practical" | "assessment";
-        /**
-         * @description * `ANN` - Announcement
-         *     * `POL` - Policy
-         *     * `NEWS` - Company News
-         *     * `EVENT` - Event
-         * @enum {string}
-         */
-        TypeEnum: "ANN" | "POL" | "NEWS" | "EVENT";
-        /** @description Serializer for listing users (admin functionality) */
-        UserList: {
-            readonly id: number;
-            /** @description Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
-            username: string;
-            /** Format: email */
-            email: string;
-            first_name?: string;
-            last_name?: string;
-            readonly full_name: string;
-            role?: components["schemas"]["RoleEnum"];
-            status?: components["schemas"]["StatusC0cEnum"];
-            email_verified?: boolean;
-            readonly profile_picture_url: string;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            last_login?: string | null;
-        };
-        /** @description Serializer for user profile information */
-        UserProfile: {
-            readonly id: number;
-            /** @description Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
-            username: string;
-            /** Format: email */
-            readonly email: string;
-            first_name?: string;
-            last_name?: string;
-            readonly full_name: string;
-            /** @description Phone number in international format */
-            phone_number?: string;
-            gender?: components["schemas"]["GenderEnum"] | components["schemas"]["BlankEnum"];
-            /** Format: date */
-            date_of_birth?: string | null;
-            city?: string;
-            country?: string;
-            postal_code?: string;
-            readonly role: components["schemas"]["RoleEnum"];
-            readonly status: components["schemas"]["StatusC0cEnum"];
-            /** @description Brief description about the user */
-            about?: string;
-            /**
-             * Format: uri
-             * @description Profile picture image
-             */
-            profile_picture?: string | null;
-            readonly profile_picture_url: string;
-            readonly email_verified: boolean;
-            /** Format: date-time */
-            readonly created_at: string;
-            /** Format: date-time */
-            readonly updated_at: string;
-        };
-        /** @description Serializer for updating user profile information */
-        UserProfileUpdate: {
-            first_name?: string;
-            last_name?: string;
-            /** @description Phone number in international format */
-            phone_number?: string;
-            gender?: components["schemas"]["GenderEnum"] | components["schemas"]["BlankEnum"];
-            /** Format: date */
-            date_of_birth?: string | null;
-            city?: string;
-            country?: string;
-            postal_code?: string;
-            /** @description Brief description about the user */
-            about?: string;
-        };
-        /** @description Serializer for updating user profile information */
-        UserProfileUpdateRequest: {
-            first_name?: string;
-            last_name?: string;
-            /** @description Phone number in international format */
-            phone_number?: string;
-            gender?: components["schemas"]["GenderEnum"] | components["schemas"]["BlankEnum"];
-            /** Format: date */
-            date_of_birth?: string | null;
-            city?: string;
-            country?: string;
-            postal_code?: string;
-            /** @description Brief description about the user */
-            about?: string;
-        };
-        /** @description Serializer for user registration */
-        UserRegistration: {
-            /** @description Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
-            username: string;
-            /** Format: email */
-            email: string;
-            first_name?: string;
-            last_name?: string;
-            /** @default user */
-            role: components["schemas"]["RoleEnum"];
-        };
-        /** @description Serializer for user registration */
-        UserRegistrationRequest: {
-            /** @description Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
-            username: string;
-            /** Format: email */
-            email: string;
-            password: string;
-            password_confirm: string;
-            first_name?: string;
-            last_name?: string;
-            /** @default user */
-            role: components["schemas"]["RoleEnum"];
+        TokenVerify: {
+            token: string;
         };
     };
     responses: never;
@@ -3308,43 +823,11 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    announcements_list: {
+    api_executives_executives_list: {
         parameters: {
             query?: {
-                /** @description Defines who can access this content
-                 *
-                 *     * `ALL` - All employees
-                 *     * `PRIVATE` - Only me (private)
-                 *     * `ADMINS` - Admins only
-                 *     * `DEPTS` - Specific departments
-                 *     * `PEOPLE` - Specific people */
-                access_level?: "ADMINS" | "ALL" | "DEPTS" | "PEOPLE" | "PRIVATE";
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
-                /** @description Priority level of the announcement
-                 *
-                 *     * `low` - Low
-                 *     * `normal` - Normal
-                 *     * `high` - High
-                 *     * `urgent` - Urgent */
-                priority?: "high" | "low" | "normal" | "urgent";
-                /** @description A search term. */
-                search?: string;
-                /** @description Publication status
-                 *
-                 *     * `DRAFT` - Draft
-                 *     * `PUB` - Published
-                 *     * `ARCH` - Archived */
-                status?: "ARCH" | "DRAFT" | "PUB";
-                /** @description Type of announcement
-                 *
-                 *     * `ANN` - Announcement
-                 *     * `POL` - Policy
-                 *     * `NEWS` - Company News
-                 *     * `EVENT` - Event */
-                type?: "ANN" | "EVENT" | "NEWS" | "POL";
             };
             header?: never;
             path?: never;
@@ -3357,12 +840,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedAnnouncementListList"];
+                    "application/json": components["schemas"]["PaginatedExecutiveList"];
                 };
             };
         };
     };
-    announcements_create: {
+    api_executives_executives_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3371,9 +854,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AnnouncementCreateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["AnnouncementCreateRequest"];
-                "multipart/form-data": components["schemas"]["AnnouncementCreateRequest"];
+                "application/json": components["schemas"]["Executive"];
+                "application/x-www-form-urlencoded": components["schemas"]["Executive"];
+                "multipart/form-data": components["schemas"]["Executive"];
             };
         };
         responses: {
@@ -3382,17 +865,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AnnouncementCreate"];
+                    "application/json": components["schemas"]["Executive"];
                 };
             };
         };
     };
-    announcements_retrieve: {
+    api_executives_executives_retrieve: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description A unique integer value identifying this Announcement. */
+                /** @description A unique integer value identifying this executive. */
                 id: number;
             };
             cookie?: never;
@@ -3404,26 +887,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Announcement"];
+                    "application/json": components["schemas"]["Executive"];
                 };
             };
         };
     };
-    announcements_update: {
+    api_executives_executives_update: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description A unique integer value identifying this Announcement. */
+                /** @description A unique integer value identifying this executive. */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AnnouncementRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["AnnouncementRequest"];
-                "multipart/form-data": components["schemas"]["AnnouncementRequest"];
+                "application/json": components["schemas"]["Executive"];
+                "application/x-www-form-urlencoded": components["schemas"]["Executive"];
+                "multipart/form-data": components["schemas"]["Executive"];
             };
         };
         responses: {
@@ -3432,17 +915,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Announcement"];
+                    "application/json": components["schemas"]["Executive"];
                 };
             };
         };
     };
-    announcements_destroy: {
+    api_executives_executives_destroy: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description A unique integer value identifying this Announcement. */
+                /** @description A unique integer value identifying this executive. */
                 id: number;
             };
             cookie?: never;
@@ -3458,21 +941,21 @@ export interface operations {
             };
         };
     };
-    announcements_partial_update: {
+    api_executives_executives_partial_update: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description A unique integer value identifying this Announcement. */
+                /** @description A unique integer value identifying this executive. */
                 id: number;
             };
             cookie?: never;
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedAnnouncementRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedAnnouncementRequest"];
-                "multipart/form-data": components["schemas"]["PatchedAnnouncementRequest"];
+                "application/json": components["schemas"]["PatchedExecutive"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedExecutive"];
+                "multipart/form-data": components["schemas"]["PatchedExecutive"];
             };
         };
         responses: {
@@ -3481,30 +964,244 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Announcement"];
+                    "application/json": components["schemas"]["Executive"];
                 };
             };
         };
     };
-    announcements_mark_viewed_create: {
+    api_executives_executives_delete_profile_picture_destroy: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description A unique integer value identifying this Announcement. */
+                /** @description A unique integer value identifying this executive. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    api_executives_executives_upload_profile_picture_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this executive. */
                 id: number;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AnnouncementRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["AnnouncementRequest"];
-                "multipart/form-data": components["schemas"]["AnnouncementRequest"];
+                "application/json": components["schemas"]["Executive"];
+                "application/x-www-form-urlencoded": components["schemas"]["Executive"];
+                "multipart/form-data": components["schemas"]["Executive"];
             };
         };
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Executive"];
+                };
+            };
+        };
+    };
+    api_knowledge_announcement_attachments_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedAnnouncementAttachmentList"];
+                };
+            };
+        };
+    };
+    api_knowledge_announcement_attachments_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["AnnouncementAttachment"];
+                "application/x-www-form-urlencoded": components["schemas"]["AnnouncementAttachment"];
+                "application/json": components["schemas"]["AnnouncementAttachment"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementAttachment"];
+                };
+            };
+        };
+    };
+    api_knowledge_announcement_attachments_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this announcement attachment. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementAttachment"];
+                };
+            };
+        };
+    };
+    api_knowledge_announcement_attachments_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this announcement attachment. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["AnnouncementAttachment"];
+                "application/x-www-form-urlencoded": components["schemas"]["AnnouncementAttachment"];
+                "application/json": components["schemas"]["AnnouncementAttachment"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementAttachment"];
+                };
+            };
+        };
+    };
+    api_knowledge_announcement_attachments_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this announcement attachment. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    api_knowledge_announcement_attachments_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this announcement attachment. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["PatchedAnnouncementAttachment"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAnnouncementAttachment"];
+                "application/json": components["schemas"]["PatchedAnnouncementAttachment"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnnouncementAttachment"];
+                };
+            };
+        };
+    };
+    api_knowledge_announcements_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedAnnouncementList"];
+                };
+            };
+        };
+    };
+    api_knowledge_announcements_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Announcement"];
+                "application/x-www-form-urlencoded": components["schemas"]["Announcement"];
+                "multipart/form-data": components["schemas"]["Announcement"];
+            };
+        };
+        responses: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3514,12 +1211,12 @@ export interface operations {
             };
         };
     };
-    announcements_statistics_retrieve: {
+    api_knowledge_announcements_retrieve: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description A unique integer value identifying this Announcement. */
+                /** @description A unique integer value identifying this announcement. */
                 id: number;
             };
             cookie?: never;
@@ -3536,7 +1233,401 @@ export interface operations {
             };
         };
     };
-    announcements_my_announcements_retrieve: {
+    api_knowledge_announcements_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this announcement. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Announcement"];
+                "application/x-www-form-urlencoded": components["schemas"]["Announcement"];
+                "multipart/form-data": components["schemas"]["Announcement"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Announcement"];
+                };
+            };
+        };
+    };
+    api_knowledge_announcements_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this announcement. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    api_knowledge_announcements_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this announcement. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAnnouncement"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAnnouncement"];
+                "multipart/form-data": components["schemas"]["PatchedAnnouncement"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Announcement"];
+                };
+            };
+        };
+    };
+    api_knowledge_files_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedKnowledgeFileList"];
+                };
+            };
+        };
+    };
+    api_knowledge_files_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["KnowledgeFile"];
+                "application/x-www-form-urlencoded": components["schemas"]["KnowledgeFile"];
+                "application/json": components["schemas"]["KnowledgeFile"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFile"];
+                };
+            };
+        };
+    };
+    api_knowledge_files_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this knowledge file. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFile"];
+                };
+            };
+        };
+    };
+    api_knowledge_files_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this knowledge file. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["KnowledgeFile"];
+                "application/x-www-form-urlencoded": components["schemas"]["KnowledgeFile"];
+                "application/json": components["schemas"]["KnowledgeFile"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFile"];
+                };
+            };
+        };
+    };
+    api_knowledge_files_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this knowledge file. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    api_knowledge_files_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this knowledge file. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["PatchedKnowledgeFile"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedKnowledgeFile"];
+                "application/json": components["schemas"]["PatchedKnowledgeFile"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFile"];
+                };
+            };
+        };
+    };
+    api_knowledge_files_bulk_upload_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["KnowledgeFile"];
+                "application/x-www-form-urlencoded": components["schemas"]["KnowledgeFile"];
+                "application/json": components["schemas"]["KnowledgeFile"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFile"];
+                };
+            };
+        };
+    };
+    api_knowledge_folders_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedKnowledgeFolderList"];
+                };
+            };
+        };
+    };
+    api_knowledge_folders_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgeFolder"];
+                "application/x-www-form-urlencoded": components["schemas"]["KnowledgeFolder"];
+                "multipart/form-data": components["schemas"]["KnowledgeFolder"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFolder"];
+                };
+            };
+        };
+    };
+    api_knowledge_folders_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this knowledge folder. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFolder"];
+                };
+            };
+        };
+    };
+    api_knowledge_folders_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this knowledge folder. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgeFolder"];
+                "application/x-www-form-urlencoded": components["schemas"]["KnowledgeFolder"];
+                "multipart/form-data": components["schemas"]["KnowledgeFolder"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFolder"];
+                };
+            };
+        };
+    };
+    api_knowledge_folders_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this knowledge folder. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    api_knowledge_folders_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this knowledge folder. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedKnowledgeFolder"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedKnowledgeFolder"];
+                "multipart/form-data": components["schemas"]["PatchedKnowledgeFolder"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFolder"];
+                };
+            };
+        };
+    };
+    api_knowledge_folders_tree_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -3550,23 +1641,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Announcement"];
+                    "application/json": components["schemas"]["KnowledgeFolder"];
                 };
             };
         };
     };
-    attachments_list: {
+    api_newhire_attachment_files_list: {
         parameters: {
             query?: {
-                content_type?: number;
-                mime_type?: string;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
-                /** @description A search term. */
-                search?: string;
-                uploaded_by?: number;
             };
             header?: never;
             path?: never;
@@ -3579,46 +1663,148 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedAttachmentListList"];
+                    "application/json": components["schemas"]["PaginatedAttachmentFileList"];
                 };
             };
         };
     };
-    attachments_create: {
+    api_newhire_attachment_files_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentFile"];
+                "application/x-www-form-urlencoded": components["schemas"]["AttachmentFile"];
+                "multipart/form-data": components["schemas"]["AttachmentFile"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentFile"];
+                };
+            };
+        };
+    };
+    api_newhire_attachment_files_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this attachment file. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentFile"];
+                };
+            };
+        };
+    };
+    api_newhire_attachment_files_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this attachment file. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachmentFile"];
+                "application/x-www-form-urlencoded": components["schemas"]["AttachmentFile"];
+                "multipart/form-data": components["schemas"]["AttachmentFile"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentFile"];
+                };
+            };
+        };
+    };
+    api_newhire_attachment_files_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this attachment file. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    api_newhire_attachment_files_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this attachment file. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAttachmentFile"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAttachmentFile"];
+                "multipart/form-data": components["schemas"]["PatchedAttachmentFile"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentFile"];
+                };
+            };
+        };
+    };
+    api_newhire_attachments_list: {
         parameters: {
             query?: {
-                content_type?: number;
-                mime_type?: string;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
-                /** @description A search term. */
-                search?: string;
-                uploaded_by?: number;
             };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
-            content: {
-                "multipart/form-data": {
-                    /** @description Multiple files to upload */
-                    files?: string[];
-                    /**
-                     * Format: binary
-                     * @description Single file to upload (legacy)
-                     */
-                    file?: string;
-                    description?: string;
-                    content_type: number;
-                    object_id: number;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3628,12 +1814,37 @@ export interface operations {
             };
         };
     };
-    attachments_retrieve: {
+    api_newhire_attachments_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Attachment"];
+                "application/x-www-form-urlencoded": components["schemas"]["Attachment"];
+                "multipart/form-data": components["schemas"]["Attachment"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attachment"];
+                };
+            };
+        };
+    };
+    api_newhire_attachments_retrieve: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description A unique integer value identifying this Attachment. */
+                /** @description A unique integer value identifying this attachment. */
                 id: number;
             };
             cookie?: never;
@@ -3650,12 +1861,40 @@ export interface operations {
             };
         };
     };
-    attachments_destroy: {
+    api_newhire_attachments_update: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description A unique integer value identifying this Attachment. */
+                /** @description A unique integer value identifying this attachment. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Attachment"];
+                "application/x-www-form-urlencoded": components["schemas"]["Attachment"];
+                "multipart/form-data": components["schemas"]["Attachment"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attachment"];
+                };
+            };
+        };
+    };
+    api_newhire_attachments_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this attachment. */
                 id: number;
             };
             cookie?: never;
@@ -3671,12 +1910,87 @@ export interface operations {
             };
         };
     };
-    attachments_download_retrieve: {
+    api_newhire_attachments_partial_update: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description A unique integer value identifying this Attachment. */
+                /** @description A unique integer value identifying this attachment. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAttachment"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAttachment"];
+                "multipart/form-data": components["schemas"]["PatchedAttachment"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attachment"];
+                };
+            };
+        };
+    };
+    api_newhire_checklists_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedChecklistList"];
+                };
+            };
+        };
+    };
+    api_newhire_checklists_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Checklist"];
+                "application/x-www-form-urlencoded": components["schemas"]["Checklist"];
+                "multipart/form-data": components["schemas"]["Checklist"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Checklist"];
+                };
+            };
+        };
+    };
+    api_newhire_checklists_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this checklist. */
                 id: number;
             };
             cookie?: never;
@@ -3688,60 +2002,26 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Attachment"];
+                    "application/json": components["schemas"]["Checklist"];
                 };
             };
         };
     };
-    attachments_for_content_retrieve: {
+    api_newhire_checklists_update: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Attachment"];
-                };
+            path: {
+                /** @description A unique integer value identifying this checklist. */
+                id: number;
             };
-        };
-    };
-    auth_change_password_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    auth_login_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CustomTokenObtainPairRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["CustomTokenObtainPairRequest"];
-                "multipart/form-data": components["schemas"]["CustomTokenObtainPairRequest"];
+                "application/json": components["schemas"]["Checklist"];
+                "application/x-www-form-urlencoded": components["schemas"]["Checklist"];
+                "multipart/form-data": components["schemas"]["Checklist"];
             };
         };
         responses: {
@@ -3750,22 +2030,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CustomTokenObtainPair"];
+                    "application/json": components["schemas"]["Checklist"];
                 };
             };
         };
     };
-    auth_logout_create: {
+    api_newhire_checklists_destroy: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** @description A unique integer value identifying this checklist. */
+                id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
             /** @description No response body */
-            200: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3773,104 +2056,35 @@ export interface operations {
             };
         };
     };
-    auth_password_reset_create: {
+    api_newhire_checklists_partial_update: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
+            path: {
+                /** @description A unique integer value identifying this checklist. */
+                id: number;
             };
-        };
-    };
-    auth_password_reset_confirm_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    auth_profile_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    auth_register_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
+        requestBody?: {
             content: {
-                "application/json": components["schemas"]["UserRegistrationRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["UserRegistrationRequest"];
-                "multipart/form-data": components["schemas"]["UserRegistrationRequest"];
+                "application/json": components["schemas"]["PatchedChecklist"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedChecklist"];
+                "multipart/form-data": components["schemas"]["PatchedChecklist"];
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserRegistration"];
+                    "application/json": components["schemas"]["Checklist"];
                 };
             };
         };
     };
-    auth_status_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    auth_token_refresh_create: {
+    api_token_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3879,9 +2093,34 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TokenRefreshRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["TokenRefreshRequest"];
-                "multipart/form-data": components["schemas"]["TokenRefreshRequest"];
+                "application/json": components["schemas"]["TokenObtainPair"];
+                "application/x-www-form-urlencoded": components["schemas"]["TokenObtainPair"];
+                "multipart/form-data": components["schemas"]["TokenObtainPair"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenObtainPair"];
+                };
+            };
+        };
+    };
+    api_token_refresh_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenRefresh"];
+                "application/x-www-form-urlencoded": components["schemas"]["TokenRefresh"];
+                "multipart/form-data": components["schemas"]["TokenRefresh"];
             };
         };
         responses: {
@@ -3895,36 +2134,7 @@ export interface operations {
             };
         };
     };
-    branches_list: {
-        parameters: {
-            query?: {
-                department?: number;
-                location?: number;
-                manager?: number;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedBranchList"];
-                };
-            };
-        };
-    };
-    branches_create: {
+    api_token_verify_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -3933,59 +2143,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["BranchRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["BranchRequest"];
-                "multipart/form-data": components["schemas"]["BranchRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Branch"];
-                };
-            };
-        };
-    };
-    branches_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Branch. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Branch"];
-                };
-            };
-        };
-    };
-    branches_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Branch. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BranchRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["BranchRequest"];
-                "multipart/form-data": components["schemas"]["BranchRequest"];
+                "application/json": components["schemas"]["TokenVerify"];
+                "application/x-www-form-urlencoded": components["schemas"]["TokenVerify"];
+                "multipart/form-data": components["schemas"]["TokenVerify"];
             };
         };
         responses: {
@@ -3994,1958 +2154,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Branch"];
+                    "application/json": components["schemas"]["TokenVerify"];
                 };
-            };
-        };
-    };
-    branches_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Branch. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    branches_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Branch. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedBranchRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedBranchRequest"];
-                "multipart/form-data": components["schemas"]["PatchedBranchRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Branch"];
-                };
-            };
-        };
-    };
-    branches_employees_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Branch. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Branch"];
-                };
-            };
-        };
-    };
-    contenttypes_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    departments_list: {
-        parameters: {
-            query?: {
-                name?: string;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedDepartmentList"];
-                };
-            };
-        };
-    };
-    departments_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DepartmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["DepartmentRequest"];
-                "multipart/form-data": components["schemas"]["DepartmentRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Department"];
-                };
-            };
-        };
-    };
-    departments_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Department. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Department"];
-                };
-            };
-        };
-    };
-    departments_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Department. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DepartmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["DepartmentRequest"];
-                "multipart/form-data": components["schemas"]["DepartmentRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Department"];
-                };
-            };
-        };
-    };
-    departments_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Department. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    departments_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Department. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedDepartmentRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedDepartmentRequest"];
-                "multipart/form-data": components["schemas"]["PatchedDepartmentRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Department"];
-                };
-            };
-        };
-    };
-    departments_employees_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Department. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Department"];
-                };
-            };
-        };
-    };
-    employees_list: {
-        parameters: {
-            query?: {
-                active?: boolean;
-                branch?: number;
-                emp_role?: string;
-                /** @description Type of employment
-                 *
-                 *     * `full_time` - Full Time
-                 *     * `part_time` - Part Time
-                 *     * `contract` - Contract
-                 *     * `intern` - Intern
-                 *     * `temporary` - Temporary */
-                employment_type?: "contract" | "full_time" | "intern" | "part_time" | "temporary";
-                job_title?: string;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                reports_to?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedEmployeeListList"];
-                };
-            };
-        };
-    };
-    employees_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EmployeeCreateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["EmployeeCreateRequest"];
-                "multipart/form-data": components["schemas"]["EmployeeCreateRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EmployeeCreate"];
-                };
-            };
-        };
-    };
-    employees_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Employee. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Employee"];
-                };
-            };
-        };
-    };
-    employees_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Employee. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["EmployeeUpdateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["EmployeeUpdateRequest"];
-                "multipart/form-data": components["schemas"]["EmployeeUpdateRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EmployeeUpdate"];
-                };
-            };
-        };
-    };
-    employees_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Employee. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    employees_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Employee. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedEmployeeUpdateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedEmployeeUpdateRequest"];
-                "multipart/form-data": components["schemas"]["PatchedEmployeeUpdateRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["EmployeeUpdate"];
-                };
-            };
-        };
-    };
-    employees_hierarchy_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Employee. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Employee"];
-                };
-            };
-        };
-    };
-    employees_update_password_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Employee. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedEmployeePasswordUpdateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedEmployeePasswordUpdateRequest"];
-                "multipart/form-data": components["schemas"]["PatchedEmployeePasswordUpdateRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    employees_search_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Employee"];
-                };
-            };
-        };
-    };
-    kb_files_list: {
-        parameters: {
-            query?: {
-                /** @description Defines who can access this content
-                 *
-                 *     * `ALL` - All employees
-                 *     * `PRIVATE` - Only me (private)
-                 *     * `ADMINS` - Admins only
-                 *     * `DEPTS` - Specific departments
-                 *     * `PEOPLE` - Specific people */
-                access_level?: "ADMINS" | "ALL" | "DEPTS" | "PEOPLE" | "PRIVATE";
-                created_by?: number;
-                file_type?: string;
-                folder?: number;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedKbFileListList"];
-                };
-            };
-        };
-    };
-    kb_files_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["KbFileCreateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["KbFileCreateRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFileCreate"];
-                };
-            };
-        };
-    };
-    kb_files_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base File. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFile"];
-                };
-            };
-        };
-    };
-    kb_files_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base File. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["KbFileRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["KbFileRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFile"];
-                };
-            };
-        };
-    };
-    kb_files_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base File. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    kb_files_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base File. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "multipart/form-data": components["schemas"]["PatchedKbFileRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedKbFileRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFile"];
-                };
-            };
-        };
-    };
-    kb_files_download_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base File. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFile"];
-                };
-            };
-        };
-    };
-    kb_files_statistics_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base File. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFile"];
-                };
-            };
-        };
-    };
-    kb_files_search_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFile"];
-                };
-            };
-        };
-    };
-    kb_folders_list: {
-        parameters: {
-            query?: {
-                /** @description Defines who can access this content
-                 *
-                 *     * `ALL` - All employees
-                 *     * `PRIVATE` - Only me (private)
-                 *     * `ADMINS` - Admins only
-                 *     * `DEPTS` - Specific departments
-                 *     * `PEOPLE` - Specific people */
-                access_level?: "ADMINS" | "ALL" | "DEPTS" | "PEOPLE" | "PRIVATE";
-                created_by?: number;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                parent?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedKbFolderListList"];
-                };
-            };
-        };
-    };
-    kb_folders_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["KbFolderRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["KbFolderRequest"];
-                "multipart/form-data": components["schemas"]["KbFolderRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFolder"];
-                };
-            };
-        };
-    };
-    kb_folders_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base Folder. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFolder"];
-                };
-            };
-        };
-    };
-    kb_folders_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base Folder. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["KbFolderRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["KbFolderRequest"];
-                "multipart/form-data": components["schemas"]["KbFolderRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFolder"];
-                };
-            };
-        };
-    };
-    kb_folders_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base Folder. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    kb_folders_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base Folder. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedKbFolderRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedKbFolderRequest"];
-                "multipart/form-data": components["schemas"]["PatchedKbFolderRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFolder"];
-                };
-            };
-        };
-    };
-    kb_folders_contents_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Knowledge Base Folder. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["KbFolder"];
-                };
-            };
-        };
-    };
-    locations_list: {
-        parameters: {
-            query?: {
-                name?: string;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedLocationsList"];
-                };
-            };
-        };
-    };
-    locations_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LocationsRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["LocationsRequest"];
-                "multipart/form-data": components["schemas"]["LocationsRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Locations"];
-                };
-            };
-        };
-    };
-    locations_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Location. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Locations"];
-                };
-            };
-        };
-    };
-    locations_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Location. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LocationsRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["LocationsRequest"];
-                "multipart/form-data": components["schemas"]["LocationsRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Locations"];
-                };
-            };
-        };
-    };
-    locations_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Location. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    locations_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Location. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedLocationsRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedLocationsRequest"];
-                "multipart/form-data": components["schemas"]["PatchedLocationsRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Locations"];
-                };
-            };
-        };
-    };
-    locations_statistics_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Location. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Locations"];
-                };
-            };
-        };
-    };
-    onboarding_plans_list: {
-        parameters: {
-            query?: {
-                assigned_by?: number;
-                assigned_department?: number;
-                assigned_employees?: number[];
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description A search term. */
-                search?: string;
-                /** @description Current status of the plan
-                 *
-                 *     * `DRAFT` - Draft
-                 *     * `PUB` - Published
-                 *     * `COMP` - Completed
-                 *     * `ARCH` - Archived */
-                status?: "ARCH" | "COMP" | "DRAFT" | "PUB";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedOnboardingPlanListList"];
-                };
-            };
-        };
-    };
-    onboarding_plans_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OnboardingPlanCreateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["OnboardingPlanCreateRequest"];
-                "multipart/form-data": components["schemas"]["OnboardingPlanCreateRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingPlanCreate"];
-                };
-            };
-        };
-    };
-    onboarding_plans_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Plan. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingPlan"];
-                };
-            };
-        };
-    };
-    onboarding_plans_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Plan. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OnboardingPlanRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["OnboardingPlanRequest"];
-                "multipart/form-data": components["schemas"]["OnboardingPlanRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingPlan"];
-                };
-            };
-        };
-    };
-    onboarding_plans_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Plan. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    onboarding_plans_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Plan. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedOnboardingPlanRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedOnboardingPlanRequest"];
-                "multipart/form-data": components["schemas"]["PatchedOnboardingPlanRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingPlan"];
-                };
-            };
-        };
-    };
-    onboarding_plans_statistics_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Plan. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingPlan"];
-                };
-            };
-        };
-    };
-    onboarding_plans_my_plans_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingPlan"];
-                };
-            };
-        };
-    };
-    onboarding_tasks_list: {
-        parameters: {
-            query?: {
-                assigned_to?: number;
-                is_completed?: boolean;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                plan?: number;
-                /** @description Task priority
-                 *
-                 *     * `LOW` - Low
-                 *     * `NORMAL` - Normal
-                 *     * `HIGH` - High
-                 *     * `URGENT` - Urgent */
-                priority?: "HIGH" | "LOW" | "NORMAL" | "URGENT";
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedOnboardingTaskList"];
-                };
-            };
-        };
-    };
-    onboarding_tasks_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OnboardingTaskRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["OnboardingTaskRequest"];
-                "multipart/form-data": components["schemas"]["OnboardingTaskRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingTask"];
-                };
-            };
-        };
-    };
-    onboarding_tasks_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Task. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingTask"];
-                };
-            };
-        };
-    };
-    onboarding_tasks_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Task. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OnboardingTaskRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["OnboardingTaskRequest"];
-                "multipart/form-data": components["schemas"]["OnboardingTaskRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingTask"];
-                };
-            };
-        };
-    };
-    onboarding_tasks_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Task. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    onboarding_tasks_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Task. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedOnboardingTaskRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedOnboardingTaskRequest"];
-                "multipart/form-data": components["schemas"]["PatchedOnboardingTaskRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingTask"];
-                };
-            };
-        };
-    };
-    onboarding_tasks_complete_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Onboarding Task. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OnboardingTaskRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["OnboardingTaskRequest"];
-                "multipart/form-data": components["schemas"]["OnboardingTaskRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OnboardingTask"];
-                };
-            };
-        };
-    };
-    onboarding_training_items_list: {
-        parameters: {
-            query?: {
-                is_completed?: boolean;
-                is_mandatory?: boolean;
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                plan?: number;
-                /** @description A search term. */
-                search?: string;
-                trainer?: number;
-                /** @description Type of training
-                 *
-                 *     * `reading` - Reading Material
-                 *     * `video` - Video Training
-                 *     * `course` - Online Course
-                 *     * `workshop` - Workshop/Seminar
-                 *     * `meeting` - Meeting/Session
-                 *     * `practical` - Hands-on Practice
-                 *     * `assessment` - Assessment/Quiz */
-                training_type?: "assessment" | "course" | "meeting" | "practical" | "reading" | "video" | "workshop";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedTrainingItemList"];
-                };
-            };
-        };
-    };
-    onboarding_training_items_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TrainingItemRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["TrainingItemRequest"];
-                "multipart/form-data": components["schemas"]["TrainingItemRequest"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrainingItem"];
-                };
-            };
-        };
-    };
-    onboarding_training_items_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Training Item. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrainingItem"];
-                };
-            };
-        };
-    };
-    onboarding_training_items_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Training Item. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TrainingItemRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["TrainingItemRequest"];
-                "multipart/form-data": components["schemas"]["TrainingItemRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrainingItem"];
-                };
-            };
-        };
-    };
-    onboarding_training_items_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Training Item. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    onboarding_training_items_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Training Item. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedTrainingItemRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedTrainingItemRequest"];
-                "multipart/form-data": components["schemas"]["PatchedTrainingItemRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrainingItem"];
-                };
-            };
-        };
-    };
-    onboarding_training_items_complete_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description A unique integer value identifying this Training Item. */
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TrainingItemRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["TrainingItemRequest"];
-                "multipart/form-data": components["schemas"]["TrainingItemRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TrainingItem"];
-                };
-            };
-        };
-    };
-    user_delete_account_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_profile_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_profile_extended_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_profile_extended_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_profile_picture_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_profile_picture_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_profile_picture_destroy: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_profile_update_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["UserProfileUpdateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["UserProfileUpdateRequest"];
-                "multipart/form-data": components["schemas"]["UserProfileUpdateRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserProfileUpdate"];
-                };
-            };
-        };
-    };
-    user_profile_update_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["PatchedUserProfileUpdateRequest"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedUserProfileUpdateRequest"];
-                "multipart/form-data": components["schemas"]["PatchedUserProfileUpdateRequest"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserProfileUpdate"];
-                };
-            };
-        };
-    };
-    user_statistics_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_users_list: {
-        parameters: {
-            query?: {
-                /** @description Which field to use when ordering the results. */
-                ordering?: string;
-                /** @description A page number within the paginated result set. */
-                page?: number;
-                /** @description A search term. */
-                search?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedUserListList"];
-                };
-            };
-        };
-    };
-    user_users_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserProfile"];
-                };
-            };
-        };
-    };
-    user_users_role_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_users_status_partial_update: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    user_users_search_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No response body */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };
