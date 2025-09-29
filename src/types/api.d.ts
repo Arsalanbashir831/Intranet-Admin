@@ -417,6 +417,40 @@ export interface paths {
         patch: operations["branches_partial_update"];
         trace?: never;
     };
+    "/api/branches/{id}/employees/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Get all employees for this branch */
+        get: operations["branches_employees_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contenttypes/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description List all content types (models) in the project. */
+        get: operations["contenttypes_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments/": {
         parameters: {
             query?: never;
@@ -471,6 +505,23 @@ export interface paths {
          * @description Partially update an existing department (admin/moderator only)
          */
         patch: operations["departments_partial_update"];
+        trace?: never;
+    };
+    "/api/departments/{id}/employees/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Get all employees for this department */
+        get: operations["departments_employees_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/employees/": {
@@ -1114,7 +1165,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Get current user's profile information */
+        /** @description Get current user's basic profile information */
         get: operations["user_profile_retrieve"];
         put?: never;
         post?: never;
@@ -1624,6 +1675,7 @@ export interface components {
             /** @description Manager (employee) for this branch */
             manager: number;
             readonly manager_detail: components["schemas"]["Employee"];
+            readonly employee_count: string;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
@@ -1822,19 +1874,43 @@ export interface components {
             /** @description Internal notes about the employee */
             notes?: string;
         };
-        /** @description Simplified serializer for employee listing */
+        /** @description Employee serializer for list endpoint, returns full employee data with branch, department, location, and manager details */
         EmployeeList: {
             readonly id: number;
             /** @description Unique employee identifier */
-            employee_id: string;
+            readonly employee_id: string;
+            /** @description Link to the user account */
+            user: number;
+            readonly first_name: string;
+            readonly last_name: string;
+            readonly user_email: string;
+            readonly phone_number: string;
+            readonly user_city: string;
             readonly full_name: string;
             readonly email: string;
+            readonly phone: string;
+            readonly city: string;
+            readonly profile_picture: string;
+            /** @description Employee's branch (organizational unit) */
+            branch?: number | null;
+            readonly branch_name: string;
+            readonly branch_detail: string;
+            /** @description Direct supervisor */
+            reports_to?: number | null;
+            readonly supervisor_name: string;
+            /** @description Full street address */
+            address?: string;
+            /** @description Education qualifications, certifications, and other credentials */
+            qualification_details?: string;
             /** @description Employee's job title */
             job_title?: string;
             /** @description Employee's role or position in the organization */
             emp_role?: string;
-            readonly department_name: string;
-            readonly department_location: string;
+            /**
+             * Format: date
+             * @description Date when employee joined the company
+             */
+            join_date?: string | null;
             /** @description Type of employment
              *
              *     * `full_time` - Full Time
@@ -1843,13 +1919,19 @@ export interface components {
              *     * `intern` - Intern
              *     * `temporary` - Temporary */
             employment_type?: components["schemas"]["EmploymentTypeEnum"];
+            /**
+             * Format: decimal
+             * @description Employee salary (confidential)
+             */
+            salary?: string | null;
             /** @description Whether the employee is currently active */
             active?: boolean;
-            /**
-             * Format: date
-             * @description Date when employee joined the company
-             */
-            join_date?: string | null;
+            /** @description Internal notes about the employee */
+            notes?: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
         };
         /** @description Employee serializer for read operations */
         EmployeeRequest: {
@@ -2050,27 +2132,10 @@ export interface components {
             title: string;
             /** @description File description */
             description?: string;
-            /**
-             * Format: uri
-             * @description The actual file
-             */
-            file: string;
             /** @description File version */
             version?: string;
             /** @description Tags for categorizing the file */
             tags?: unknown;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
         };
         /** @description Serializer for creating KB files */
         KbFileCreateRequest: {
@@ -2080,27 +2145,13 @@ export interface components {
             title: string;
             /** @description File description */
             description?: string;
-            /**
-             * Format: binary
-             * @description The actual file
-             */
-            file: string;
+            files?: string[];
+            /** Format: binary */
+            file?: string;
             /** @description File version */
             version?: string;
             /** @description Tags for categorizing the file */
             tags?: unknown;
-            /** @description Defines who can access this content
-             *
-             *     * `ALL` - All employees
-             *     * `PRIVATE` - Only me (private)
-             *     * `ADMINS` - Admins only
-             *     * `DEPTS` - Specific departments
-             *     * `PEOPLE` - Specific people */
-            access_level?: components["schemas"]["AccessLevelEnum"];
-            /** @description Departments that have access to this content */
-            allowed_departments?: number[];
-            /** @description Specific users that have access to this content */
-            allowed_users?: number[];
         };
         /** @description Simplified serializer for file listing */
         KbFileList: {
@@ -2154,10 +2205,9 @@ export interface components {
             /** @description Specific users that have access to this content */
             allowed_users?: number[];
         };
-        /** @description Detailed serializer for KbFolder model */
         KbFolder: {
             readonly id: number;
-            /** @description Folder name */
+            /** @description Folder name (must be unique) */
             name: string;
             /** @description Folder description */
             description?: string;
@@ -2190,7 +2240,7 @@ export interface components {
         /** @description Simplified serializer for folder listing */
         KbFolderList: {
             readonly id: number;
-            /** @description Folder name */
+            /** @description Folder name (must be unique) */
             name: string;
             /** @description Folder description */
             description?: string;
@@ -2201,9 +2251,8 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
-        /** @description Detailed serializer for KbFolder model */
         KbFolderRequest: {
-            /** @description Folder name */
+            /** @description Folder name (must be unique) */
             name: string;
             /** @description Folder description */
             description?: string;
@@ -2840,9 +2889,8 @@ export interface components {
             /** @description Specific users that have access to this content */
             allowed_users?: number[];
         };
-        /** @description Detailed serializer for KbFolder model */
         PatchedKbFolderRequest: {
-            /** @description Folder name */
+            /** @description Folder name (must be unique) */
             name?: string;
             /** @description Folder description */
             description?: string;
@@ -3235,6 +3283,8 @@ export interface components {
             email: string;
             first_name?: string;
             last_name?: string;
+            /** @default user */
+            role: components["schemas"]["RoleEnum"];
         };
         /** @description Serializer for user registration */
         UserRegistrationRequest: {
@@ -3246,6 +3296,8 @@ export interface components {
             password_confirm: string;
             first_name?: string;
             last_name?: string;
+            /** @default user */
+            role: components["schemas"]["RoleEnum"];
         };
     };
     responses: never;
@@ -3996,6 +4048,46 @@ export interface operations {
             };
         };
     };
+    branches_employees_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Branch. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Branch"];
+                };
+            };
+        };
+    };
+    contenttypes_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     departments_list: {
         parameters: {
             query?: {
@@ -4136,6 +4228,28 @@ export interface operations {
                 "multipart/form-data": components["schemas"]["PatchedDepartmentRequest"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Department"];
+                };
+            };
+        };
+    };
+    departments_employees_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this Department. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -5563,13 +5677,12 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["UserProfile"];
-                };
+                content?: never;
             };
         };
     };
