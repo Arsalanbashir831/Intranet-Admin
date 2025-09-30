@@ -7,7 +7,8 @@ import { Dropzone } from "@/components/ui/dropzone";
 import { SelectableTags } from "@/components/ui/selectable-tags";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { useCreateEmployee, useUpdateEmployee } from "@/hooks/queries/use-employees";
-import { useDepartments } from "@/hooks/queries/use-departments";
+import { useDepartments, useSearchDepartments } from "@/hooks/queries/use-departments";
+import { useDebounce } from "@/hooks/use-debounce";
 
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -28,27 +29,65 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
   // Load departments/employees/locations/branches from API
   const { data: deptData } = useDepartments();
 
+  // Create adapter functions for async search
+  const useAllDepartments = () => {
+    const result = useDepartments(undefined, { pageSize: 100 }); // Get more departments
+    const branchDeptItems = React.useMemo(() => {
+      const departmentsPayload = (result.data as any)?.departments;
+      const results = Array.isArray(departmentsPayload?.results) ? departmentsPayload.results : (Array.isArray(result.data) ? result.data : (result.data?.departments?.results ?? []));
+      const items: { id: string; label: string }[] = [];
+      for (const dept of results || []) {
+        const deptName = String((dept as any).dept_name ?? (dept as any).name ?? "");
+        const branchDepartments = (dept as any).branch_departments as Array<any> | undefined;
+        if (Array.isArray(branchDepartments)) {
+          for (const bd of branchDepartments) {
+            const bdId = String(bd.id);
+            const branchName = String(bd?.branch?.branch_name ?? bd?.branch_name ?? "");
+            items.push({ id: bdId, label: `${deptName} - ${branchName}` });
+          }
+        }
+      }
+      return items;
+    }, [result.data]);
+    
+    return {
+      data: branchDeptItems,
+      isLoading: result.isLoading,
+    };
+  };
+
+  const useSearchDepartmentsAdapter = (query: string) => {
+    const result = useSearchDepartments(query, { pageSize: 100 });
+    const branchDeptItems = React.useMemo(() => {
+      console.log('Search result data:', result.data); // Debug log
+      const departmentsPayload = (result.data as any)?.departments;
+      const results = Array.isArray(departmentsPayload?.results) ? departmentsPayload.results : (Array.isArray(result.data) ? result.data : (result.data?.departments?.results ?? []));
+      console.log('Processed results:', results); // Debug log
+      const items: { id: string; label: string }[] = [];
+      for (const dept of results || []) {
+        const deptName = String((dept as any).dept_name ?? (dept as any).name ?? "");
+        const branchDepartments = (dept as any).branch_departments as Array<any> | undefined;
+        if (Array.isArray(branchDepartments)) {
+          for (const bd of branchDepartments) {
+            const bdId = String(bd.id);
+            const branchName = String(bd?.branch?.branch_name ?? bd?.branch_name ?? "");
+            items.push({ id: bdId, label: `${deptName} - ${branchName}` });
+          }
+        }
+      }
+      console.log('Final items:', items); // Debug log
+      return items;
+    }, [result.data]);
+    
+    return {
+      data: branchDeptItems,
+      isLoading: result.isLoading,
+    };
+  };
+
   // File upload state
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
   const [isRemovingPicture, setIsRemovingPicture] = React.useState(false);
-
-  const branchDeptItems = React.useMemo(() => {
-    const departmentsPayload = (deptData as any)?.departments;
-    const results = Array.isArray(departmentsPayload?.results) ? departmentsPayload.results : (Array.isArray(deptData) ? deptData : (deptData?.departments?.results ?? []));
-    const items: { id: string; label: string }[] = [];
-    for (const dept of results || []) {
-      const deptName = String((dept as any).dept_name ?? (dept as any).name ?? "");
-      const branchDepartments = (dept as any).branch_departments as Array<any> | undefined;
-      if (Array.isArray(branchDepartments)) {
-        for (const bd of branchDepartments) {
-          const bdId = String(bd.id);
-          const branchName = String(bd?.branch?.branch_name ?? bd?.branch_name ?? "");
-          items.push({ id: bdId, label: `${deptName} - ${branchName}` });
-        }
-      }
-    }
-    return items;
-  }, [deptData]);
 
   // Single-select department, location, and manager
   const [selectedBranchDeptId, setSelectedBranchDeptId] = React.useState<string | undefined>(initialValues?.branch_department);
@@ -200,7 +239,7 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Branch Department:</Label>
           <div className="col-span-12 md:col-span-10">
             <SelectableTags
-              items={branchDeptItems}
+              items={[]} // Empty since we're using async hooks
               selectedItems={selectedBranchDeptId ? [selectedBranchDeptId] : []}
               onSelectionChange={(ids) => {
                 const last = ids[ids.length - 1];
@@ -208,6 +247,9 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
               }}
               searchPlaceholder="Search branch departments..."
               emptyMessage="No branch departments found."
+              useAllItems={useAllDepartments}
+              useSearch={useSearchDepartmentsAdapter}
+              searchDebounce={300}
             />
           </div>
         </div>

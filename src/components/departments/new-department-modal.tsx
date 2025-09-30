@@ -3,23 +3,12 @@
 import { AppModal } from "@/components/common/app-modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxGroup,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from "@/components/ui/combobox";
-import { ChevronDown } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useBranches } from "@/hooks/queries/use-branches";
-import { useEmployees } from "@/hooks/queries/use-employees";
+import { useAllBranches } from "@/hooks/queries/use-branches";
+import { useAllEmployees, useSearchEmployees } from "@/hooks/queries/use-employees";
+import { EmployeeSelector } from "@/components/common/employee-selector";
 import { useCreateDepartment } from "@/hooks/queries/use-departments";
-import { useCreateBranch } from "@/hooks/queries/use-branches";
+import { useCreateManager } from "@/hooks/queries/use-managers";
 import { toast } from "sonner";
 
 interface NewDepartmentModalProps {
@@ -28,43 +17,40 @@ interface NewDepartmentModalProps {
 }
 
 export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
-  const { data: branchesData, isLoading: branchesLoading } = useBranches();
-  const { data: employeesData, isLoading: employeesLoading } = useEmployees();
+  const { data: branchesData, isLoading: branchesLoading } = useAllBranches();
   const createDepartment = useCreateDepartment();
-  const createBranch = useCreateBranch();
+  const createManager = useCreateManager();
 
-  // Transform API data
-  const branches = useMemo(() => {
-    const list = Array.isArray(branchesData) ? branchesData : (branchesData?.results ?? []);
-    return list.map((l: { id: number | string; name?: string }) => ({
-      id: String(l.id),
-      label: l.name || `Location ${l.id}`,
-    }));
-  }, [branchesData]);
-
-  const managers = useMemo(() => {
-    const list = Array.isArray(employeesData) ? employeesData : employeesData?.results;
-    if (!list) return [] as { value: string; label: string; username: string; avatar?: string }[];
-    type ManagerLite = {
-      id: number | string;
-      full_name?: string;
-      name?: string;
-      username?: string;
-      email?: string;
-      profile_picture?: string;
-      profile_picture_url?: string;
-    };
-    return (list as ManagerLite[]).map((emp) => ({
-      value: String(emp.id),
-      label: emp.name || emp.full_name || "",
-      username: emp.username || (emp.email ? emp.email.split('@')[0] : "user"),
-      avatar: emp.profile_picture_url || emp.profile_picture,
-    }));
-  }, [employeesData]);
-
+  // State for functionality
   const [departmentName, setDepartmentName] = useState("");
   const [branchManagers, setBranchManagers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Wrapper functions to adapt hooks for EmployeeSelector
+  const useAllEmployeesAdapter = () => {
+    const result = useAllEmployees();
+    return {
+      data: result.data,
+      isLoading: result.isLoading,
+    };
+  };
+
+  const useSearchEmployeesAdapter = (query: string) => {
+    const result = useSearchEmployees(query);
+    return {
+      data: result.data,
+      isLoading: result.isLoading,
+    };
+  };
+
+  // Transform API data
+  const branches = useMemo(() => {
+    const list = branchesData?.branches?.results ?? [];
+    return list.map((branch: { id: number | string; branch_name?: string }) => ({
+      id: String(branch.id),
+      label: branch.branch_name || `Branch ${branch.id}`,
+    }));
+  }, [branchesData]);
 
   const handleManagerChange = (branchId: string, manager: string) => {
     setBranchManagers((prev) => ({ ...prev, [branchId]: manager }));
@@ -76,49 +62,84 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
     setIsSubmitting(true);
     try {
       // Step 1: Create department (only name)
-      const dept = await createDepartment.mutateAsync({ name: departmentName });
+      const response = await createDepartment.mutateAsync({ dept_name: departmentName });
 
-      const deptId = (dept as { id?: number | string })?.id ?? undefined;
-      if (!deptId) {
+      // Extract the department data from the response
+      const department = response.department;
+      
+      if (!department?.id) {
         toast.error("Department created but no ID returned.");
+        return;
       }
 
-      // Step 2: For each location with a selected manager, create a branch
-      const entries = Object.entries(branchManagers).filter(([, managerId]) => !!managerId);
+      // Step 2: For each branch with a selected manager, create a manager assignment
+      const managerAssignments = Object.entries(branchManagers)
+        .filter(([, managerId]) => !!managerId)
+        .map(([branchId, managerId]) => {
+          // Find the corresponding branch_department from the created department
+          const branchDepartment = department.branch_departments.find(
+            bd => bd.branch.id === Number(branchId)
+          );
+          
+          if (!branchDepartment) {
+            console.warn(`Branch department not found for branch ID: ${branchId}`);
+            return null;
+          }
+          
+          return {
+            employee_id: Number(managerId),
+            branch_department_id: branchDepartment.id
+          };
+        })
+        .filter(Boolean);
 
-      if (deptId && entries.length > 0) {
+      if (managerAssignments.length > 0) {
         const results = await Promise.allSettled(
-          entries.map(([locationId, managerId]) =>
-            createBranch.mutateAsync({
-              department: Number(deptId),
-              location: Number(locationId),
-              manager: Number(managerId),
-            })
+          managerAssignments.map(assignment => 
+            createManager.mutateAsync(assignment!)
           )
         );
 
-        const createdCount = results.filter((r) => r.status === "fulfilled").length;
-        const failedCount = results.filter((r) => r.status === "rejected").length;
-        const skippedCount = Object.keys(branchManagers).length - entries.length;
+        const fulfilled = results.filter((r) => r.status === "fulfilled");
+        const rejected = results.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
+        
+        const createdCount = fulfilled.length;
+        const failedCount = rejected.length;
+        const totalBranches = Object.keys(branchManagers).length;
+        const skippedCount = totalBranches - managerAssignments.length;
 
         if (createdCount > 0) {
-          toast.success(`Department and ${createdCount} branch${createdCount > 1 ? "es" : ""} created.`);
+          toast.success(`Department created with ${createdCount} manager${createdCount > 1 ? "s" : ""} assigned.`);
         } else {
           toast.success("Department created.");
         }
+        
         if (failedCount > 0) {
-          toast.error(`${failedCount} branch creation${failedCount > 1 ? "s" : ""} failed.`);
+          // Check for specific error messages
+          const employeeBranchErrors = rejected.filter(result => 
+            result.reason?.message?.includes("Employee must belong to the provided branch department") ||
+            result.reason?.response?.data?.error?.includes("Employee must belong to the provided branch department")
+          );
+          
+          if (employeeBranchErrors.length > 0) {
+            toast.error(`${employeeBranchErrors.length} manager assignment${employeeBranchErrors.length > 1 ? "s" : ""} failed: Selected employee${employeeBranchErrors.length > 1 ? "s" : ""} must already work in the respective branch${employeeBranchErrors.length > 1 ? "es" : ""}.`);
+          }
+          
+          const otherErrors = rejected.length - employeeBranchErrors.length;
+          if (otherErrors > 0) {
+            toast.error(`${otherErrors} manager assignment${otherErrors > 1 ? "s" : ""} failed due to other errors.`);
+          }
         }
+        
         if (skippedCount > 0) {
-          toast.message(`${skippedCount} location${skippedCount > 1 ? "s were" : " was"} skipped (no manager selected).`);
+          toast.message(`${skippedCount} branch${skippedCount > 1 ? "es were" : " was"} skipped (no manager selected).`);
         }
       } else {
-        // No branches to create
+        // No managers to assign
         toast.success("Department created.");
-        const total = Object.keys(branchManagers).length;
-        const skippedCount = total; // all skipped if none with manager
-        if (skippedCount > 0) {
-          toast.message(`${skippedCount} location${skippedCount > 1 ? "s were" : " was"} skipped (no manager selected).`);
+        const totalBranches = Object.keys(branchManagers).length;
+        if (totalBranches > 0) {
+          toast.message(`${totalBranches} branch${totalBranches > 1 ? "es were" : " was"} skipped (no manager selected).`);
         }
       }
 
@@ -126,7 +147,7 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
       setDepartmentName("");
       setBranchManagers({});
     } catch (error) {
-      console.error("Error creating department or branches:", error);
+      console.error("Error creating department or assigning managers:", error);
       toast.error("Failed to create department. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -164,9 +185,13 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
             <span>Manager</span>
           </div>
           <div className="divide-y divide-[#E4E4E4]">
-            {branchesLoading || employeesLoading ? (
+            {branchesLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-sm text-muted-foreground">Loading data...</div>
+              </div>
+            ) : branches.length === 0 ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-sm text-muted-foreground">No branches found</div>
               </div>
             ) : (
               branches.map((branch: { id: string; label: string }) => (
@@ -176,79 +201,15 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
                 >
                   <div className="text-sm text-[#667085]">{branch.label}</div>
                   <div>
-                    <Combobox
-                      data={managers as unknown as { value: string; label: string; username: string; avatar: string }[]}
-                      type="Manager"
+                    <EmployeeSelector
                       value={branchManagers[branch.id] ?? ""}
-                      onValueChange={(v) => handleManagerChange(branch.id, v)}
-                    >
-                      <ComboboxTrigger className="w-full justify-between border-none shadow-none pl-0 hover:bg-transparent">
-                        <span className="flex w-full items-center justify-between gap-2">
-                          {branchManagers[branch.id] ? (
-                            <span className="flex items-center gap-2 truncate">
-                              {(() => {
-                                const sel = managers.find(
-                                  (m) => m.value === branchManagers[branch.id]
-                                );
-                                if (!sel) return null;
-                                const initials = sel.label
-                                  .split(" ")
-                                  .map((n: string) => n[0])
-                                  .join("");
-                                return (
-                                  <>
-                                    <Avatar className="size-8">
-                                      <AvatarImage src={sel.avatar} alt={sel.label} />
-                                      <AvatarFallback className="text-[10px]">
-                                        {initials}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="truncate text-left">
-                                      <span className="block text-sm leading-4">
-                                        {sel.label}
-                                      </span>
-                                      <span className="block text-xs text-muted-foreground leading-4">
-                                        @{sel.username}
-                                      </span>
-                                    </span>
-                                  </>
-                                );
-                              })()}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">Select Manager...</span>
-                          )}
-                          <ChevronDown className="shrink-0 text-muted-foreground" size={16} />
-                        </span>
-                      </ComboboxTrigger>
-                      <ComboboxContent>
-                        <ComboboxInput />
-                        <ComboboxEmpty />
-                        <ComboboxList>
-                          <ComboboxGroup>
-                            {managers.map((m) => (
-                              <ComboboxItem key={m.value} value={m.value}>
-                                <div className="flex items-center gap-2">
-                                  <Avatar className="size-8">
-                                    <AvatarImage src={m.avatar} alt={m.label} />
-                                    <AvatarFallback className="text-[10px]">
-                                      {m.label
-                                        .split(" ")
-                                        .map((n: string) => n[0])
-                                        .join("")}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="leading-tight">
-                                    <div className="text-sm">{m.label}</div>
-                                    <div className="text-xs text-muted-foreground">@{m.username}</div>
-                                  </div>
-                                </div>
-                              </ComboboxItem>
-                            ))}
-                          </ComboboxGroup>
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
+                      onValueChange={(employeeId) => handleManagerChange(branch.id, employeeId)}
+                      placeholder="Select Manager..."
+                      searchPlaceholder="Search employees..."
+                      useAllEmployees={useAllEmployeesAdapter}
+                      useSearchEmployees={useSearchEmployeesAdapter}
+                      className="w-full justify-between border-none shadow-none pl-0 hover:bg-transparent"
+                    />
                   </div>
                 </div>
               ))

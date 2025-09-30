@@ -172,6 +172,7 @@ export type ComboboxContentProps = ComponentProps<typeof Command> & {
 export const ComboboxContent = ({
   className,
   popoverOptions,
+  shouldFilter = true,
   ...props
 }: ComboboxContentProps) => {
   const { width } = useContext(ComboboxContext);
@@ -182,7 +183,7 @@ export const ComboboxContent = ({
       style={{ width }}
       {...popoverOptions}
     >
-      <Command {...props} />
+      <Command shouldFilter={shouldFilter} {...props} />
     </PopoverContent>
   );
 };

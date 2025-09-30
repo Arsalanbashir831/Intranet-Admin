@@ -6,7 +6,7 @@ import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
@@ -17,6 +17,7 @@ import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 import { useDepartments } from "@/hooks/queries/use-departments";
 import type { Department, BranchDepartment } from "@/services/departments";
+import { EditDepartmentModal } from "./edit-department-modal";
 
 export type DepartmentRow = {
   id: string;
@@ -34,6 +35,10 @@ export function DepartmentsTable({ className }: { className?: string }) {
   
   // Cache to store data from multiple server pages
   const [departmentCache, setDepartmentCache] = React.useState<Map<number, Department[]>>(new Map());
+  
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = React.useState(false);
+  const [selectedBranchDepartment, setSelectedBranchDepartment] = React.useState<BranchDepartment | null>(null);
   
   const { data: departmentsData, isLoading, error } = useDepartments(undefined, serverPagination);
   const router = useRouter();
@@ -56,6 +61,20 @@ export function DepartmentsTable({ className }: { className?: string }) {
 
   const handleClientPageChange = (pageIndex: number, pageSize: number) => {
     setClientPagination({ pageIndex, pageSize });
+  };
+
+  const handleEditClick = (row: DepartmentRow) => {
+    // Find the branch department from the cached data
+    const allDepartments = Array.from(departmentCache.values()).flat();
+    const department = allDepartments.find(dept => dept.id === Number(row.id));
+    const branchDepartment = department?.branch_departments.find(
+      bd => bd.id === Number(row.branchDepartmentId)
+    );
+    
+    if (branchDepartment) {
+      setSelectedBranchDepartment(branchDepartment);
+      setEditModalOpen(true);
+    }
   };
 
   // Get all cached departments and flatten them
@@ -176,8 +195,16 @@ export function DepartmentsTable({ className }: { className?: string }) {
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" className="text-[#D64575]">
-            <Trash2 className="size-4" />
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="text-[#D64575]"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent row click
+              handleEditClick(row.original);
+            }}
+          >
+            <Edit2 className="size-4" />
           </Button>
 
           <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
@@ -187,57 +214,65 @@ export function DepartmentsTable({ className }: { className?: string }) {
   ];
 
   return (
-    <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className)}>
-      <CardTableToolbar
-        title="Departments"
-        onSearchChange={() => { }}
-        sortOptions={[
-          { label: "Department", value: "department" },
-          { label: "Branch/Location", value: "branchLocation" },
-          { label: "Manager", value: "managerName" },
-          { label: "Staff Count", value: "staffCount" },
-        ]}
-        activeSort={sortedBy}
-        onSortChange={(v) => setSortedBy(v)}
-        onFilterClick={() => { }}
-      />
-      <CardTable<DepartmentRow, unknown>
-        columns={columns}
-        data={ordered}
-        headerClassName="grid-cols-[0.8fr_1.2fr_1.0fr_0.8fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[0.8fr_1.2fr_1.0fr_0.8fr_0.8fr] cursor-pointer"}
-        onRowClick={(row) => router.push(ROUTES.ADMIN.DEPARTMENTS_ID(row.original.branchDepartmentId))}
-        footer={(table) => (
-          <CardTablePagination 
-            table={table} 
-            paginationInfo={virtualPaginationInfo}
-            onPageChange={(page, pageSize) => {
-              const targetPageIndex = page - 1; // Convert to 0-based
-              const targetStartIndex = targetPageIndex * pageSize;
-              
-              // Check if we have enough data in cache
-              if (targetStartIndex + pageSize > allFlattenedDepartments.length) {
-                // Calculate which server page we need
-                const cachedDepartmentCount = Array.from(departmentCache.values()).reduce(
-                  (sum, depts) => sum + depts.length, 0
-                );
-                const avgBranchesPerDept = allFlattenedDepartments.length / Math.max(cachedDepartmentCount, 1);
-                const neededDepartments = Math.ceil((targetStartIndex + pageSize) / avgBranchesPerDept);
-                const neededServerPage = Math.ceil(neededDepartments / serverPagination.pageSize);
+    <>
+      <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className)}>
+        <CardTableToolbar
+          title="Departments"
+          onSearchChange={() => { }}
+          sortOptions={[
+            { label: "Department", value: "department" },
+            { label: "Branch/Location", value: "branchLocation" },
+            { label: "Manager", value: "managerName" },
+            { label: "Staff Count", value: "staffCount" },
+          ]}
+          activeSort={sortedBy}
+          onSortChange={(v) => setSortedBy(v)}
+          onFilterClick={() => { }}
+        />
+        <CardTable<DepartmentRow, unknown>
+          columns={columns}
+          data={ordered}
+          headerClassName="grid-cols-[0.8fr_1.2fr_1.0fr_0.8fr_0.8fr]"
+          rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[0.8fr_1.2fr_1.0fr_0.8fr_0.8fr] cursor-pointer"}
+          onRowClick={(row) => router.push(ROUTES.ADMIN.DEPARTMENTS_ID(row.original.branchDepartmentId))}
+          footer={(table) => (
+            <CardTablePagination 
+              table={table} 
+              paginationInfo={virtualPaginationInfo}
+              onPageChange={(page, pageSize) => {
+                const targetPageIndex = page - 1; // Convert to 0-based
+                const targetStartIndex = targetPageIndex * pageSize;
                 
-                // Only fetch if we don't have this server page cached
-                if (!departmentCache.has(neededServerPage)) {
-                  handleServerPageChange(neededServerPage, serverPagination.pageSize);
+                // Check if we have enough data in cache
+                if (targetStartIndex + pageSize > allFlattenedDepartments.length) {
+                  // Calculate which server page we need
+                  const cachedDepartmentCount = Array.from(departmentCache.values()).reduce(
+                    (sum, depts) => sum + depts.length, 0
+                  );
+                  const avgBranchesPerDept = allFlattenedDepartments.length / Math.max(cachedDepartmentCount, 1);
+                  const neededDepartments = Math.ceil((targetStartIndex + pageSize) / avgBranchesPerDept);
+                  const neededServerPage = Math.ceil(neededDepartments / serverPagination.pageSize);
+                  
+                  // Only fetch if we don't have this server page cached
+                  if (!departmentCache.has(neededServerPage)) {
+                    handleServerPageChange(neededServerPage, serverPagination.pageSize);
+                  }
                 }
-              }
-              
-              // Always update client pagination to the target page
-              handleClientPageChange(targetPageIndex, pageSize);
-            }}
-          />
-        )}
+                
+                // Always update client pagination to the target page
+                handleClientPageChange(targetPageIndex, pageSize);
+              }}
+            />
+          )}
+        />
+      </Card>
+      
+      <EditDepartmentModal
+        open={editModalOpen}
+        setOpen={setEditModalOpen}
+        branchDepartment={selectedBranchDepartment}
       />
-    </Card>
+    </>
   );
 }
 

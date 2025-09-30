@@ -1,14 +1,17 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
+import { generatePaginationParams } from "@/lib/pagination-utils";
 import type { components } from "@/types/api";
 
 type Employee = components["schemas"]["Employee"];
 
 export type EmployeeListResponse = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Employee[];
+  employees: {
+    count: number;
+    page: number;
+    page_size: number;
+    results: Employee[];
+  };
 };
 export type EmployeeDetailResponse = Employee;
 export type EmployeeCreateRequest = {
@@ -27,11 +30,83 @@ export type EmployeeCreateResponse = Employee;
 export type EmployeeUpdateRequest = Partial<EmployeeCreateRequest>;
 export type EmployeeUpdateResponse = Employee;
 
-export async function listEmployees(params?: Record<string, string | number | boolean>) {
+export async function listEmployees(
+  params?: Record<string, string | number | boolean>,
+  pagination?: { page?: number; pageSize?: number }
+) {
   const url = API_ROUTES.EMPLOYEES.LIST;
-  const query = params ? `?${new URLSearchParams(Object.entries(params).reduce<Record<string, string>>((acc, [k, v]) => { acc[k] = String(v); return acc; }, {}))}` : "";
+  const queryParams: Record<string, string> = {};
+  
+  // Add pagination parameters
+  if (pagination) {
+    const paginationParams = generatePaginationParams(
+      pagination.page ? pagination.page - 1 : 0, // Convert to 0-based for our utils
+      pagination.pageSize || 10
+    );
+    Object.assign(queryParams, paginationParams);
+  }
+  
+  // Add other parameters
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      queryParams[key] = String(value);
+    });
+  }
+  
+  const query = Object.keys(queryParams).length > 0 
+    ? `?${new URLSearchParams(queryParams)}` 
+    : "";
+    
   const res = await apiCaller<EmployeeListResponse>(`${url}${query}`, "GET");
   return res.data;
+}
+
+// Function to fetch all employees across all pages
+export async function listAllEmployees(
+  params?: Record<string, string | number | boolean>
+): Promise<{ count: number; results: Employee[] }> {
+  const allEmployees: Employee[] = [];
+  let page = 1;
+  let totalCount = 0;
+  
+  do {
+    const response = await listEmployees(params, { page, pageSize: 25 }); // Use 25 as requested
+    
+    if (response.employees.results.length > 0) {
+      allEmployees.push(...response.employees.results);
+    }
+    
+    totalCount = response.employees.count;
+    const totalPages = Math.ceil(totalCount / 25); // Using our page size of 25
+    
+    if (page >= totalPages) {
+      break;
+    }
+    
+    page++;
+  } while (true);
+  
+  return {
+    count: totalCount,
+    results: allEmployees
+  };
+}
+
+// Function to search employees with query
+export async function searchEmployees(
+  searchQuery: string,
+  params?: Record<string, string | number | boolean>
+): Promise<{ count: number; results: Employee[] }> {
+  const searchParams = {
+    ...params,
+    search: searchQuery, // Add search parameter
+  };
+  
+  const response = await listEmployees(searchParams, { page: 1, pageSize: 25 });
+  return {
+    count: response.employees.count,
+    results: response.employees.results
+  };
 }
 
 export async function getEmployee(id: number | string) {

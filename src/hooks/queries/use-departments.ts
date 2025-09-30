@@ -20,6 +20,19 @@ export function useDepartments(
   });
 }
 
+export function useSearchDepartments(
+  searchQuery: string,
+  pagination?: { page?: number; pageSize?: number }
+) {
+  const params = searchQuery ? { search: searchQuery } : undefined;
+  return useQuery({
+    queryKey: ["departments", "search", searchQuery, pagination],
+    queryFn: () => listDepartments(params, pagination),
+    enabled: !!searchQuery,
+    staleTime: 60_000,
+  });
+}
+
 export function useBranchDepartmentEmployees(
   branchDepartmentId: number | string,
   pagination?: { page?: number; pageSize?: number }

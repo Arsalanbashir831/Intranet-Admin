@@ -42,7 +42,7 @@ export function EmployeeTable() {
     const employeesContainer = (apiData as any)?.employees;
     const list = Array.isArray(employeesContainer?.results)
       ? employeesContainer.results
-      : (Array.isArray(apiData) ? apiData : (apiData?.results ?? []));
+      : (Array.isArray(apiData) ? apiData : []);
     return (list as any[]).map((e) => ({
       id: String(e.id),
       name: String(e.emp_name ?? ""),
@@ -51,7 +51,7 @@ export function EmployeeTable() {
       email: String(e.email ?? ""),
       department: String(e?.branch_department?.department?.dept_name ?? ""),
       role: String(e.role ?? ""),
-      reportingTo: e?.branch_department?.manager?.emp_name ?? null,
+      reportingTo: e?.branch_department?.manager?.employee?.emp_name ?? null,
       reportingAvatar: undefined,
     }));
   }, [apiData]);

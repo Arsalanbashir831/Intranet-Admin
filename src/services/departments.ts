@@ -13,8 +13,24 @@ export type BranchDepartment = {
   employee_count: number;
   manager: null | {
     id: number;
-    full_name: string;
-    profile_picture?: string;
+    employee: {
+      id: number;
+      emp_name: string;
+      profile_picture?: string | null;
+      email: string;
+      role: string;
+    };
+    branch_department: {
+      id: number;
+      branch: {
+        id: number;
+        branch_name: string;
+      };
+      department: {
+        id: number;
+        dept_name: string;
+      };
+    };
   };
 };
 
@@ -38,7 +54,9 @@ export type DepartmentCreateRequest = {
   dept_name: string;
   description?: string;
 } & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
-export type DepartmentCreateResponse = Department;
+export type DepartmentCreateResponse = {
+  department: Department;
+};
 export type DepartmentUpdateRequest = Partial<DepartmentCreateRequest>;
 export type DepartmentUpdateResponse = Department;
 

@@ -15,6 +15,7 @@ import {
   TagsItem,
 } from "@/components/ui/tags";
 import { CircleX } from "lucide-react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export interface SelectableItem {
   id: string;
@@ -36,6 +37,17 @@ export interface SelectableTagsProps {
   icon?: ReactNode;
   // Optional custom renderer to display selected items inside the trigger
   renderSelected?: (id: string) => ReactNode;
+  // Optional hooks for async search
+  useSearch?: (query: string) => {
+    data?: { results?: SelectableItem[] } | SelectableItem[];
+    isLoading: boolean;
+  };
+  useAllItems?: () => {
+    data?: { results?: SelectableItem[] } | SelectableItem[];
+    isLoading: boolean;
+  };
+  // Debounce search in milliseconds
+  searchDebounce?: number;
 }
 
 export function SelectableTags({
@@ -52,21 +64,91 @@ export function SelectableTags({
   onCreateTag,
   icon,
   renderSelected,
+  useSearch,
+  useAllItems,
+  searchDebounce = 300,
 }: SelectableTagsProps) {
   const [searchValue, setSearchValue] = React.useState("");
+  const debouncedSearchValue = useDebounce(searchValue, searchDebounce);
+  
+  // Store previous search results to avoid flashing
+  const previousSearchResults = React.useRef<SelectableItem[]>([]);
 
-  // Filter items based on search
-  const filteredItems = React.useMemo(() => {
-    if (!searchValue) return items;
-    return items.filter((item) =>
-      item.label.toLowerCase().includes(searchValue.toLowerCase())
-    );
-  }, [items, searchValue]);
+  // Use async search hooks if provided
+  const searchResult = useSearch?.(debouncedSearchValue);
+  const allItemsResult = useAllItems?.();
+  
+  // Debug logging
+  React.useEffect(() => {
+    if (useSearch && useAllItems) {
+      console.log('=== SelectableTags Debug ===');
+      console.log('Search value:', searchValue);
+      console.log('Debounced search value:', debouncedSearchValue);
+      console.log('Search result:', searchResult);
+      console.log('All items result:', allItemsResult);
+    }
+  }, [searchValue, debouncedSearchValue, searchResult, allItemsResult, useSearch, useAllItems]);
+  
+  // Determine which items to use (async or static)
+  const currentItems = React.useMemo(() => {
+    if (useSearch && useAllItems) {
+      // Using async search
+      if (debouncedSearchValue && debouncedSearchValue.trim()) {
+        const searchData = searchResult?.data;
+        console.log('Using search data:', searchData, 'isLoading:', searchResult?.isLoading); // Debug
+        
+        // If loading and we have previous results, keep showing them
+        if (searchResult?.isLoading && previousSearchResults.current.length > 0) {
+          return previousSearchResults.current;
+        }
+        
+        if (Array.isArray(searchData)) {
+          previousSearchResults.current = searchData;
+          return searchData;
+        } else if (searchData?.results) {
+          previousSearchResults.current = searchData.results;
+          return searchData.results;
+        }
+        return previousSearchResults.current;
+      } else {
+        const allData = allItemsResult?.data;
+        console.log('Using all data:', allData, 'isLoading:', allItemsResult?.isLoading); // Debug
+        
+        if (allItemsResult?.isLoading) {
+          return []; // Return empty while loading initial data
+        }
+        
+        if (Array.isArray(allData)) {
+          return allData;
+        } else if (allData?.results) {
+          return allData.results;
+        }
+        return [];
+      }
+    } else {
+      // Using static items with local filtering
+      if (!searchValue) return items;
+      return items.filter((item) =>
+        item.label.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+  }, [useSearch, useAllItems, debouncedSearchValue, searchValue, searchResult, allItemsResult, items]);
+
+  const isLoading = React.useMemo(() => {
+    if (useSearch && useAllItems) {
+      return debouncedSearchValue && debouncedSearchValue.trim() 
+        ? (searchResult?.isLoading ?? false) 
+        : (allItemsResult?.isLoading ?? false);
+    }
+    return false;
+  }, [useSearch, useAllItems, debouncedSearchValue, searchResult, allItemsResult]);
 
   // Get available items (not selected)
   const availableItems = React.useMemo(() => {
-    return filteredItems.filter((item) => !selectedItems.includes(item.id));
-  }, [filteredItems, selectedItems]);
+    const filtered = currentItems.filter((item: SelectableItem) => !selectedItems.includes(item.id));
+    console.log('Available items after filtering:', filtered); // Debug
+    return filtered;
+  }, [currentItems, selectedItems]);
 
   const handleRemove = (value: string) => {
     if (!selectedItems.includes(value)) {
@@ -107,7 +189,7 @@ export function SelectableTags({
           icon={icon}
         >
           {selectedItems.map((itemId) => {
-            const item = items.find((i) => i.id === itemId);
+            const item = currentItems.find((i: SelectableItem) => i.id === itemId) || items.find((i: SelectableItem) => i.id === itemId);
             if (renderSelected) {
               return (
                 <TagsValue
@@ -145,9 +227,9 @@ export function SelectableTags({
             onKeyDown={handleKeyDown}
           />
           <TagsList style={{ maxHeight }} className="p-1">
-            <TagsEmpty>{emptyMessage}</TagsEmpty>
+            <TagsEmpty>{isLoading ? "Loading..." : emptyMessage}</TagsEmpty>
             <TagsGroup>
-              {availableItems.map((item) => (
+              {availableItems.map((item: SelectableItem) => (
                 <TagsItem
                   key={item.id}
                   onSelect={() => handleSelect(item.id)}
@@ -157,7 +239,7 @@ export function SelectableTags({
                   {item.label}
                 </TagsItem>
               ))}
-              {allowCreate && searchValue.trim() && !items.some(item => item.label.toLowerCase() === searchValue.toLowerCase()) && (
+              {allowCreate && searchValue.trim() && !currentItems.some((item: SelectableItem) => item.label.toLowerCase() === searchValue.toLowerCase()) && (
                 <TagsItem
                   onSelect={handleCreateTag}
                   value={`create-${searchValue}`}

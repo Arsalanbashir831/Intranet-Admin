@@ -1,19 +1,32 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
+import { generatePaginationParams } from "@/lib/pagination-utils";
 
 export type Branch = {
   id: number;
-  department: number;
-  location: number;
-  manager: number;
-  [key: string]: unknown;
+  branch_name: string;
+  location: null | any;
+  employee_count: number;
+  departments: Array<{
+    id: number;
+    dept_name: string;
+    branch_department_id: number;
+    employee_count: number;
+    manager: null | {
+      id: number;
+      full_name: string;
+      profile_picture?: string;
+    };
+  }>;
 };
 
 export type BranchListResponse = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Branch[];
+  branches: {
+    count: number;
+    page: number;
+    page_size: number;
+    results: Branch[];
+  };
 };
 export type BranchDetailResponse = Branch;
 export type BranchCreateRequest = {
@@ -25,11 +38,69 @@ export type BranchCreateResponse = Branch;
 export type BranchUpdateRequest = Partial<BranchCreateRequest>;
 export type BranchUpdateResponse = Branch;
 
-export async function listBranches(params?: Record<string, string | number | boolean>) {
+export async function listBranches(
+  params?: Record<string, string | number | boolean>,
+  pagination?: { page?: number; pageSize?: number }
+) {
   const url = API_ROUTES.BRANCHES.LIST;
-  const query = params ? `?${new URLSearchParams(Object.entries(params).reduce<Record<string, string>>((acc, [k, v]) => { acc[k] = String(v); return acc; }, {}))}` : "";
+  const queryParams: Record<string, string> = {};
+  
+  // Add pagination parameters
+  if (pagination) {
+    const paginationParams = generatePaginationParams(
+      pagination.page ? pagination.page - 1 : 0, // Convert to 0-based for our utils
+      pagination.pageSize || 10
+    );
+    Object.assign(queryParams, paginationParams);
+  }
+  
+  // Add other parameters
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      queryParams[key] = String(value);
+    });
+  }
+  
+  const query = Object.keys(queryParams).length > 0 
+    ? `?${new URLSearchParams(queryParams)}` 
+    : "";
+    
   const res = await apiCaller<BranchListResponse>(`${url}${query}`, "GET");
   return res.data;
+}
+
+// Function to fetch all branches across all pages
+export async function listAllBranches(
+  params?: Record<string, string | number | boolean>
+): Promise<{ branches: { count: number; results: Branch[] } }> {
+  const allBranches: Branch[] = [];
+  let page = 1;
+  let totalCount = 0;
+  
+  do {
+    const response = await listBranches(params, { page, pageSize: 50 }); // Use larger page size for efficiency
+    
+    if (response.branches.results.length > 0) {
+      allBranches.push(...response.branches.results);
+    }
+    
+    totalCount = response.branches.count;
+    const currentPageSize = response.branches.page_size;
+    const totalPages = Math.ceil(totalCount / currentPageSize);
+    
+    if (page >= totalPages) {
+      break;
+    }
+    
+    page++;
+  } while (true);
+  
+  return {
+    branches: {
+      count: totalCount,
+      results: allBranches
+    }
+  };
 }
 
 export async function getBranch(id: number | string) {
