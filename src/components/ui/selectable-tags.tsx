@@ -146,7 +146,6 @@ export function SelectableTags({
   // Get available items (not selected)
   const availableItems = React.useMemo(() => {
     const filtered = currentItems.filter((item: SelectableItem) => !selectedItems.includes(item.id));
-    console.log('Available items after filtering:', filtered); // Debug
     return filtered;
   }, [currentItems, selectedItems]);
 

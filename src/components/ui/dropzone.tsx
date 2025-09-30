@@ -10,6 +10,7 @@ import Image from "next/image";
 export interface DropzoneProps {
   onFileSelect?: (files: FileList | null) => void;
   onClear?: () => void; // Callback when images are cleared
+  onImageRemove?: (url: string, index: number) => void; // Callback when individual image is removed
   accept?: string;
   maxSize?: number; // in bytes
   className?: string;
@@ -24,6 +25,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
   ({
     onFileSelect,
     onClear,
+    onImageRemove,
     accept = "image/*",
     maxSize = 800 * 400, // 800x400px default
     className,
@@ -191,9 +193,18 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                     type="button"
                     size='icon'
                     onClick={() => {
+                      const urlToRemove = previewUrls[index];
                       const newUrls = previewUrls.filter((_, i) => i !== index);
                       setPreviewUrls(newUrls);
-                      URL.revokeObjectURL(url);
+                      
+                      // Only revoke blob URLs, not absolute URLs
+                      if (urlToRemove.startsWith('blob:')) {
+                        URL.revokeObjectURL(urlToRemove);
+                      }
+                      
+                      // Notify parent about removal
+                      onImageRemove?.(urlToRemove, index);
+                      
                       // If all images are removed, notify parent
                       if (newUrls.length === 0) {
                         onClear?.();

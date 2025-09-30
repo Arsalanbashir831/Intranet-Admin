@@ -14,64 +14,88 @@ import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "../card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { useAnnouncements, useDeleteAnnouncement } from "@/hooks/queries/use-announcements";
+import { toast } from "sonner";
+import { ConfirmPopover } from "@/components/common/confirm-popover";
 
-export type Announcement = {
+export type AnnouncementRow = {
   id: string;
-  name: string;
-  access: "All Employees" | "Admin Only";
-  date: string; // YYYY-MM-DD
+  title: string;
+  access: string;
+  date: string;
   type: string;
   status: "Published" | "Draft";
 };
 
-const announcements: Announcement[] = [
-  { id: "1", name: "Announcement 1", access: "All Employees", date: "2024-07-26", type: "Policy", status: "Published" },
-  { id: "2", name: "Announcement 2", access: "All Employees", date: "2024-07-26", type: "Policy", status: "Draft" },
-  { id: "3", name: "Announcement 3", access: "Admin Only", date: "2024-07-26", type: "Policy", status: "Published" },
-  { id: "4", name: "Announcement 4", access: "All Employees", date: "2024-07-26", type: "Policy", status: "Published" },
-  { id: "5", name: "Announcement 5", access: "Admin Only", date: "2024-07-26", type: "Policy", status: "Draft" },
-  { id: "6", name: "Announcement 6", access: "All Employees", date: "2024-07-26", type: "Policy", status: "Published" },
-  { id: "7", name: "Announcement 7", access: "Admin Only", date: "2024-07-26", type: "Policy", status: "Draft" },
-  { id: "8", name: "Announcement 8", access: "All Employees", date: "2024-07-26", type: "Policy", status: "Published" },
-];
-
 export function RecentAnnouncementsTable() {
-  const [sortedBy, setSortedBy] = React.useState<string>("name");
-  const [data, setData] = React.useState<Announcement[]>(announcements);
-  const { pinnedIds, togglePin, ordered } = usePinnedRows<Announcement>(data);
+  const [sortedBy, setSortedBy] = React.useState<string>("title");
+  const { data: apiData } = useAnnouncements();
+  const deleteAnnouncement = useDeleteAnnouncement();
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const router = useRouter();
-  const handleRowClick = (row: Announcement) => {
+
+  const data = React.useMemo<AnnouncementRow[]>(() => {
+    // Handle AnnouncementListResponse structure: { announcements: { results: Announcement[] } }
+    const list = Array.isArray(apiData?.announcements?.results)
+      ? apiData.announcements.results
+      : (Array.isArray(apiData) ? apiData : []);
+    
+    return (list as any[]).map((announcement) => ({
+      id: String(announcement.id),
+      title: String(announcement.title ?? ""),
+      access: announcement.permitted_employees?.length === 0 && 
+               announcement.permitted_branches?.length === 0 && 
+               announcement.permitted_departments?.length === 0 
+        ? "All Employees" 
+        : "Restricted Access",
+      date: new Date(announcement.created_at).toLocaleDateString(),
+      type: announcement.type === "policy" ? "Policy" : "Announcement",
+      status: announcement.is_active ? "Published" : "Draft",
+    }));
+  }, [apiData]);
+
+  const { pinnedIds, togglePin, ordered } = usePinnedRows<AnnouncementRow>(data);
+
+  const handleRowClick = (row: AnnouncementRow) => {
+    // Navigate to company hub edit page for announcements
     router.push(ROUTES.ADMIN.COMPANY_HUB_EDIT_ID(row.id));
   };
 
   React.useEffect(() => {
-    const copy = [...announcements];
+    const copy = [...data];
     copy.sort((a, b) => {
-      const key = sortedBy as keyof Announcement;
+      const key = sortedBy as keyof AnnouncementRow;
       const av = (a[key] ?? "") as string;
       const bv = (b[key] ?? "") as string;
       if (typeof av === "number" && typeof bv === "number") return av - bv;
       return String(av).localeCompare(String(bv));
     });
-    setData(copy);
-  }, [sortedBy]);
-  const columns: ColumnDef<Announcement>[] = [
+  }, [data, sortedBy]);
+  const columns: ColumnDef<AnnouncementRow>[] = [
     {
-      accessorKey: "name",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Name" />,
-      cell: ({ row }) => <span className="text-sm font-medium text-[#1D1F2C]">{row.original.name}</span>,
+      accessorKey: "title",
+      header: ({ column }) => <CardTableColumnHeader column={column} title="Title" />,
+      cell: ({ row }) => <span className="text-sm font-medium text-[#1D1F2C]">{row.original.title}</span>,
     },
     {
       accessorKey: "access",
       header: ({ column }) => <CardTableColumnHeader column={column} title="Access Level" />,
       cell: ({ row }) => (
-        <Badge variant="secondary" className={row.original.access === "Admin Only" ? "bg-blue-50 text-blue-700 border-0" : "bg-pink-50 text-pink-700 border-0"}>
+        <Badge variant="secondary" className={row.original.access === "Restricted Access" ? "bg-blue-50 text-blue-700 border-0" : "bg-pink-50 text-pink-700 border-0"}>
           {row.original.access}
         </Badge>
       ),
     },
-    { accessorKey: "date", header: ({ column }) => <CardTableColumnHeader column={column} title="Date Posted" /> },
-    { accessorKey: "type", header: ({ column }) => <CardTableColumnHeader column={column} title="Type" /> },
+    { 
+      accessorKey: "date", 
+      header: ({ column }) => <CardTableColumnHeader column={column} title="Date Posted" />,
+      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span>
+    },
+    { 
+      accessorKey: "type", 
+      header: ({ column }) => <CardTableColumnHeader column={column} title="Type" />,
+      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span>
+    },
     {
       accessorKey: "status",
       header: ({ column }) => <CardTableColumnHeader column={column} title="Status" />,
@@ -86,9 +110,31 @@ export function RecentAnnouncementsTable() {
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" className="text-[#D64575]">
-            <Trash2 className="size-4" />
-          </Button>
+          <span onClick={(e) => e.stopPropagation()}>
+            <ConfirmPopover
+              title="Delete announcement?"
+              description="This action cannot be undone."
+              confirmText="Delete"
+              onConfirm={async () => {
+                const id = row.original.id;
+                try {
+                  setDeletingId(id);
+                  await deleteAnnouncement.mutateAsync(id);
+                  toast.success("Announcement deleted");
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Failed to delete announcement");
+                } finally {
+                  setDeletingId(null);
+                }
+              }}
+              disabled={deletingId === row.original.id || deleteAnnouncement.isPending}
+            >
+              <Button size="icon" variant="ghost" className="text-[#D64575]">
+                <Trash2 className="size-4" />
+              </Button>
+            </ConfirmPopover>
+          </span>
           
           <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
@@ -102,7 +148,7 @@ export function RecentAnnouncementsTable() {
         title="Recent Announcements"
         onSearchChange={() => {}}
         sortOptions={[
-          { label: "Name", value: "name" },
+          { label: "Title", value: "title" },
           { label: "Access Level", value: "access" },
           { label: "Date Posted", value: "date" },
           { label: "Type", value: "type" },
@@ -111,7 +157,7 @@ export function RecentAnnouncementsTable() {
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}
       />
-      <CardTable<Announcement, unknown>
+      <CardTable<AnnouncementRow, unknown>
         columns={columns}
         data={ordered}
         headerClassName="grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr]"
