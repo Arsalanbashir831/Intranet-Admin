@@ -163,7 +163,7 @@ export async function updateAnnouncement(id: number | string, payload: Announcem
 }
 
 export async function deleteAnnouncement(id: number | string) {
-  await apiCaller<void>(API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id), "DELETE");
+  await apiCaller<void>(`${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}?include_inactive=true`, "DELETE");
 }
 
 // Announcement Attachment operations
