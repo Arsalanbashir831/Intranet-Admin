@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { ExecutiveMemberForm, type ExecutiveMemberInitialValues } from "@/components/executive-members/executive-member-form";
 import { useParams } from "next/navigation";
-import { useExecutiveMember } from "@/hooks/queries/use-executive-members";
+import { useExecutive } from "@/hooks/queries/use-executive-members";
 
 export default function EditExecutiveMemberPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
 
-  const { data: executiveMember, isLoading, isError } = useExecutiveMember(String(id));
+  const { data: executiveMember, isLoading, isError } = useExecutive(String(id));
 
   const initialValues: ExecutiveMemberInitialValues | undefined = executiveMember
     ? {
@@ -22,7 +22,7 @@ export default function EditExecutiveMemberPage() {
         email: executiveMember.email || "",
         role: executiveMember.role || "",
         profileImageUrl: executiveMember.profile_picture || undefined,
-        qualification_details: executiveMember.qualification_details || "",
+        education: executiveMember.education || "",
       }
     : undefined;
 
@@ -31,7 +31,7 @@ export default function EditExecutiveMemberPage() {
   return (
     <>
       <PageHeader
-        title="Add Executive Member"
+        title="Edit Executive Member"
         crumbs={[
           { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }, 
           { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART },

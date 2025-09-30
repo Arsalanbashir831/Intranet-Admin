@@ -65,36 +65,36 @@ export const API_ROUTES = {
                 DELETE_ATTACHMENT: (id: number | string) => `/knowledge/announcement-attachments/${id}/`,
             },
         },
-        NEW_HIRE: {
-            CHECKLISTS: {
-                LIST: "/newhire/checklists/",
-                DETAIL: (id: number | string) => `/newhire/checklists/${id}/`,
-                CREATE: "/newhire/checklists/",
-                UPDATE: (id: number | string) => `/newhire/checklists/${id}/`,
-                DELETE: (id: number | string) => `/newhire/checklists/${id}/`,
-            },
-            ATTACHMENTS: {
-                LIST: "/newhire/attachments/",
-                DETAIL: (id: number | string) => `/newhire/attachments/${id}/`,
-                CREATE: "/newhire/attachments/",
-                UPDATE: (id: number | string) => `/newhire/attachments/${id}/`,
-                DELETE: (id: number | string) => `/newhire/attachments/${id}/`,
-            },
-            FILES: {
-                LIST: "/newhire/attachment-files/",
-                DETAIL: (id: number | string) => `/newhire/attachment-files/${id}/`,
-                CREATE: "/newhire/attachment-files/",
-                DELETE: (id: number | string) => `/newhire/attachment-files/${id}/`,
-            },
+    },
+    NEW_HIRE: {
+        CHECKLISTS: {
+            LIST: "/newhire/checklists/",
+            DETAIL: (id: number | string) => `/newhire/checklists/${id}/`,
+            CREATE: "/newhire/checklists/",
+            UPDATE: (id: number | string) => `/newhire/checklists/${id}/`,
+            DELETE: (id: number | string) => `/newhire/checklists/${id}/`,
         },
-        EXECUTIVE_MEMBERS: {
-            LIST: "/executives/executives/",
-            DETAIL: (id: number | string) => `/executives/executives/${id}/`,
-            CREATE: "/executives/executives/",
-            UPDATE: (id: number | string) => `/executives/executives/${id}/`,
-            DELETE: (id: number | string) => `/executives/executives/${id}/`,
-            UPLOAD_PICTURE: (id: number | string) => `/executives/executives/${id}/upload-profile-picture/`,
-            DELETE_PICTURE: (id: number | string) => `/executives/executives/${id}/delete-profile-picture/`,
-        }
+        ATTACHMENTS: {
+            LIST: "/newhire/attachments/",
+            DETAIL: (id: number | string) => `/newhire/attachments/${id}/`,
+            CREATE: "/newhire/attachments/",
+            UPDATE: (id: number | string) => `/newhire/attachments/${id}/`,
+            DELETE: (id: number | string) => `/newhire/attachments/${id}/`,
+        },
+        FILES: {
+            LIST: "/newhire/attachment-files/",
+            DETAIL: (id: number | string) => `/newhire/attachment-files/${id}/`,
+            CREATE: "/newhire/attachment-files/",
+            DELETE: (id: number | string) => `/newhire/attachment-files/${id}/`,
+        },
+    },
+    EXECUTIVE_MEMBERS: {
+        LIST: "/executives/executives/",
+        DETAIL: (id: number | string) => `/executives/executives/${id}/`,
+        CREATE: "/executives/executives/",
+        UPDATE: (id: number | string) => `/executives/executives/${id}/`,
+        DELETE: (id: number | string) => `/executives/executives/${id}/`,
+        UPLOAD_PICTURE: (id: number | string) => `/executives/executives/${id}/upload-profile-picture/`,
+        DELETE_PICTURE: (id: number | string) => `/executives/executives/${id}/delete-profile-picture/`,
     }
 } as const;

@@ -20,7 +20,7 @@ interface Employee {
     city: string;
     branch: string;
     status: string;
-    bio: string;
+    education: string;
     profileImage: string;
 }
 
@@ -71,7 +71,7 @@ export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCar
         city: String((apiEmployee as unknown as { city?: string }).city ?? ""),
         branch: String(branchDepartment?.branch?.branch_name ?? ""),
         status: "ACTIVE",
-        bio: String((apiEmployee as unknown as { bio?: string }).bio ?? ""),
+        education: String((apiEmployee as unknown as { education?: string }).education ?? ""),
         profileImage: String((apiEmployee as unknown as { profile_picture?: string }).profile_picture ?? ""),
     } : (employee ?? null);
 
@@ -130,7 +130,7 @@ export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCar
                             </p>
                         </div>
                         <div className="text-[#667085] leading-relaxed max-w-3xl border border-[#E2E8F0] rounded-md p-4 prose prose-sm sm:prose-base focus:outline-none prose-p:leading-relaxed prose-pre:p-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 [&_ul_li_p]:inline [&_ol_li_p]:inline [&_ul_li_p]:m-0 [&_ol_li_p]:m-0 flex-1"
-                            dangerouslySetInnerHTML={{ __html: resolved.bio }}
+                            dangerouslySetInnerHTML={{ __html: resolved.education }}
                         />
                     </div>
                 </div>

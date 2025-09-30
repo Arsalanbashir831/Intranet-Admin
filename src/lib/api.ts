@@ -95,14 +95,10 @@ export class ApiClient {
     };
 
     // ** ADD THIS CHECK HERE **
-    // If the failed request was the login attempt itself,
+    // If the failed request was the login attempt itself or token verification,
     // do not try to refresh the token. Just pass the error along.
-    // Ensure API_ROUTES.AUTH.LOGIN is the exact URL path string used in the apiCaller.
-    // If API_ROUTES.AUTH.LOGIN includes the base URL, you might need to compare against error.config.url directly
-    // or ensure originalReq.url is just the path segment.
-    // Assuming originalReq.url is the path relative to baseURL (e.g., "/token/")
-    if (originalReq.url === API_ROUTES.AUTH.OBTAIN_TOKEN) {
-      console.log("ApiClient: Login attempt failed. Bypassing token refresh.");
+    if (originalReq.url === API_ROUTES.AUTH.OBTAIN_TOKEN || originalReq.url === API_ROUTES.AUTH.VERIFY_TOKEN) {
+      console.log("ApiClient: Login/verify attempt failed. Bypassing token refresh.");
       return Promise.reject(error);
     }
 

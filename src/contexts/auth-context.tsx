@@ -33,13 +33,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { accessToken, refreshToken: refreshTokenValue } = getAuthTokens();
 
         if (accessToken && refreshTokenValue) {
-          // Verify current access token. If invalid, the interceptor will try refresh.
-          await verifyToken(accessToken).then(
-            () => setUser({ id: "self", name: "Admin", role: "ADMIN" })
-          ).catch(() => {
-            // Let the interceptor handle refresh/redirect on subsequent requests.
-            setUser(null);
-          });
+          // Verify current access token. If invalid, try to refresh manually
+          try {
+            await verifyToken();
+            setUser({ id: "self", name: "Admin", role: "ADMIN" });
+          } catch (error) {
+            // Token verification failed, try to refresh manually
+            try {
+              const { refreshToken } = await import("@/services/auth");
+              const result = await refreshToken(refreshTokenValue);
+              const { setAuthCookies } = await import("@/lib/cookies");
+              setAuthCookies(result.access, result.refresh || refreshTokenValue);
+              
+              // Try to verify again with new token
+              await verifyToken();
+              setUser({ id: "self", name: "Admin", role: "ADMIN" });
+            } catch (refreshError) {
+              // Refresh failed, user is not authenticated
+              console.error("Token refresh failed:", refreshError);
+              setUser(null);
+            }
+          }
         } else {
           // No tokens found, user is not authenticated
           setUser(null);

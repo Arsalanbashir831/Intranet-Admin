@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useExecutiveMember } from "@/hooks/queries/use-executive-members";
+import { useExecutive } from "@/hooks/queries/use-executive-members";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
-import { useDeleteExecutiveMember } from "@/hooks/queries/use-executive-members";
+import { useDeleteExecutive } from "@/hooks/queries/use-executive-members";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 
@@ -18,15 +18,15 @@ interface ExecutiveMemberDetailTableProps {
 }
 
 export function ExecutiveMemberDetailTable({ executiveId }: ExecutiveMemberDetailTableProps) {
-  const { data: executiveMember, isLoading, isError } = useExecutiveMember(executiveId);
-  const deleteExecutiveMember = useDeleteExecutiveMember();
+  const { data: executiveMember, isLoading, isError } = useExecutive(executiveId);
+  const deleteExecutive = useDeleteExecutive();
   const router = useRouter();
   const [deleting, setDeleting] = React.useState(false);
 
   const handleDelete = async () => {
     try {
       setDeleting(true);
-      await deleteExecutiveMember.mutateAsync(executiveId);
+      await deleteExecutive.mutateAsync(executiveId);
       toast.success("Executive member deleted successfully");
       router.push(ROUTES.ADMIN.EXECUTIVE_MEMBERS);
     } catch (error) {
@@ -60,7 +60,7 @@ export function ExecutiveMemberDetailTable({ executiveId }: ExecutiveMemberDetai
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Avatar className="size-16">
-              <AvatarImage src={executiveMember.profile_picture} alt={executiveMember.name} />
+              <AvatarImage src={executiveMember.profile_picture || undefined} alt={executiveMember.name} />
               <AvatarFallback className="text-lg">
                 {executiveMember.name
                   .split(" ")
@@ -136,31 +136,13 @@ export function ExecutiveMemberDetailTable({ executiveId }: ExecutiveMemberDetai
                 <p className="text-sm text-[#1D1F2C]">{executiveMember.role}</p>
               </div>
               <div>
-                <label className="text-sm text-[#667085]">Member Since</label>
-                <p className="text-sm text-[#1D1F2C]">
-                  {new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }).format(new Date(executiveMember.created_at))}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm text-[#667085]">Last Updated</label>
-                <p className="text-sm text-[#1D1F2C]">
-                  {new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }).format(new Date(executiveMember.updated_at))}
-                </p>
+                <label className="text-sm text-[#667085]">Education</label>
+                <p className="text-sm text-[#1D1F2C]" dangerouslySetInnerHTML={{ __html: executiveMember.education }}/>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Qualifications */}
-        {executiveMember.qualification_details && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-[#1D1F2C]">Qualifications and Education</h3>
-            <div 
-              className="prose prose-sm max-w-none text-[#1D1F2C]"
-              dangerouslySetInnerHTML={{ __html: executiveMember.qualification_details }}
-            />
-          </div>
-        )}
       </div>
     </Card>
   );

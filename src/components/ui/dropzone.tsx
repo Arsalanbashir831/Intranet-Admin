@@ -9,6 +9,7 @@ import Image from "next/image";
 
 export interface DropzoneProps {
   onFileSelect?: (files: FileList | null) => void;
+  onClear?: () => void; // Callback when images are cleared
   accept?: string;
   maxSize?: number; // in bytes
   className?: string;
@@ -22,6 +23,7 @@ export interface DropzoneProps {
 export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
   ({
     onFileSelect,
+    onClear,
     accept = "image/*",
     maxSize = 800 * 400, // 800x400px default
     className,
@@ -113,6 +115,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     const clearAllImages = () => {
       previewUrls.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url) });
       setPreviewUrls([]);
+      onClear?.(); // Notify parent component about clearing
     };
 
     // Sync external previews and clean up on change/unmount
@@ -191,6 +194,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                       const newUrls = previewUrls.filter((_, i) => i !== index);
                       setPreviewUrls(newUrls);
                       URL.revokeObjectURL(url);
+                      // If all images are removed, notify parent
+                      if (newUrls.length === 0) {
+                        onClear?.();
+                      }
                     }}
                     className="absolute -top-2 -right-2 bg-primary text-white rounded-full size-6 flex items-center justify-center text-xs hover:bg-primary/90 transition-colors"
                   >

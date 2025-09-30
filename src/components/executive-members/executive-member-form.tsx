@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dropzone } from "@/components/ui/dropzone";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { SelectableTags, createSelectableItems } from "@/components/ui/selectable-tags";
-import { useCreateExecutiveMember, useUpdateExecutiveMember } from "@/hooks/queries/use-executive-members";
+import { useCreateExecutive, useUpdateExecutive } from "@/hooks/queries/use-executive-members";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { toast } from "sonner";
@@ -18,8 +18,9 @@ export type ExecutiveMemberInitialValues = {
   phone?: string;
   email?: string;
   role?: string;
+  education?: string;
   profileImageUrl?: string;
-  qualification_details?: string;
+  bio?: string;
 };
 
 export function ExecutiveMemberForm({ 
@@ -33,13 +34,15 @@ export function ExecutiveMemberForm({
   isEdit?: boolean; 
   executiveId?: string; 
 }) {
-  // Rich text content state
-  const [qualificationHtml, setQualificationHtml] = React.useState<string | undefined>(initialValues?.qualification_details);
+  // Form state
+  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
+  const [isRemovingPicture, setIsRemovingPicture] = React.useState(false);
   const [selectedRoleId, setSelectedRoleId] = React.useState<string | undefined>(initialValues?.role);
+  const [educationHtml, setEducationHtml] = React.useState<string | undefined>(initialValues?.education);
 
-  // React Query mutation for create/update
-  const createExecutiveMember = useCreateExecutiveMember();
-  const updateExecutiveMember = useUpdateExecutiveMember();
+  // React Query mutations
+  const createExecutive = useCreateExecutive();
+  const updateExecutive = useUpdateExecutive(executiveId || "");
   const router = useRouter();
 
   // Role options for SelectableTags
@@ -60,9 +63,11 @@ export function ExecutiveMemberForm({
 
   // Reinitialize if initialValues change
   React.useEffect(() => {
-    setQualificationHtml(initialValues?.qualification_details);
+    setEducationHtml(initialValues?.education);
     setSelectedRoleId(initialValues?.role);
-  }, [initialValues?.qualification_details, initialValues?.role]);
+    setSelectedFiles([]);
+    setIsRemovingPicture(false);
+  }, [initialValues?.education, initialValues?.role]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -72,9 +77,13 @@ export function ExecutiveMemberForm({
     const name = String(data.get("name") || "").trim();
     const email = String(data.get("email") || "").trim();
     const role = selectedRoleId || String(data.get("role") || "").trim();
+    const address = String(data.get("address") || "").trim();
+    const city = String(data.get("city") || "").trim();
+    const phone = String(data.get("phone") || "").trim();
+    const education = educationHtml || String(data.get("education") || "").trim();
 
-    if (!name || !email || !role) {
-      toast.error("Name, Email, and Role are required");
+    if (!name || !email || !role || !address || !city || !phone || !education) {
+      toast.error("All fields are required");
       return;
     }
 
@@ -82,19 +91,19 @@ export function ExecutiveMemberForm({
       name,
       email,
       role,
-      address: String(data.get("address") || "").trim() || undefined,
-      city: String(data.get("city") || "").trim() || undefined,
-      phone: String(data.get("phone") || "").trim() || undefined,
-      profile_picture: String(data.get("profile_picture") || "").trim() || undefined,
-      qualification_details: qualificationHtml || undefined,
-    };
+      address,
+      city,
+      phone,
+      education,
+      profile_picture: selectedFiles[0] || (isRemovingPicture ? null : undefined),
+    } as import("@/services/executive-members").ExecutiveCreateRequest;
 
     try {
       if (isEdit && executiveId) {
-        await updateExecutiveMember.mutateAsync({ id: executiveId, data: payload });
+        await updateExecutive.mutateAsync(payload);
         toast.success("Executive member updated successfully");
       } else {
-        await createExecutiveMember.mutateAsync(payload);
+        await createExecutive.mutateAsync(payload);
         toast.success("Executive member created successfully");
       }
       router.push(ROUTES.ADMIN.EXECUTIVE_MEMBERS);
@@ -143,6 +152,7 @@ export function ExecutiveMemberForm({
             defaultValue={initialValues?.name} 
             placeholder="Name" 
             className="border-[#E2E8F0]"
+            required
           />
         </div>
       </div>
@@ -155,6 +165,7 @@ export function ExecutiveMemberForm({
             defaultValue={initialValues?.address} 
             placeholder="Address" 
             className="border-[#E2E8F0]"
+            required
           />
         </div>
       </div>
@@ -167,6 +178,7 @@ export function ExecutiveMemberForm({
             defaultValue={initialValues?.city} 
             placeholder="City" 
             className="border-[#E2E8F0]"
+            required
           />
         </div>
       </div>
@@ -179,6 +191,7 @@ export function ExecutiveMemberForm({
             defaultValue={initialValues?.phone} 
             placeholder="Phone Number" 
             className="border-[#E2E8F0]"
+            required
           />
         </div>
       </div>
@@ -192,6 +205,7 @@ export function ExecutiveMemberForm({
             placeholder="Email Id" 
             type="email" 
             className="border-[#E2E8F0]"
+            required
           />
         </div>
       </div>
@@ -218,8 +232,16 @@ export function ExecutiveMemberForm({
         <div className="col-span-12 md:col-span-10">
           <Dropzone 
             onFileSelect={(files) => {
-              console.log("Files selected:", files);
-              // Handle file upload logic here
+              if (files) {
+                setSelectedFiles(Array.from(files));
+                setIsRemovingPicture(false);
+              }
+            }}
+            onClear={() => {
+              setSelectedFiles([]);
+              if (initialValues?.profileImageUrl) {
+                setIsRemovingPicture(true);
+              }
             }}
             accept="image/*"
             maxSize={800 * 400}
@@ -229,14 +251,14 @@ export function ExecutiveMemberForm({
       </div>
 
       <div className="grid grid-cols-12 items-start gap-4">
-        <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Qualification and Education</Label>
+        <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Qualification or Education</Label>
         <div className="col-span-12 md:col-span-10">
           <RichTextEditor
-            content={qualificationHtml}
-            placeholder="Write Qualification and Education"
+            content={educationHtml}
+            placeholder="Enter qualification or education details..."
             minHeight="200px"
             maxHeight="400px"
-            onChange={(html) => setQualificationHtml(html)}
+            onChange={(html) => setEducationHtml(html)}
           />
         </div>
       </div>

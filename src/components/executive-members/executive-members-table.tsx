@@ -15,7 +15,7 @@ import { CardTablePagination } from "@/components/card-table/card-table-paginati
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "../card-table/pin-row-button";
 import { ROUTES } from "@/constants/routes";
-import { useExecutiveMembers, useDeleteExecutiveMember } from "@/hooks/queries/use-executive-members";
+import { useExecutives, useDeleteExecutive } from "@/hooks/queries/use-executive-members";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 // import type { ExecutiveMember } from "@/services/executive-members";
@@ -26,32 +26,38 @@ export type ExecutiveMemberRow = {
   avatar?: string;
   email: string;
   role: string;
-  department?: string;
+  city: string;
+  phone: string;
 };
 
 export function ExecutiveMembersTable() {
   const router = useRouter();
   const [sortedBy, setSortedBy] = React.useState<string>("name");
-  const { data: apiData } = useExecutiveMembers();
-  const deleteExecutiveMember = useDeleteExecutiveMember();
+  const { data: apiData } = useExecutives();
+  const deleteExecutive = useDeleteExecutive();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   
   const data = React.useMemo<ExecutiveMemberRow[]>(() => {
-    const list = Array.isArray(apiData) ? apiData : (apiData?.results ?? []);
-    return list.map((member) => ({
-      id: String(member.id),
-      name: member.name,
-      avatar: member.profile_picture,
-      email: member.email,
-      role: member.role,
-      department: member.department,
+    const executivesContainer = (apiData as any)?.executives;
+    const list = Array.isArray(executivesContainer?.results)
+      ? executivesContainer.results
+      : (Array.isArray(apiData) ? apiData : (apiData?.results ?? []));
+    
+    return (list as any[]).map((e) => ({
+      id: String(e.id),
+      name: String(e.name ?? ""),
+      email: String(e.email ?? ""),
+      role: String(e.role ?? ""),
+      city: String(e.city ?? ""),
+      phone: String(e.phone ?? ""),
+      avatar: e.profile_picture ?? undefined,
     }));
   }, [apiData]);
   
   const { pinnedIds, togglePin } = usePinnedRows<ExecutiveMemberRow>(data);
 
   const handleRowClick = (row: { original: ExecutiveMemberRow }) => {
-    router.push(ROUTES.ADMIN.EXECUTIVE_MEMBERS_ID_EDIT(row.original.id));
+    router.push(ROUTES.ADMIN.EXECUTIVE_MEMBERS_ID(row.original.id));
   };
 
   React.useEffect(() => {
@@ -108,6 +114,16 @@ export function ExecutiveMembersTable() {
         </Badge>
       ),
     },
+    { 
+      accessorKey: "city", 
+      header: ({ column }) => <CardTableColumnHeader column={column} title="City" />, 
+      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span> 
+    },
+    { 
+      accessorKey: "phone", 
+      header: ({ column }) => <CardTableColumnHeader column={column} title="Phone" />, 
+      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span> 
+    },
     {
       id: "actions",
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
@@ -122,7 +138,7 @@ export function ExecutiveMembersTable() {
                 const id = row.original.id;
                 try {
                   setDeletingId(id);
-                  await deleteExecutiveMember.mutateAsync(id);
+                  await deleteExecutive.mutateAsync(id);
                   toast.success("Executive member deleted");
                 } catch (err) {
                   console.error(err);
@@ -131,7 +147,7 @@ export function ExecutiveMembersTable() {
                   setDeletingId(null);
                 }
               }}
-              disabled={deletingId === row.original.id || deleteExecutiveMember.isPending}
+              disabled={deletingId === row.original.id || deleteExecutive.isPending}
             >
               <Button size="icon" variant="ghost" className="text-[#D64575]">
                 <Trash2 className="size-4" />
@@ -154,6 +170,8 @@ export function ExecutiveMembersTable() {
           { label: "Executive Name", value: "name" },
           { label: "Executive Email", value: "email" },
           { label: "Role", value: "role" },
+          { label: "City", value: "city" },
+          { label: "Phone", value: "phone" },
         ]}
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}
@@ -162,8 +180,8 @@ export function ExecutiveMembersTable() {
       <CardTable<ExecutiveMemberRow, unknown>
         columns={columns}
         data={data}
-        headerClassName="grid-cols-[1.2fr_1.2fr_0.8fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1.2fr_0.8fr_0.8fr] cursor-pointer"}
+        headerClassName="grid-cols-[1.2fr_1.5fr_0.8fr_0.8fr_1fr_0.8fr]"
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1.5fr_0.8fr_0.8fr_1fr_0.8fr] cursor-pointer"}
         onRowClick={handleRowClick}
         footer={(table) => <CardTablePagination table={table} />}
       />

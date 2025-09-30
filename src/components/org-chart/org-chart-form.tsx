@@ -18,7 +18,6 @@ export type OrgChartInitialValues = {
   phone?: string | null;
   role?: string | null;
   education?: string | null;
-  bio?: string | null;
   branch_department?: string; // id as string for UI select
   profileImageUrl?: string;
   address?: string | null;
@@ -28,6 +27,10 @@ export type OrgChartInitialValues = {
 export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, employeeId }: { initialValues?: OrgChartInitialValues; onRegisterSubmit?: (submit: () => void) => void; isEdit?: boolean; employeeId?: string; }) {
   // Load departments/employees/locations/branches from API
   const { data: deptData } = useDepartments();
+
+  // File upload state
+  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
+  const [isRemovingPicture, setIsRemovingPicture] = React.useState(false);
 
   const branchDeptItems = React.useMemo(() => {
     const departmentsPayload = (deptData as any)?.departments;
@@ -50,10 +53,9 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
   // Single-select department, location, and manager
   const [selectedBranchDeptId, setSelectedBranchDeptId] = React.useState<string | undefined>(initialValues?.branch_department);
 
-  // Rich text content state for bio; education is plain string
-  const [bioHtml, setBioHtml] = React.useState<string | undefined>(initialValues?.bio ?? undefined);
-  const [educationText, setEducationText] = React.useState<string | undefined>(initialValues?.education ?? undefined);
-
+  // Rich text content state for education is plain string
+  const [educationHtml, setEducationHtml] = React.useState<string | undefined>(initialValues?.education ?? undefined);
+ 
   // React Query mutation for create
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee(employeeId || "");
@@ -64,9 +66,11 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
     if (initialValues?.branch_department) {
       setSelectedBranchDeptId(initialValues.branch_department);
     }
-    setBioHtml(initialValues?.bio ?? undefined);
-    setEducationText(initialValues?.education ?? undefined);
-  }, [initialValues?.branch_department, initialValues?.bio, initialValues?.education]);
+    setEducationHtml(initialValues?.education ?? undefined);
+    // Clear selected files when initialValues change
+    setSelectedFiles([]);
+    setIsRemovingPicture(false);
+  }, [initialValues?.branch_department, initialValues?.education]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -91,10 +95,11 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
       email: email || undefined,
       phone: phone || undefined,
       role: role || undefined,
-      education: educationText || undefined,
-      bio: bioHtml || undefined,
+      education: educationHtml || undefined,
       address: address || undefined,
       city: city || undefined,
+      // Handle profile picture logic
+      profile_picture: selectedFiles[0] || (isRemovingPicture ? null : undefined),
     } as import("@/services/employees").EmployeeCreateRequest;
 
     try {
@@ -212,8 +217,17 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
            <div className="col-span-12 md:col-span-10">
             <Dropzone 
                onFileSelect={(files) => {
-                 console.log("Files selected:", files);
-                 // Handle file upload logic here (use key 'profile_picture' in FormData)
+                 if (files) {
+                   setSelectedFiles(Array.from(files));
+                   setIsRemovingPicture(false); // Reset removal flag when new file selected
+                 }
+               }}
+               onClear={() => {
+                 setSelectedFiles([]);
+                 // If there was an initial image, mark for removal
+                 if (initialValues?.profileImageUrl) {
+                   setIsRemovingPicture(true);
+                 }
                }}
                accept="image/*"
                maxSize={800 * 400}
@@ -223,21 +237,14 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
          </div>
 
         <div className="grid grid-cols-12 items-start gap-4">
-          <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Education</Label>
-          <div className="col-span-12 md:col-span-10">
-            <Input name="education" defaultValue={educationText || undefined} onChange={(e) => setEducationText(e.target.value)} placeholder="Education" className="border-[#E2E8F0]"/>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 items-start gap-4">
-          <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Bio</Label>
+          <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Qualification or Education</Label>
           <div className="col-span-12 md:col-span-10">
             <RichTextEditor
-              content={bioHtml}
-              placeholder="Write Bio"
+              content={educationHtml}
+              placeholder="Write Education"
               minHeight="200px"
               maxHeight="400px"
-              onChange={(html) => setBioHtml(html)}
+              onChange={(html) => setEducationHtml(html)}
             />
           </div>
 

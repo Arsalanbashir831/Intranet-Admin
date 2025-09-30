@@ -23,9 +23,21 @@ export async function refreshToken(refreshToken: string) {
   return res.data;
 }
 
-export async function verifyToken(token: string) {
+export async function verifyToken(token?: string) {
   // Returns void on 200, throws on 401/invalid
-  await apiCaller<void>(API_ROUTES.AUTH.VERIFY_TOKEN, "POST", { token } as VerifyRequest, {}, "json");
+  // If no token provided, get the current token from cookies
+  let tokenToVerify = token;
+  if (!tokenToVerify && typeof window !== "undefined") {
+    const { getAuthTokens } = await import("@/lib/cookies");
+    const { accessToken } = getAuthTokens();
+    tokenToVerify = accessToken || undefined;
+  }
+  
+  if (!tokenToVerify) {
+    throw new Error("No token available for verification");
+  }
+  
+  await apiCaller<void>(API_ROUTES.AUTH.VERIFY_TOKEN, "POST", { token: tokenToVerify } as VerifyRequest, {}, "json");
 }
 
 export async function logout() {

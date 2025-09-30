@@ -271,6 +271,7 @@ export function RichTextEditor({
             <Popover open={showTextColorPicker} onOpenChange={setShowTextColorPicker}>
               <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="sm"
                   className={cn("size-6 p-0 text-[#475569]", editor?.isActive("textStyle") && "bg-muted")}
@@ -284,6 +285,7 @@ export function RichTextEditor({
                   <div className="grid grid-cols-6 gap-1">
                     {quickTextColors.map((color, idx) => (
                       <Button
+                        type="button"
                         key={`${color}-${idx}`}
                         variant="ghost"
                         size="sm"
@@ -304,7 +306,7 @@ export function RichTextEditor({
                 </div>
                 <div className="mt-3 flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">Text Color</span>
-                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setShowTextColorPicker(false)}>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" type="button" onClick={() => setShowTextColorPicker(false)}>
                     Done
                   </Button>
                 </div>
@@ -315,6 +317,7 @@ export function RichTextEditor({
             <Popover open={showHighlightColorPicker} onOpenChange={setShowHighlightColorPicker}>
               <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="ghost"
                   size="sm"
                   className={cn("size-6 p-0 text-[#475569]", editor?.isActive("highlight") && "bg-muted")}
@@ -334,6 +337,7 @@ export function RichTextEditor({
                   <div className="grid grid-cols-6 gap-1">
                     {quickHighlightColors.map((color, idx) => (
                       <Button
+                        type="button"
                         variant="ghost"
                         size="sm"
                         key={`${color}-${idx}`}
@@ -354,7 +358,7 @@ export function RichTextEditor({
                 </div>
                 <div className="mt-3 flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">Highlight Color</span>
-                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setShowHighlightColorPicker(false)}>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" type="button" onClick={() => setShowHighlightColorPicker(false)}>
                     Done
                   </Button>
                 </div>
@@ -363,6 +367,7 @@ export function RichTextEditor({
 
             {/* Bold */}
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className={cn("size-6 p-0 text-[#475569]", editor.isActive("bold") && "bg-muted")}
@@ -373,6 +378,7 @@ export function RichTextEditor({
 
             {/* Italic */}
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className={cn("size-6 p-0 text-[#475569]", editor.isActive("italic") && "bg-muted")}
@@ -383,6 +389,7 @@ export function RichTextEditor({
 
             {/* Underline */}
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className={cn("size-6 p-0 text-[#475569]", editor.isActive("underline") && "bg-muted")}
@@ -393,6 +400,7 @@ export function RichTextEditor({
 
             {/* Strikethrough */}
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className={cn("size-6 p-0 text-[#475569]", editor.isActive("strike") && "bg-muted")}
@@ -407,6 +415,7 @@ export function RichTextEditor({
 
           {/* Text Alignment */}
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className={cn("size-6 p-0 text-[#475569]", editor.isActive({ textAlign: "left" }) && "bg-muted")}
@@ -416,6 +425,7 @@ export function RichTextEditor({
           </Button>
 
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className={cn("size-6 p-0 text-[#475569]", editor.isActive({ textAlign: "center" }) && "bg-muted")}
@@ -425,6 +435,7 @@ export function RichTextEditor({
           </Button>
 
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className={cn("size-6 p-0 text-[#475569]", editor.isActive({ textAlign: "right" }) && "bg-muted")}
@@ -438,6 +449,7 @@ export function RichTextEditor({
 
           {/* Lists */}
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className={cn("size-6 p-0 text-[#475569]", editor.isActive("bulletList") && "bg-muted")}
@@ -453,6 +465,7 @@ export function RichTextEditor({
           </Button>
 
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className={cn("size-6 p-0 text-[#475569]", editor.isActive("orderedList") && "bg-muted")}
@@ -474,6 +487,7 @@ export function RichTextEditor({
           <Popover open={showImagePopover} onOpenChange={setShowImagePopover}>
             <PopoverTrigger asChild>
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 className="size-6 p-0 text-[#475569]"
@@ -497,6 +511,7 @@ export function RichTextEditor({
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => {
@@ -507,6 +522,7 @@ export function RichTextEditor({
                     Cancel
                   </Button>
                   <Button
+                    type="button"
                     size="sm"
                     onClick={insertImage}
                     disabled={!imageUrl.trim()}
@@ -523,6 +539,7 @@ export function RichTextEditor({
 
           {/* Tags */}
           <Button
+            type="button"
             variant="ghost"
             className="w-14 h-6 p-0 text-[#475569]"
             onClick={() => {
