@@ -21,8 +21,8 @@ export function NewHirePlanForm() {
   const [assignees, setAssignees] = React.useState<string[]>([]);
   const { data } = useEmployees();
   const employees: ApiEmployee[] = React.useMemo(() => {
-    // Support both paginated and array responses
-    const list = Array.isArray(data) ? data : (data?.results ?? []);
+    // Handle EmployeeListResponse structure: { employees: { results: Employee[] } }
+    const list = Array.isArray(data) ? data : (data?.employees?.results ?? []);
     return (list as { id: number | string; full_name?: string; name?: string; username?: string; department_name?: string; department?: string; profile_picture_url?: string; profile_picture?: string }[]).map((e) => ({
       id: e.id,
       full_name: e.full_name ?? e.name ?? "",

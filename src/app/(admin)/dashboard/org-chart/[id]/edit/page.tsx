@@ -30,7 +30,6 @@ export default function EditOrgChartPage() {
         phone: (apiEmployee as unknown as { phone?: string | null }).phone ?? undefined,
         role: (apiEmployee as unknown as { role?: string | null }).role ?? undefined,
         education: (apiEmployee as unknown as { education?: string | null }).education ?? undefined,
-        bio: (apiEmployee as unknown as { bio?: string | null }).bio ?? undefined,
         branch_department: branchDepartmentId,
         profileImageUrl: (apiEmployee as unknown as { profile_picture?: string | null }).profile_picture ?? undefined,
         address: (apiEmployee as unknown as { address?: string | null }).address ?? undefined,

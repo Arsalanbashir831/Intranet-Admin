@@ -38,10 +38,10 @@ export function ExecutiveMembersTable() {
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   
   const data = React.useMemo<ExecutiveMemberRow[]>(() => {
-    const executivesContainer = (apiData as any)?.executives;
-    const list = Array.isArray(executivesContainer?.results)
-      ? executivesContainer.results
-      : (Array.isArray(apiData) ? apiData : (apiData?.results ?? []));
+    // Handle ExecutiveListResponse structure: { results: Executive[] }
+    const list = Array.isArray(apiData?.results)
+      ? apiData.results
+      : (Array.isArray(apiData) ? apiData : []);
     
     return (list as any[]).map((e) => ({
       id: String(e.id),

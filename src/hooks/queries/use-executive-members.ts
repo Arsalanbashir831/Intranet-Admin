@@ -13,7 +13,7 @@ import {
   type ExecutiveUpdateRequest,
 } from "@/services/executive-members";
 
-export function useExecutives(params?: Record<string, unknown>) {
+export function useExecutives(params?: Record<string, string | number | boolean>) {
   return useQuery<ExecutiveListResponse>({
     queryKey: ["executives", params],
     queryFn: () => listExecutives(params),

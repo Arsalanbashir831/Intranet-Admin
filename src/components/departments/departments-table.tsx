@@ -93,7 +93,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
             branchDepartmentId: String(branchDept.id),
             department: dept.dept_name,
             branchLocation: branchDept.branch.branch_name,
-            managerName: branchDept.manager?.full_name || "--",
+            managerName: branchDept.manager?.employee?.emp_name || "--",
             staffCount: branchDept.employee_count,
           });
         });
