@@ -1,31 +1,74 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
+import { generatePaginationParams } from "@/lib/pagination-utils";
+
+export type Branch = {
+  id: number;
+  branch_name: string;
+};
+
+export type BranchDepartment = {
+  id: number;
+  branch: Branch;
+  employee_count: number;
+  manager: null | {
+    id: number;
+    full_name: string;
+    profile_picture?: string;
+  };
+};
 
 export type Department = {
   id: number;
-  name: string;
-  description?: string;
-  [key: string]: unknown;
+  dept_name: string;
+  employee_count: number;
+  branch_departments: BranchDepartment[];
 };
 
 export type DepartmentListResponse = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Department[];
+  departments: {
+    count: number;
+    page: number;
+    page_size: number;
+    results: Department[];
+  };
 };
 export type DepartmentDetailResponse = Department;
 export type DepartmentCreateRequest = {
-  name: string;
+  dept_name: string;
   description?: string;
 } & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
 export type DepartmentCreateResponse = Department;
 export type DepartmentUpdateRequest = Partial<DepartmentCreateRequest>;
 export type DepartmentUpdateResponse = Department;
 
-export async function listDepartments(params?: Record<string, string | number | boolean>) {
+export async function listDepartments(
+  params?: Record<string, string | number | boolean>,
+  pagination?: { page?: number; pageSize?: number }
+) {
   const url = API_ROUTES.DEPARTMENTS.LIST;
-  const query = params ? `?${new URLSearchParams(Object.entries(params).reduce<Record<string, string>>((acc, [k, v]) => { acc[k] = String(v); return acc; }, {}))}` : "";
+  const queryParams: Record<string, string> = {};
+  
+  // Add pagination parameters
+  if (pagination) {
+    const paginationParams = generatePaginationParams(
+      pagination.page ? pagination.page - 1 : 0, // Convert to 0-based for our utils
+      pagination.pageSize || 10
+    );
+    Object.assign(queryParams, paginationParams);
+  }
+  
+  // Add other parameters
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      queryParams[key] = String(value);
+    });
+  }
+  
+  const query = Object.keys(queryParams).length > 0 
+    ? `?${new URLSearchParams(queryParams)}` 
+    : "";
+    
   const res = await apiCaller<DepartmentListResponse>(`${url}${query}`, "GET");
   return res.data;
 }
@@ -42,6 +85,70 @@ export async function createDepartment(payload: DepartmentCreateRequest) {
 
 export async function updateDepartment(id: number | string, payload: DepartmentUpdateRequest) {
   const res = await apiCaller<DepartmentUpdateResponse>(API_ROUTES.DEPARTMENTS.UPDATE(id), "PUT", payload, {}, "json");
+  return res.data;
+}
+
+export type BranchDepartmentEmployee = {
+  id: number;
+  emp_name: string;
+  branch_department_id: number;
+  hire_date: string;
+  address: string;
+  city: string;
+  phone: string;
+  email: string;
+  role: string;
+  education: string;
+  bio: string;
+  profile_picture: string | null;
+  branch_department: {
+    id: number;
+    branch: {
+      id: number;
+      branch_name: string;
+    };
+    department: {
+      id: number;
+      dept_name: string;
+    };
+    manager: null | {
+      id: number;
+      full_name: string;
+      profile_picture?: string;
+    };
+  };
+};
+
+export type BranchDepartmentEmployeesResponse = {
+  employees: {
+    count: number;
+    page: number;
+    page_size: number;
+    results: BranchDepartmentEmployee[];
+  };
+};
+
+export async function getBranchDepartmentEmployees(
+  branchDepartmentId: number | string,
+  pagination?: { page?: number; pageSize?: number }
+) {
+  const url = API_ROUTES.DEPARTMENTS.GET_ALL_BRANCH_DEPT_EMPLOYEES(branchDepartmentId);
+  const queryParams: Record<string, string> = {};
+  
+  // Add pagination parameters
+  if (pagination) {
+    const paginationParams = generatePaginationParams(
+      pagination.page ? pagination.page - 1 : 0,
+      pagination.pageSize || 10
+    );
+    Object.assign(queryParams, paginationParams);
+  }
+  
+  const query = Object.keys(queryParams).length > 0 
+    ? `?${new URLSearchParams(queryParams)}` 
+    : "";
+    
+  const res = await apiCaller<BranchDepartmentEmployeesResponse>(`${url}${query}`, "GET");
   return res.data;
 }
 

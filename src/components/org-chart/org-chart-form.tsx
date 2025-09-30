@@ -34,7 +34,7 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
 
   const branchDeptItems = React.useMemo(() => {
     const departmentsPayload = (deptData as any)?.departments;
-    const results = Array.isArray(departmentsPayload?.results) ? departmentsPayload.results : (Array.isArray(deptData) ? deptData : (deptData?.results ?? []));
+    const results = Array.isArray(departmentsPayload?.results) ? departmentsPayload.results : (Array.isArray(deptData) ? deptData : (deptData?.departments?.results ?? []));
     const items: { id: string; label: string }[] = [];
     for (const dept of results || []) {
       const deptName = String((dept as any).dept_name ?? (dept as any).name ?? "");

@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/page-header";
 import { ROUTES } from "@/constants/routes";
 import * as React from "react";
 import { DepartmentsDetailTable } from "@/components/departments/departments-detail-table";
+import { getBranchDepartmentEmployees } from "@/services/departments";
 
 interface DepartmentDetailsPageProps {
   params: Promise<{
@@ -11,6 +12,23 @@ interface DepartmentDetailsPageProps {
 
 export default async function DepartmentDetailsPage({ params }: DepartmentDetailsPageProps) {
   const { id } = await params;
+  
+  // Fetch initial data to get department and branch names for breadcrumbs
+  let departmentName = "Department";
+  let branchName = "Branch";
+  
+  try {
+    const employeesData = await getBranchDepartmentEmployees(id);
+    if (employeesData?.employees?.results?.[0]?.branch_department) {
+      const branchDept = employeesData.employees.results[0].branch_department;
+      departmentName = branchDept.department.dept_name;
+      branchName = branchDept.branch.branch_name;
+    }
+  } catch (error) {
+    // Handle error silently, will use default names
+    console.error("Failed to fetch department details:", error);
+  }
+  
   return (
     <>
       <PageHeader
@@ -18,14 +36,16 @@ export default async function DepartmentDetailsPage({ params }: DepartmentDetail
         crumbs={[
           { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
           { label: "Departments", href: ROUTES.ADMIN.DEPARTMENTS },
-          { label: "Marketing" },
+          { label: `${departmentName} - ${branchName}` },
         ]}
       />
-      {/* <ScrollArea className="h-[calc(100vh-10rem)]"> */}
       <div className="px-4 md:px-12 py-4">
-        <DepartmentsDetailTable departmentId={id} />
+        <DepartmentsDetailTable 
+          branchDepartmentId={id} 
+          departmentName={departmentName}
+          branchName={branchName}
+        />
       </div>
-      {/* </ScrollArea> */}
     </>
   );
 }

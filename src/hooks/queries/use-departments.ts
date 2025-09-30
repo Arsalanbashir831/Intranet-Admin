@@ -1,11 +1,33 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createDepartment, deleteDepartment, getDepartment, listDepartments, updateDepartment } from "@/services/departments";
+import { 
+  createDepartment, 
+  deleteDepartment, 
+  getDepartment, 
+  listDepartments, 
+  updateDepartment,
+  getBranchDepartmentEmployees
+} from "@/services/departments";
 import type { DepartmentCreateRequest, DepartmentUpdateRequest } from "@/services/departments";
 
-export function useDepartments(params?: Record<string, unknown>) {
+export function useDepartments(
+  params?: Record<string, string | number | boolean>,
+  pagination?: { page?: number; pageSize?: number }
+) {
   return useQuery({
-    queryKey: ["departments", params],
-    queryFn: () => listDepartments(params),
+    queryKey: ["departments", params, pagination],
+    queryFn: () => listDepartments(params, pagination),
+    staleTime: 60_000,
+  });
+}
+
+export function useBranchDepartmentEmployees(
+  branchDepartmentId: number | string,
+  pagination?: { page?: number; pageSize?: number }
+) {
+  return useQuery({
+    queryKey: ["branch-department-employees", branchDepartmentId, pagination],
+    queryFn: () => getBranchDepartmentEmployees(branchDepartmentId, pagination),
+    enabled: !!branchDepartmentId,
     staleTime: 60_000,
   });
 }
