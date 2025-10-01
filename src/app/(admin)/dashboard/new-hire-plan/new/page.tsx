@@ -1,8 +1,131 @@
+"use client";
+
+import * as React from "react";
 import { PageHeader } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
-import { NewHirePlanForm } from "@/components/new-hire/new-hire-plan-form";
+import { NewHirePlanForm, type NewHirePlanFormData } from "@/components/new-hire/new-hire-plan-form";
+import { 
+  useCreateChecklist, 
+  useCreateAttachment, 
+  useCreateAttachmentFile
+} from "@/hooks/queries/use-new-hire";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function NewHirePlanCreatePage() {
+  const router = useRouter();
+  
+  const [formData, setFormData] = React.useState<NewHirePlanFormData | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
+  const createChecklist = useCreateChecklist();
+  const createAttachment = useCreateAttachment();
+  const createAttachmentFile = useCreateAttachmentFile();
+
+  const handleSave = async (isDraft: boolean) => {
+    if (!formData) {
+      toast.error("No form data available");
+      return;
+    }
+
+    if (formData.assignees.length === 0) {
+      toast.error("Please select at least one assignee");
+      return;
+    }
+
+    if (formData.taskItems.length === 0 && formData.trainingItems.length === 0) {
+      toast.error("Please add at least one task or training item");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Step 1: Create checklist
+      const checklist = await createChecklist.mutateAsync({
+        assigned_to: formData.assignees.map(Number),
+        assigned_by: 1, // TODO: Get from auth context
+        status: isDraft ? "draft" : "publish",
+      });
+
+      // Step 2: Create attachments
+      const allItems = [...formData.taskItems, ...formData.trainingItems];
+      
+      if (allItems.length > 0) {
+        const createPromises = allItems.map(async (item) => {
+          // Create attachment
+          const attachment = await createAttachment.mutateAsync({
+            checklist: checklist.id,
+            title: item.title,
+            detail: item.body,
+            type: item.type,
+          });
+
+          // Upload files for attachment
+          if (item.files && item.files.length > 0) {
+            const uploadPromises = item.files.map(async (file) => {
+              return createAttachmentFile.mutateAsync({
+                attachment: attachment.id,
+                file: file,
+              });
+            });
+            await Promise.all(uploadPromises);
+          }
+
+          return attachment;
+        });
+        await Promise.all(createPromises);
+      }
+
+      toast.success(`New hire plan ${isDraft ? "saved as draft" : "published"} successfully`);
+      router.push(ROUTES.ADMIN.NEW_HIRE_PLAN);
+    } catch (error: any) {
+      console.error("Failed to create new hire plan:", error);
+      
+      // Extract error message from API response
+      let errorMessage = "Failed to create new hire plan. Please try again.";
+      
+      if (error?.response?.data) {
+        const errorData = error.response.data;
+        
+        // Check for non_field_errors (validation errors)
+        if (errorData.non_field_errors && Array.isArray(errorData.non_field_errors)) {
+          errorMessage = errorData.non_field_errors.join('. ');
+        }
+        // Check for field-specific errors
+        else if (typeof errorData === 'object') {
+          const fieldErrors = Object.entries(errorData)
+            .map(([field, errors]) => {
+              if (Array.isArray(errors)) {
+                return `${field}: ${errors.join(', ')}`;
+              }
+              return `${field}: ${errors}`;
+            })
+            .join('. ');
+          
+          if (fieldErrors) {
+            errorMessage = fieldErrors;
+          }
+        }
+        // Check for direct error message
+        else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+        // Check for detail message (common in DRF responses)
+        else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+      }
+      // Handle errors from React Query mutations
+      else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <>
       <PageHeader
@@ -12,10 +135,29 @@ export default function NewHirePlanCreatePage() {
           { label: "New Hire Plan", href: ROUTES.ADMIN.NEW_HIRE_PLAN },
           { label: "New" },
         ]}
+        action={
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="border-primary"
+              onClick={() => handleSave(true)}
+              disabled={isSubmitting || !formData}
+            >
+              {isSubmitting ? "Saving..." : "Save As Draft"}
+            </Button>
+            <Button 
+              onClick={() => handleSave(false)}
+              disabled={isSubmitting || !formData}
+              className="bg-[#D64575] hover:bg-[#B53A63]"
+            >
+              {isSubmitting ? "Publishing..." : "Publish"}
+            </Button>
+          </div>
+        }
       />
-        <div className="px-4 md:px-12 py-4">
-          <NewHirePlanForm />
-        </div>
+      <div className="px-4 md:px-12 py-4">
+        <NewHirePlanForm onFormDataChange={setFormData} />
+      </div>
     </>
   );
 }

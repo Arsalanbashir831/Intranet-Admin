@@ -88,7 +88,6 @@ export default function NewHirePlanEditPage() {
     setIsSubmitting(true);
     try {
       // Step 1: Update checklist
-      toast.info("Updating checklist...");
       await updateChecklist.mutateAsync({
         assigned_to: formData.assignees.map(Number),
         status: isDraft ? "draft" : "publish",
@@ -115,11 +114,8 @@ export default function NewHirePlanEditPage() {
         !existingItemsMap.has(item.id) || item.id.startsWith('task-') || item.id.startsWith('training-')
       );
 
-      toast.info("Processing attachments...");
-
       // Step 2a: Delete removed attachments (this will cascade delete files)
       if (itemsToDelete.length > 0) {
-        toast.info(`Deleting ${itemsToDelete.length} removed attachments...`);
         const deletePromises = itemsToDelete.map(async (attachment) => {
           await deleteAttachment.mutateAsync(attachment.id);
         });
@@ -128,7 +124,6 @@ export default function NewHirePlanEditPage() {
 
       // Step 2b: Update existing attachments
       if (itemsToUpdate.length > 0) {
-        toast.info(`Updating ${itemsToUpdate.length} attachments...`);
         const updatePromises = itemsToUpdate.map(async (item) => {
           const attachmentId = Number(item.id);
           
@@ -157,7 +152,6 @@ export default function NewHirePlanEditPage() {
 
       // Step 2c: Create new attachments
       if (itemsToCreate.length > 0) {
-        toast.info(`Creating ${itemsToCreate.length} new attachments...`);
         const createPromises = itemsToCreate.map(async (item) => {
           // Create attachment
           const attachment = await createAttachment.mutateAsync({
@@ -185,9 +179,49 @@ export default function NewHirePlanEditPage() {
 
       toast.success(`New hire plan ${isDraft ? "saved as draft" : "published"} successfully`);
       router.push(ROUTES.ADMIN.NEW_HIRE_PLAN);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update new hire plan:", error);
-      toast.error("Failed to update new hire plan. Please try again.");
+      
+      // Extract error message from API response
+      let errorMessage = "Failed to update new hire plan. Please try again.";
+      
+      if (error?.response?.data) {
+        const errorData = error.response.data;
+        
+        // Check for non_field_errors (validation errors)
+        if (errorData.non_field_errors && Array.isArray(errorData.non_field_errors)) {
+          errorMessage = errorData.non_field_errors.join('. ');
+        }
+        // Check for field-specific errors
+        else if (typeof errorData === 'object') {
+          const fieldErrors = Object.entries(errorData)
+            .map(([field, errors]) => {
+              if (Array.isArray(errors)) {
+                return `${field}: ${errors.join(', ')}`;
+              }
+              return `${field}: ${errors}`;
+            })
+            .join('. ');
+          
+          if (fieldErrors) {
+            errorMessage = fieldErrors;
+          }
+        }
+        // Check for direct error message
+        else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+        // Check for detail message (common in DRF responses)
+        else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+      }
+      // Handle errors from React Query mutations
+      else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

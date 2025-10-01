@@ -35,6 +35,7 @@ import {
   BaselineIcon,
 } from "lucide-react";
 import { Input } from "./input";
+import { ScrollArea, ScrollBar } from "./scroll-area";
 // import { ScrollArea, ScrollBar } from "./scroll-area";
 
 export interface RichTextEditorProps {
@@ -241,9 +242,11 @@ export function RichTextEditor({
   }
 
   return (
-    <div className={cn("rounded-md border border-[#E2E8F0]", className)}>
-        {/* Toolbar */}
-        <div className="flex items-center gap-1 border-b border-[#E2E8F0] text-muted-foreground text-sm">
+    <div className={cn("rounded-md border border-[#E2E8F0] overflow-hidden", className)}>
+      {/* Toolbar */}
+      <div className="border-b border-[#E2E8F0] overflow-hidden">
+        <ScrollArea className="w-full">
+          <div className="flex items-center gap-1 text-muted-foreground text-sm whitespace-nowrap px-2 py-1">
           {/* Font Size */}
           <div className="pl-2">
             <Input
@@ -551,8 +554,9 @@ export function RichTextEditor({
             <span className="text-xs">Tags</span>
           </Button>
         </div>
-
-      
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+      </div>
 
       {/* Editor Content */}
       <div

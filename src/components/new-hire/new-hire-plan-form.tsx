@@ -1,12 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { SelectableTags, type SelectableItem, createCustomSelectableItems } from "@/components/ui/selectable-tags";
+import { SelectableTags, createCustomSelectableItems } from "@/components/ui/selectable-tags";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChecklistCard } from "./checklist-card";
 import { Card } from "../ui/card";
 import { useEmployees, useSearchEmployees } from "@/hooks/queries/use-employees";
-import { useDepartments } from "@/hooks/queries/use-departments";
 
 export type ChecklistItemData = { 
   id: string; 
@@ -59,22 +58,8 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
     }
   }, [initialData]);
   
-  // Load all employees data and departments for mapping
+  // Load all employees data (no need for departments since we get expanded data)
   const { data: allEmployeesData } = useEmployees();
-  const { data: departmentsData } = useDepartments();
-  
-  // Create branch-department lookup map
-  const branchDeptMap = React.useMemo(() => {
-    const map = new Map<number, string>();
-    if (departmentsData?.departments?.results) {
-      departmentsData.departments.results.forEach(dept => {
-        dept.branch_departments?.forEach(branchDept => {
-          map.set(branchDept.id, dept.dept_name);
-        });
-      });
-    }
-    return map;
-  }, [departmentsData]);
   
   const allEmployees: ApiEmployee[] = React.useMemo(() => {
     if (!allEmployeesData) return [];
@@ -83,15 +68,26 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
       id: number | string;
       emp_name: string;
       profile_picture?: string | null;
-      branch_department?: number; // This is a number ID
+      branch_department?: {
+        id: number;
+        branch: {
+          id: number;
+          branch_name: string;
+        };
+        department: {
+          id: number;
+          dept_name: string;
+        };
+        manager?: any;
+      };
     }[]).map((e) => ({
       id: e.id,
       full_name: e.emp_name,
       username: undefined,
-      department_name: branchDeptMap.get(Number(e.branch_department)) || 'Unknown', // Map branch_department ID to dept name
+      department_name: e.branch_department?.department?.dept_name || 'Unknown',
       profile_picture_url: e.profile_picture || undefined,
     }));
-  }, [allEmployeesData, branchDeptMap]);
+  }, [allEmployeesData]);
   
   // Create hooks for SelectableTags async search with proper data transformation
   const useAllEmployees = React.useCallback(() => {

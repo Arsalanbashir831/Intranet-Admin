@@ -51,10 +51,13 @@ export function NewHireTable() {
       // Get assigned by details
       const assignedByDetails = checklist.assigned_by_details;
       
+      // Get department name from department_details
+      const departmentName = checklist.department_details?.dept_name || 'Unknown';
+      
       return {
         id: String(checklist.id),
         assignedTo: assignedEmployees,
-        department: 'Unknown', // Department info not available in current API response
+        department: departmentName,
         dateOfCreation: format(new Date(checklist.created_at), 'M/d/yy'),
         status: checklist.status === 'publish' ? 'Published' as const : 'Draft' as const,
         assignedBy: assignedByDetails?.emp_name || 'Unknown',
@@ -85,10 +88,10 @@ export function NewHireTable() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <AvatarStack size={24} className="-space-x-2">
-            {row.original.assignedTo.slice(0, 3).map((employee, idx) => (
-              <Avatar key={idx}>
+            {row.original.assignedTo.map((employee, idx) => (
+              <Avatar key={idx} className="z-1">
                 <AvatarImage src={employee.avatar} alt={employee.name} />
-                <AvatarFallback>{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                <AvatarFallback className="text-[10px] border border-primary">{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
               </Avatar>
             ))}
           </AvatarStack>

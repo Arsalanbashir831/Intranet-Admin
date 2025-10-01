@@ -83,28 +83,26 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={isTraining ? "Training title" : "Task title"}
-            className="border-[#E2E8F0]"
+            className="border-[#E2E8F0] w-full"
           />
         </div>
 
         <div className="flex flex-col md:flex-row items-start gap-6">
           <Label className="w-28 pt-2">{isTraining ? "Training Detail" : "Task Detail"}</Label>
-          <div className="flex-1 min-w-0 max-w-full">
-            <RichTextEditor
-              content={detail}
-              onChange={setDetail}
-              minHeight="160px"
-              maxHeight="260px"
-              className="w-full"
-            />
-          </div>
+          <RichTextEditor
+            content={detail}
+            onChange={setDetail}
+            minHeight="160px"
+            maxHeight="260px"
+            className="w-full"
+          />
         </div>
 
         <div className="flex flex-col md:flex-row items-start gap-6">
           <Label className="w-28 pt-2">Attachments:</Label>
           <div className="flex-1 space-y-3">
-            <Dropzone 
-              className="w-full" 
+            <Dropzone
+              className="w-full"
               accept="image/*,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               onFileSelect={(fileList) => {
                 if (fileList) {
@@ -113,10 +111,10 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
               }}
               onClear={() => setFiles([])}
               multiple
-              initialPreviewUrls={isEditing && editItem?.existingFiles ? 
+              initialPreviewUrls={isEditing && editItem?.existingFiles ?
                 editItem.existingFiles
                   .filter(file => file.file.match(/\.(jpg|jpeg|png|gif|svg)$/i)) // Only show image files as previews
-                  .map(file => file.file) 
+                  .map(file => file.file)
                 : []
               }
             />
@@ -131,9 +129,9 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
                       <span className="text-sm text-gray-600 flex-1">
                         {fileName} {!isImage && '(Non-image file)'}
                       </span>
-                      <a 
-                        href={file.file} 
-                        target="_blank" 
+                      <a
+                        href={file.file}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-blue-600 hover:underline"
                       >

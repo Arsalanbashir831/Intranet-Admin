@@ -53,7 +53,7 @@ export function AppModal({
 }: AppModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("sm:max-w-[680px] p-0", className)}>
+      <DialogContent className={cn("sm:max-w-[720px] p-0", className)}>
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-start gap-3">
             {icon ? (
