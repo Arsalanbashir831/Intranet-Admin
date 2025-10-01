@@ -181,7 +181,6 @@ export function DepartmentsDetailTable({
     })}>
       <CardTableToolbar
         title={`${departmentName} - ${branchName} Staff Directory`}
-        placeholder="Search employees..."
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
         sortOptions={[

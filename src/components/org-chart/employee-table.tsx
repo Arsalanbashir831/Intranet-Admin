@@ -218,7 +218,6 @@ export function EmployeeTable() {
     })}>
       <CardTableToolbar
         title="Recent Additions"
-        placeholder="Search employees..."
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
         sortOptions={[

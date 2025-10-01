@@ -252,7 +252,6 @@ export function DepartmentsTable({ className }: { className?: string }) {
       })}>
         <CardTableToolbar
           title='Departments'
-          placeholder="Search departments..."
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
           sortOptions={[

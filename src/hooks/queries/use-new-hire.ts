@@ -33,6 +33,8 @@ export function useChecklists(
     queryKey: ["checklists", params, pagination],
     queryFn: () => listChecklists(params, pagination),
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching
   });
 }
 

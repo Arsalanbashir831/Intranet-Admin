@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { cn } from "@/lib/utils";
 
 export type NewHireRow = {
   id: string;
@@ -33,13 +34,34 @@ export type NewHireRow = {
 export function NewHireTable() {
   const router = useRouter();
   const [sortedBy, setSortedBy] = React.useState<string>("dateOfCreation");
-  const { data: checklistsData, isLoading } = useChecklists();
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
+
+  // Debounce search query to avoid too many API calls
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Build search params - only include search if it has a value
+  const searchParams = React.useMemo(() => {
+    const params: Record<string, string | number | boolean> = {};
+    if (debouncedSearchQuery.trim()) {
+      params.search = debouncedSearchQuery.trim();
+    }
+    return Object.keys(params).length > 0 ? params : undefined;
+  }, [debouncedSearchQuery]);
+
+  const { data: checklistsData, isLoading, isFetching } = useChecklists(searchParams);
   const deleteChecklist = useDeleteChecklist();
-  
+
   // Transform API data to table format
   const data = React.useMemo<NewHireRow[]>(() => {
     if (!checklistsData?.results) return [];
-    
+
     return checklistsData.results.map((checklist: any) => {
       // Use expanded employee data from assigned_to_details
       const assignedEmployees = checklist.assigned_to_details?.map((emp: any) => ({
@@ -47,13 +69,13 @@ export function NewHireTable() {
         name: emp.emp_name,
         avatar: emp.profile_picture || undefined,
       })) || [];
-      
+
       // Get assigned by details
       const assignedByDetails = checklist.assigned_by_details;
-      
+
       // Get department name from department_details
       const departmentName = checklist.department_details?.dept_name || 'Unknown';
-      
+
       return {
         id: String(checklist.id),
         assignedTo: assignedEmployees,
@@ -65,13 +87,17 @@ export function NewHireTable() {
       };
     });
   }, [checklistsData]);
-  
+
   const { pinnedIds, togglePin, ordered } = usePinnedRows<NewHireRow>(data);
-  
-  const handleRowClick = (row: NewHireRow) => {
+
+  const handleRowClick = React.useCallback((row: NewHireRow) => {
     router.push(ROUTES.ADMIN.NEW_HIRE_PLAN_EDIT_ID(row.id));
-  };
-  
+  }, [router]);
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
   const handleDelete = async (id: string) => {
     try {
       await deleteChecklist.mutateAsync(Number(id));
@@ -81,7 +107,9 @@ export function NewHireTable() {
       toast.error('Failed to delete new hire plan');
     }
   };
-  const columns: ColumnDef<NewHireRow>[] = [
+
+  // Memoize the columns to prevent unnecessary re-renders
+  const columns = React.useMemo<ColumnDef<NewHireRow>[]>(() => [
     {
       accessorKey: "assignedTo",
       header: ({ column }) => <CardTableColumnHeader column={column} title="Assigned to" />,
@@ -139,27 +167,41 @@ export function NewHireTable() {
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
-          <Button 
-            size="icon" 
-            variant="ghost" 
+          <Button
+            size="icon"
+            variant="ghost"
             className="text-[#D64575]"
             onClick={() => handleDelete(row.original.id)}
             disabled={deleteChecklist.isPending}
           >
             <Trash2 className="size-4" />
           </Button>
-          
+
           <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
     },
-  ];
+  ], [pinnedIds, togglePin, deleteChecklist.isPending]);
+
+  // Show loading state only on initial load (no search query and no existing data)
+  if (isLoading && !debouncedSearchQuery && data.length === 0) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none">
+        <div className="flex justify-center py-8">
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="border-[#FFF6F6] p-5 shadow-none">
+    <Card className={cn("border-[#FFF6F6] p-5 shadow-none", {
+      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
+    })}>
       <CardTableToolbar
-        title="Recent New Hire Plan"
-        onSearchChange={() => { }}
+        title='Recent New Hire Plan'
+        searchValue={searchQuery}
+        onSearchChange={handleSearchChange}
         sortOptions={[
           { label: "Department", value: "department" },
           { label: "Date of Creation", value: "dateOfCreation" },
@@ -170,20 +212,14 @@ export function NewHireTable() {
         onSortChange={(v) => setSortedBy(v)}
         onFilterClick={() => { }}
       />
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <span className="text-muted-foreground">Loading...</span>
-        </div>
-      ) : (
-        <CardTable<NewHireRow, unknown>
-          columns={columns}
-          data={ordered}
-          headerClassName="grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr]"
-          rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr] cursor-pointer"}
-          onRowClick={(row) => handleRowClick(row.original)}
-          footer={(table) => <CardTablePagination table={table} />}
-        />
-      )}
+      <CardTable<NewHireRow, unknown>
+        columns={columns}
+        data={ordered}
+        headerClassName="grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr]"
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr] cursor-pointer"}
+        onRowClick={(row) => handleRowClick(row.original)}
+        footer={(table) => <CardTablePagination table={table} />}
+      />
     </Card>
   );
 }
