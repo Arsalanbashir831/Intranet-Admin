@@ -15,11 +15,12 @@ import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "@/components/card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { useGetAllFolders, useDeleteFolder } from "@/hooks/queries/use-knowledge-folders";
+import { useGetAllFolders, useDeleteFolder, useSearchFolders } from "@/hooks/queries/use-knowledge-folders";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 import { KnowledgeFolder } from "@/services/knowledge-folders";
 import { format } from "date-fns";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
+import { cn } from "@/lib/utils";
 
 export type KnowledgeBaseRow = {
   id: string;
@@ -62,7 +63,26 @@ const transformFolderToRow = (folder: KnowledgeFolder): KnowledgeBaseRow => {
 
 export function KnowledgeBaseTable() {
   const [sortedBy, setSortedBy] = React.useState<string>("folder");
-  const { data: foldersData, isLoading, error } = useGetAllFolders();
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
+  
+  // Debounce search query
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Use search API when there's a search query, otherwise use regular API
+  const searchParams = React.useMemo(() => ({
+    search: debouncedSearchQuery,
+  }), [debouncedSearchQuery]);
+
+  const { data: foldersData, isLoading, error, isFetching } = debouncedSearchQuery
+    ? useSearchFolders(searchParams)
+    : useGetAllFolders();
+      
   const deleteFolder = useDeleteFolder();
   const router = useRouter();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
@@ -229,7 +249,8 @@ export function KnowledgeBaseTable() {
     <Card className="border-[#FFF6F6] p-5 shadow-none">
       <CardTableToolbar
         title="Knowledge Base"
-        onSearchChange={() => { }}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
         sortOptions={[
           { label: "Folder", value: "folder" },
           { label: "Created By", value: "createdByName" },
@@ -239,6 +260,7 @@ export function KnowledgeBaseTable() {
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}
         onFilterClick={() => { }}
+        className={cn(isFetching && "opacity-70")}
       />
       <CardTable<KnowledgeBaseRow, unknown>
         columns={columns}

@@ -9,6 +9,7 @@ import {
   updateFolder,
   patchFolder,
   deleteFolder,
+  searchFolders,
   FolderCreateRequest,
   FolderUpdateRequest,
   FolderPatchRequest,
@@ -39,6 +40,17 @@ export const useGetAllFolders = () => {
     queryKey: folderKeys.lists(),
     queryFn: getAllFolders,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching
+  });
+};
+
+export const useSearchFolders = (params?: Record<string, string | number | boolean>) => {
+  return useQuery({
+    queryKey: [...folderKeys.lists(), params],
+    queryFn: () => searchFolders(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching
   });
 };
 

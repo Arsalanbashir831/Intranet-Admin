@@ -37,6 +37,8 @@ type Props = {
 
 export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Props) {
   const [sortedBy, setSortedBy] = React.useState<string>("file");
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [rows, setRows] = React.useState<FolderItemRow[]>(data);
   const [accessFilter, setAccessFilter] = React.useState<string[]>([]);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
@@ -46,16 +48,38 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
   const deleteFile = useDeleteFile();
   const { open: editModalOpen, setOpen: setEditModalOpen, openModal: openEditModal } = useAddFolderModal();
 
+  // Debounce search query
   React.useEffect(() => {
-    const copy = [...data];
-    copy.sort((a, b) => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Filter and sort data based on search query and sort option
+  React.useEffect(() => {
+    let filteredData = [...data];
+    
+    // Apply client-side search filter
+    if (debouncedSearchQuery.trim()) {
+      const searchLower = debouncedSearchQuery.toLowerCase();
+      filteredData = filteredData.filter(item => 
+        item.file.toLowerCase().includes(searchLower) ||
+        item.createdByName?.toLowerCase().includes(searchLower) ||
+        item.dateCreated?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Apply sorting
+    filteredData.sort((a, b) => {
       const key = sortedBy as keyof FolderItemRow;
       const av = (a[key] ?? "") as string;
       const bv = (b[key] ?? "") as string;
       return String(av).localeCompare(String(bv));
     });
-    setRows(copy);
-  }, [data, sortedBy]);
+    
+    setRows(filteredData);
+  }, [data, sortedBy, debouncedSearchQuery]);
 
   const handleEdit = (item: FolderItemRow) => {
     if (item.kind === "folder" && item.originalId) {
@@ -205,7 +229,8 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
       >
       <CardTableToolbar
         title={title}
-        onSearchChange={() => {}}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
         sortOptions={[{ label: "File", value: "file" }, { label: "Created By", value: "createdByName" }, { label: "Date Created", value: "dateCreated" }]}
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}

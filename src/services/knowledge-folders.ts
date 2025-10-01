@@ -83,6 +83,27 @@ export async function getAllFolders(): Promise<FolderListResponse> {
   };
 }
 
+export async function searchFolders(params?: Record<string, string | number | boolean>): Promise<FolderListResponse> {
+  const queryParams: Record<string, string> = {};
+  
+  // Add search parameters
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      queryParams[key] = String(value);
+    });
+  }
+  
+  const query = Object.keys(queryParams).length > 0 
+    ? `?${new URLSearchParams(queryParams)}` 
+    : "";
+    
+  const res = await apiCaller<FolderApiListResponse>(`${API_ROUTES.KNOWLEDGE_BASE.FOLDERS.LIST}${query}`, "GET");
+  
+  return {
+    folders: res.data?.folders || { count: 0, results: [], next: null, previous: null }
+  };
+}
+
 export async function getFolders(params?: FolderListParams): Promise<FolderListResponse> {
   const queryParams = new URLSearchParams();
   if (params?.page) {
