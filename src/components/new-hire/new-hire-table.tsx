@@ -14,50 +14,70 @@ import { CardTablePagination } from "@/components/card-table/card-table-paginati
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "../card-table/pin-row-button";
 import { AvatarStack } from "@/components/ui/avatar-stack";
+import { useChecklists, useDeleteChecklist } from "@/hooks/queries/use-new-hire";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 
 export type NewHireRow = {
   id: string;
-  assignedTo: string[]; // avatar urls
+  assignedTo: Array<{ id: string; name: string; avatar?: string; }>; // employee objects
   department: string;
-  dateOfCreation: string; // e.g., 8/25/17
+  dateOfCreation: string;
   status: "Published" | "Draft";
   assignedBy: string;
   assignedByAvatar?: string;
 };
 
-const AV1 = "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60";
-const AV2 = "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=200&auto=format&fit=crop&q=60";
-const AV3 = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=60";
-const AV4 = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=60";
-
-const newHires: NewHireRow[] = [
-  { id: "1", assignedTo: [AV1, AV2, AV3, AV4], department: "HR", dateOfCreation: "8/15/17", status: "Draft", assignedBy: "Albert Flores", assignedByAvatar: AV1 },
-  { id: "2", assignedTo: [AV1, AV2, AV3], department: "Marketing", dateOfCreation: "8/2/19", status: "Published", assignedBy: "Albert Flores", assignedByAvatar: AV1 },
-  { id: "3", assignedTo: [AV2, AV3], department: "Finance", dateOfCreation: "5/30/14", status: "Published", assignedBy: "Albert Flores", assignedByAvatar: AV1 },
-  { id: "4", assignedTo: [AV1, AV4, AV3], department: "Executive", dateOfCreation: "7/18/17", status: "Draft", assignedBy: "Albert Flores", assignedByAvatar: AV1 },
-  { id: "5", assignedTo: [AV2, AV1], department: "HR", dateOfCreation: "1/15/12", status: "Draft", assignedBy: "Albert Flores", assignedByAvatar: AV1 },
-  { id: "6", assignedTo: [AV3, AV1, AV2], department: "Legal", dateOfCreation: "1/31/14", status: "Published", assignedBy: "Albert Flores", assignedByAvatar: AV1 },
-  { id: "7", assignedTo: [AV1, AV2], department: "Marketing", dateOfCreation: "3/4/16", status: "Draft", assignedBy: "Albert Flores", assignedByAvatar: AV1 },
-  { id: "8", assignedTo: [AV1, AV2, AV3], department: "Finance", dateOfCreation: "9/4/12", status: "Published", assignedBy: "Albert Flores", assignedByAvatar: AV1 },
-  { id: "9", assignedTo: [AV4, AV2], department: "Legal", dateOfCreation: "1/28/17", status: "Draft", assignedBy: "Albert Flores", assignedByAvatar: AV1 },
-];
-
 export function NewHireTable() {
-  const [sortedBy, setSortedBy] = React.useState<string>("department");
-  const [data, setData] = React.useState<NewHireRow[]>(newHires);
-  const { pinnedIds, togglePin, ordered } = usePinnedRows<NewHireRow>(data);
-
-  React.useEffect(() => {
-    const copy = [...newHires];
-    copy.sort((a, b) => {
-      const key = sortedBy as keyof NewHireRow;
-      const av = (a[key] ?? "") as string;
-      const bv = (b[key] ?? "") as string;
-      if (typeof av === "number" && typeof bv === "number") return av - bv;
-      return String(av).localeCompare(String(bv));
+  const router = useRouter();
+  const [sortedBy, setSortedBy] = React.useState<string>("dateOfCreation");
+  const { data: checklistsData, isLoading } = useChecklists();
+  const deleteChecklist = useDeleteChecklist();
+  
+  // Transform API data to table format
+  const data = React.useMemo<NewHireRow[]>(() => {
+    if (!checklistsData?.results) return [];
+    
+    return checklistsData.results.map((checklist: any) => {
+      // Use expanded employee data from assigned_to_details
+      const assignedEmployees = checklist.assigned_to_details?.map((emp: any) => ({
+        id: String(emp.id),
+        name: emp.emp_name,
+        avatar: emp.profile_picture || undefined,
+      })) || [];
+      
+      // Get assigned by details
+      const assignedByDetails = checklist.assigned_by_details;
+      
+      return {
+        id: String(checklist.id),
+        assignedTo: assignedEmployees,
+        department: 'Unknown', // Department info not available in current API response
+        dateOfCreation: format(new Date(checklist.created_at), 'M/d/yy'),
+        status: checklist.status === 'publish' ? 'Published' as const : 'Draft' as const,
+        assignedBy: assignedByDetails?.emp_name || 'Unknown',
+        assignedByAvatar: assignedByDetails?.profile_picture || undefined,
+      };
     });
-    setData(copy);
-  }, [newHires, sortedBy]);
+  }, [checklistsData]);
+  
+  const { pinnedIds, togglePin, ordered } = usePinnedRows<NewHireRow>(data);
+  
+  const handleRowClick = (row: NewHireRow) => {
+    router.push(ROUTES.ADMIN.NEW_HIRE_PLAN_EDIT_ID(row.id));
+  };
+  
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteChecklist.mutateAsync(Number(id));
+      toast.success('New hire plan deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete checklist:', error);
+      toast.error('Failed to delete new hire plan');
+    }
+  };
   const columns: ColumnDef<NewHireRow>[] = [
     {
       accessorKey: "assignedTo",
@@ -65,10 +85,10 @@ export function NewHireTable() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <AvatarStack size={24} className="-space-x-2">
-            {row.original.assignedTo.slice(0, 3).map((src, idx) => (
+            {row.original.assignedTo.slice(0, 3).map((employee, idx) => (
               <Avatar key={idx}>
-                <AvatarImage src={src} alt="assignee" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage src={employee.avatar} alt={employee.name} />
+                <AvatarFallback>{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
               </Avatar>
             ))}
           </AvatarStack>
@@ -116,7 +136,13 @@ export function NewHireTable() {
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" className="text-[#D64575]">
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="text-[#D64575]"
+            onClick={() => handleDelete(row.original.id)}
+            disabled={deleteChecklist.isPending}
+          >
             <Trash2 className="size-4" />
           </Button>
           
@@ -141,13 +167,20 @@ export function NewHireTable() {
         onSortChange={(v) => setSortedBy(v)}
         onFilterClick={() => { }}
       />
-      <CardTable<NewHireRow, unknown>
-        columns={columns}
-        data={ordered}
-        headerClassName="grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr]"}
-        footer={(table) => <CardTablePagination table={table} />}
-      />
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
+      ) : (
+        <CardTable<NewHireRow, unknown>
+          columns={columns}
+          data={ordered}
+          headerClassName="grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr]"
+          rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr] cursor-pointer"}
+          onRowClick={(row) => handleRowClick(row.original)}
+          footer={(table) => <CardTablePagination table={table} />}
+        />
+      )}
     </Card>
   );
 }

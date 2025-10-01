@@ -37,6 +37,8 @@ export interface SelectableTagsProps {
   icon?: ReactNode;
   // Optional custom renderer to display selected items inside the trigger
   renderSelected?: (id: string) => ReactNode;
+  // Optional custom renderer to display items in the dropdown list
+  renderItem?: (id: string) => ReactNode;
   // Optional hooks for async search
   useSearch?: (query: string) => {
     data?: { results?: SelectableItem[] } | SelectableItem[];
@@ -64,6 +66,7 @@ export function SelectableTags({
   onCreateTag,
   icon,
   renderSelected,
+  renderItem,
   useSearch,
   useAllItems,
   searchDebounce = 300,
@@ -235,7 +238,7 @@ export function SelectableTags({
                   value={item.id}
                   className="cursor-pointer"
                 >
-                  {item.label}
+                  {renderItem ? renderItem(item.id) : item.label}
                 </TagsItem>
               ))}
               {allowCreate && searchValue.trim() && !currentItems.some((item: SelectableItem) => item.label.toLowerCase() === searchValue.toLowerCase()) && (

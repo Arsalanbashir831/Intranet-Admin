@@ -14,6 +14,7 @@ export const ROUTES = {
     KNOWLEDGE_BASE_FOLDER_ID: (id: string) => `/dashboard/knowledge-base/${id}`,
     NEW_HIRE_PLAN: "/dashboard/new-hire-plan",
     ADD_NEW_HIRE_PLAN: "/dashboard/new-hire-plan/new",
+    NEW_HIRE_PLAN_EDIT_ID: (id: string) => `/dashboard/new-hire-plan/${id}`,
     DEPARTMENTS: "/dashboard/departments",
     DEPARTMENTS_ID: (id: string) => `/dashboard/departments/${id}`,
     ORG_CHART: "/dashboard/org-chart",
