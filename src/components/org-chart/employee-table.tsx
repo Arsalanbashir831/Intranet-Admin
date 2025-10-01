@@ -217,7 +217,7 @@ export function EmployeeTable() {
       "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
     })}>
       <CardTableToolbar
-        title={`Recent Additions${isFetching && debouncedSearchQuery ? ' (Searching...)' : ''}`}
+        title="Recent Additions"
         placeholder="Search employees..."
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}

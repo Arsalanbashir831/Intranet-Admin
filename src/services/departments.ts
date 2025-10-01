@@ -148,10 +148,18 @@ export type BranchDepartmentEmployeesResponse = {
 
 export async function getBranchDepartmentEmployees(
   branchDepartmentId: number | string,
-  pagination?: { page?: number; pageSize?: number }
+  pagination?: { page?: number; pageSize?: number },
+  params?: Record<string, string | number | boolean>
 ) {
   const url = API_ROUTES.DEPARTMENTS.GET_ALL_BRANCH_DEPT_EMPLOYEES(branchDepartmentId);
   const queryParams: Record<string, string> = {};
+  
+  // Add search parameters
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      queryParams[key] = String(value);
+    });
+  }
   
   // Add pagination parameters
   if (pagination) {

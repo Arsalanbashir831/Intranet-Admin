@@ -17,6 +17,8 @@ export function useDepartments(
     queryKey: ["departments", params, pagination],
     queryFn: () => listDepartments(params, pagination),
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching
   });
 }
 
@@ -35,13 +37,16 @@ export function useSearchDepartments(
 
 export function useBranchDepartmentEmployees(
   branchDepartmentId: number | string,
-  pagination?: { page?: number; pageSize?: number }
+  pagination?: { page?: number; pageSize?: number },
+  params?: Record<string, string | number | boolean>
 ) {
   return useQuery({
-    queryKey: ["branch-department-employees", branchDepartmentId, pagination],
-    queryFn: () => getBranchDepartmentEmployees(branchDepartmentId, pagination),
+    queryKey: ["branch-department-employees", branchDepartmentId, pagination, params],
+    queryFn: () => getBranchDepartmentEmployees(branchDepartmentId, pagination, params),
     enabled: !!branchDepartmentId,
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching
   });
 }
 

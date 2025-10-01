@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronDown, User, Settings, LogOut } from "lucide-react";
+import { ChevronDown, User, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { useLogout } from "@/hooks/queries/use-auth";
 import Link from "next/link";
@@ -52,11 +52,11 @@ export function ProfileDropdown({ name, avatarSrc }: ProfileDropdownProps) {
           Profile
         </DropdownMenuItem>
         </Link>
-        <DropdownMenuItem>
+        {/* <DropdownMenuItem>
           <Settings className="mr-2 size-4" />
           Settings
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        </DropdownMenuItem> 
+        <DropdownMenuSeparator /> */}
         <DropdownMenuItem 
           className="text-red-600 focus:text-red-600"
           onClick={handleLogout}

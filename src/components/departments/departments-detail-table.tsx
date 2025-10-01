@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { useBranchDepartmentEmployees } from "@/hooks/queries/use-departments";
 import type { BranchDepartmentEmployee } from "@/services/departments";
+import { cn } from "@/lib/utils";
 
 export type DepartmentEmployeeRow = {
   id: string;
@@ -34,16 +35,43 @@ export function DepartmentsDetailTable({
   branchName = "Branch"
 }: DepartmentsDetailTableProps) {
   const [sortedBy, setSortedBy] = React.useState<string>("name");
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [pagination, setPagination] = React.useState({ page: 1, pageSize: 10 });
   
-  const { data: employeesData, isLoading, error } = useBranchDepartmentEmployees(
+  // Debounce search query to avoid too many API calls
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms debounce
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+  
+  // Build search params - only include search if it has a value
+  const searchParams = React.useMemo(() => {
+    const params: Record<string, string | number | boolean> = {};
+    if (debouncedSearchQuery.trim()) {
+      params.search = debouncedSearchQuery.trim();
+    }
+    return Object.keys(params).length > 0 ? params : undefined;
+  }, [debouncedSearchQuery]);
+  
+  const { data: employeesData, isLoading, error, isFetching } = useBranchDepartmentEmployees(
     branchDepartmentId || "", 
-    pagination
+    pagination,
+    searchParams
   );
 
   const handlePageChange = (page: number, pageSize: number) => {
     setPagination({ page, pageSize });
   };
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearchQuery(value);
+    // Reset pagination when searching
+    setPagination({ page: 1, pageSize: pagination.pageSize });
+  }, [pagination.pageSize]);
 
   // Transform API data to match our UI structure
   const employees: DepartmentEmployeeRow[] = React.useMemo(() => {
@@ -65,27 +93,8 @@ export function DepartmentsDetailTable({
     setData(employees);
   }, [employees]);
 
-  if (isLoading) {
-    return (
-      <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
-        <div className="flex items-center justify-center h-32">
-          <div className="text-sm text-muted-foreground">Loading employees...</div>
-        </div>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
-        <div className="flex items-center justify-center h-32">
-          <div className="text-sm text-red-500">Error loading employees</div>
-        </div>
-      </Card>
-    );
-  }
-
-  const columns: ColumnDef<DepartmentEmployeeRow>[] = [
+  // Memoize the columns to prevent unnecessary re-renders - MOVED BEFORE CONDITIONAL RETURNS
+  const columns = React.useMemo<ColumnDef<DepartmentEmployeeRow>[]>(() => [
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -143,13 +152,38 @@ export function DepartmentsDetailTable({
         </div>
       ),
     },
-  ];
+  ], []);
+
+  // Show loading state only on initial load (no search query and no existing data)
+  if (isLoading && !debouncedSearchQuery && employees.length === 0) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
+        <div className="flex items-center justify-center h-32">
+          <div className="text-sm text-muted-foreground">Loading employees...</div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
+        <div className="flex items-center justify-center h-32">
+          <div className="text-sm text-red-500">Error loading employees</div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
+    <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", {
+      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
+    })}>
       <CardTableToolbar
         title={`${departmentName} - ${branchName} Staff Directory`}
-        onSearchChange={() => { }}
+        placeholder="Search employees..."
+        searchValue={searchQuery}
+        onSearchChange={handleSearchChange}
         sortOptions={[
           { label: "Employee Name", value: "name" },
           { label: "Employee Email", value: "email" },

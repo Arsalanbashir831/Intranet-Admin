@@ -30,6 +30,8 @@ export type DepartmentRow = {
 
 export function DepartmentsTable({ className }: { className?: string }) {
   const [sortedBy, setSortedBy] = React.useState<string>("department");
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [serverPagination, setServerPagination] = React.useState({ page: 1, pageSize: 10 });
   const [clientPagination, setClientPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   
@@ -40,7 +42,25 @@ export function DepartmentsTable({ className }: { className?: string }) {
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [selectedBranchDepartment, setSelectedBranchDepartment] = React.useState<BranchDepartment | null>(null);
   
-  const { data: departmentsData, isLoading, error } = useDepartments(undefined, serverPagination);
+  // Debounce search query to avoid too many API calls
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms debounce
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+  
+  // Build search params - only include search if it has a value
+  const searchParams = React.useMemo(() => {
+    const params: Record<string, string | number | boolean> = {};
+    if (debouncedSearchQuery.trim()) {
+      params.search = debouncedSearchQuery.trim();
+    }
+    return Object.keys(params).length > 0 ? params : undefined;
+  }, [debouncedSearchQuery]);
+  
+  const { data: departmentsData, isLoading, error, isFetching } = useDepartments(searchParams, serverPagination);
   const router = useRouter();
 
   // Update cache when new data arrives
@@ -62,6 +82,17 @@ export function DepartmentsTable({ className }: { className?: string }) {
   const handleClientPageChange = (pageIndex: number, pageSize: number) => {
     setClientPagination({ pageIndex, pageSize });
   };
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearchQuery(value);
+    // Reset pagination when searching
+    setClientPagination({ pageIndex: 0, pageSize: clientPagination.pageSize });
+    setServerPagination({ page: 1, pageSize: serverPagination.pageSize });
+    // Clear cache when searching to start fresh
+    if (value.trim() !== debouncedSearchQuery.trim()) {
+      setDepartmentCache(new Map());
+    }
+  }, [clientPagination.pageSize, serverPagination.pageSize, debouncedSearchQuery]);
 
   const handleEditClick = (row: DepartmentRow) => {
     // Find the branch department from the cached data
@@ -142,7 +173,8 @@ export function DepartmentsTable({ className }: { className?: string }) {
     setData(paginatedDepartments);
   }, [paginatedDepartments]);
 
-  if (isLoading) {
+  // Show loading state only on initial load (no search query and no existing data)
+  if (isLoading && !debouncedSearchQuery && allFlattenedDepartments.length === 0) {
     return (
       <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className)}>
         <div className="flex items-center justify-center h-32">
@@ -215,10 +247,14 @@ export function DepartmentsTable({ className }: { className?: string }) {
 
   return (
     <>
-      <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className)}>
+      <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className, {
+        "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
+      })}>
         <CardTableToolbar
-          title="Departments"
-          onSearchChange={() => { }}
+          title='Departments'
+          placeholder="Search departments..."
+          searchValue={searchQuery}
+          onSearchChange={handleSearchChange}
           sortOptions={[
             { label: "Department", value: "department" },
             { label: "Branch/Location", value: "branchLocation" },

@@ -3,14 +3,11 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, Users, ChevronUp, ChevronDown } from "lucide-react";
+import { LogOut, ChevronUp, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
 import { useLogout } from "@/hooks/queries/use-auth";
@@ -39,7 +36,7 @@ export function AdminFooterMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" side="top" className="w-56">
-        <DropdownMenuLabel>Workspace</DropdownMenuLabel>
+        {/* <DropdownMenuLabel>Workspace</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
@@ -51,7 +48,7 @@ export function AdminFooterMenu() {
             Settings
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator /> */}
         <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => logoutMutation.mutate()}>
           <LogOut className="mr-2 size-4 text-destructive" />
           {logoutMutation.isPending ? "Signing out..." : "Sign out"}
