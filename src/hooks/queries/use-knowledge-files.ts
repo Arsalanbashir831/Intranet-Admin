@@ -57,18 +57,15 @@ export const useCreateFile = () => {
 
   return useMutation({
     mutationFn: (data: FileCreateRequest) => createFile(data),
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate and refetch file queries
       queryClient.invalidateQueries({ queryKey: fileKeys.all });
       // Also invalidate folder queries since files belong to folders
       queryClient.invalidateQueries({ queryKey: ["knowledge-folders"] });
       toast.success("File uploaded successfully");
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error || 
-                          error?.message || 
-                          "Failed to upload file";
+    onError: (error: Error) => {
+      const errorMessage = error?.message || "Failed to upload file";
       toast.error(errorMessage);
     },
   });
@@ -87,11 +84,8 @@ export const useUpdateFile = () => {
       queryClient.invalidateQueries({ queryKey: fileKeys.lists() });
       toast.success("File updated successfully");
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error || 
-                          error?.message || 
-                          "Failed to update file";
+    onError: (error: Error) => {
+      const errorMessage = error?.message || "Failed to update file";
       toast.error(errorMessage);
     },
   });
@@ -110,11 +104,8 @@ export const usePatchFile = () => {
       queryClient.invalidateQueries({ queryKey: fileKeys.lists() });
       toast.success("File updated successfully");
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error || 
-                          error?.message || 
-                          "Failed to update file";
+    onError: (error: Error) => {
+      const errorMessage = error?.message || "Failed to patch file";
       toast.error(errorMessage);
     },
   });
@@ -132,11 +123,8 @@ export const useDeleteFile = () => {
       queryClient.invalidateQueries({ queryKey: fileKeys.lists() });
       toast.success("File deleted successfully");
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error || 
-                          error?.message || 
-                          "Failed to delete file";
+    onError: (error: Error) => {
+      const errorMessage = error?.message || "Failed to delete file";
       toast.error(errorMessage);
     },
   });
@@ -155,11 +143,8 @@ export const useBulkUploadFiles = () => {
       queryClient.invalidateQueries({ queryKey: ["knowledge-folders"] });
       toast.success("Files uploaded successfully");
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error || 
-                          error?.message || 
-                          "Failed to upload files";
+    onError: (error: Error) => {
+      const errorMessage = error?.message || "Failed to upload files";
       toast.error(errorMessage);
     },
   });

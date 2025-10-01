@@ -13,13 +13,14 @@ import {
 import type { 
   AnnouncementCreateRequest, 
   AnnouncementUpdateRequest,
-  AnnouncementAttachmentCreateRequest 
+  AnnouncementAttachmentCreateRequest,
+  AnnouncementListResponse
 } from "@/services/announcements";
 
 export function useAnnouncements(
   params?: Record<string, string | number | boolean>,
   pagination?: { page?: number; pageSize?: number },
-  options?: { placeholderData?: (previousData: any) => any }
+  options?: { placeholderData?: (previousData?: AnnouncementListResponse) => AnnouncementListResponse | undefined }
 ) {
   return useQuery({
     queryKey: ["announcements", params, pagination],

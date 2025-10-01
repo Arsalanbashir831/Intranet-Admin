@@ -78,7 +78,7 @@ export default function CompanyHubPage() {
         try {
           await uploadAttachments(createdAnnouncement.id, formData.attachedFiles);
           toast.success(`${formData.type === "policy" ? "Policy" : "Announcement"} ${isDraft ? "saved as draft" : "published"} successfully with ${formData.attachedFiles.length} attachment(s)`);
-        } catch (attachmentError) {
+        } catch (error) {
           // Announcement was created but attachments failed
           toast.warning(`${formData.type === "policy" ? "Policy" : "Announcement"} ${isDraft ? "saved as draft" : "published"} successfully, but some attachments failed to upload`);
         }

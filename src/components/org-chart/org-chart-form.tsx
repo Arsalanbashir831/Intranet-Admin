@@ -8,7 +8,6 @@ import { SelectableTags } from "@/components/ui/selectable-tags";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { useCreateEmployee, useUpdateEmployee } from "@/hooks/queries/use-employees";
 import { useDepartments, useSearchDepartments } from "@/hooks/queries/use-departments";
-import { useDebounce } from "@/hooks/use-debounce";
 
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -26,19 +25,25 @@ export type OrgChartInitialValues = {
 };
 
 export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, employeeId }: { initialValues?: OrgChartInitialValues; onRegisterSubmit?: (submit: () => void) => void; isEdit?: boolean; employeeId?: string; }) {
-  // Load departments/employees/locations/branches from API
-  const { data: deptData } = useDepartments();
-
   // Create adapter functions for async search
   const useAllDepartments = () => {
     const result = useDepartments(undefined, { pageSize: 100 }); // Get more departments
     const branchDeptItems = React.useMemo(() => {
-      const departmentsPayload = (result.data as any)?.departments;
+      const departmentsPayload = (result.data as { departments?: { results?: unknown[] } })?.departments;
       const results = Array.isArray(departmentsPayload?.results) ? departmentsPayload.results : (Array.isArray(result.data) ? result.data : (result.data?.departments?.results ?? []));
       const items: { id: string; label: string }[] = [];
       for (const dept of results || []) {
-        const deptName = String((dept as any).dept_name ?? (dept as any).name ?? "");
-        const branchDepartments = (dept as any).branch_departments as Array<any> | undefined;
+        const deptData = dept as {
+          dept_name?: string;
+          name?: string;
+          branch_departments?: unknown[];
+        };
+        const deptName = String(deptData.dept_name ?? deptData.name ?? "");
+        const branchDepartments = deptData.branch_departments as Array<{
+          id: number;
+          branch?: { branch_name?: string };
+          branch_name?: string;
+        }> | undefined;
         if (Array.isArray(branchDepartments)) {
           for (const bd of branchDepartments) {
             const bdId = String(bd.id);
@@ -59,14 +64,22 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
   const useSearchDepartmentsAdapter = (query: string) => {
     const result = useSearchDepartments(query, { pageSize: 100 });
     const branchDeptItems = React.useMemo(() => {
-      console.log('Search result data:', result.data); // Debug log
-      const departmentsPayload = (result.data as any)?.departments;
+      const departmentsPayload = (result.data as { departments?: { results?: unknown[] } })?.departments;
       const results = Array.isArray(departmentsPayload?.results) ? departmentsPayload.results : (Array.isArray(result.data) ? result.data : (result.data?.departments?.results ?? []));
       console.log('Processed results:', results); // Debug log
       const items: { id: string; label: string }[] = [];
       for (const dept of results || []) {
-        const deptName = String((dept as any).dept_name ?? (dept as any).name ?? "");
-        const branchDepartments = (dept as any).branch_departments as Array<any> | undefined;
+        const deptData = dept as {
+          dept_name?: string;
+          name?: string;
+          branch_departments?: unknown[];
+        };
+        const deptName = String(deptData.dept_name ?? deptData.name ?? "");
+        const branchDepartments = deptData.branch_departments as Array<{
+          id: number;
+          branch?: { branch_name?: string };
+          branch_name?: string;
+        }> | undefined;
         if (Array.isArray(branchDepartments)) {
           for (const bd of branchDepartments) {
             const bdId = String(bd.id);
@@ -197,14 +210,14 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
         <div className="grid grid-cols-12 items-center gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Address:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input name="address" defaultValue={initialValues?.address as any} placeholder="Address" className="border-[#E2E8F0]"/>
+            <Input name="address" defaultValue={initialValues?.address as string} placeholder="Address" className="border-[#E2E8F0]"/>
           </div>
         </div>
 
         <div className="grid grid-cols-12 items-center gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">City:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input name="city" defaultValue={initialValues?.city as any} placeholder="City" className="border-[#E2E8F0]"/>
+            <Input name="city" defaultValue={initialValues?.city as string} placeholder="City" className="border-[#E2E8F0]"/>
           </div>
         </div>
 

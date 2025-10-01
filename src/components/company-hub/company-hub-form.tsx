@@ -45,7 +45,6 @@ export type CompanyHubFormData = {
 export function CompanyHubForm({ 
   initialData,
   onFormDataChange,
-  onSubmit,
   existingAttachments = [],
   onAttachmentDelete
 }: CompanyHubFormProps) {
@@ -58,7 +57,7 @@ export function CompanyHubForm({
     if (!departmentsData?.departments?.results) return [];
     
     const uniqueDepartments = new Map();
-    departmentsData.departments.results.forEach((dept: any) => {
+    departmentsData.departments.results.forEach((dept: { id: number; dept_name: string }) => {
       if (!uniqueDepartments.has(dept.id)) {
         uniqueDepartments.set(dept.id, {
           id: String(dept.id),
@@ -73,7 +72,7 @@ export function CompanyHubForm({
   // Create branch options
   const branches = React.useMemo(() => {
     if (!branchesData?.branches?.results) return [];
-    return branchesData.branches.results.map((branch: any) => ({
+    return branchesData.branches.results.map((branch: { id: number; branch_name: string }) => ({
       id: String(branch.id),
       name: branch.branch_name
     }));
@@ -85,10 +84,7 @@ export function CompanyHubForm({
       .filter(attachment => attachment.file_url.match(/\.(jpg|jpeg|png|gif|svg)$/i))
       .map(attachment => attachment.file_url);
   }, [existingAttachments]);
-
-  // Track which existing attachments have been removed from preview
-  const [removedPreviewUrls, setRemovedPreviewUrls] = React.useState<string[]>([]);
-
+  
   // Helper to find attachment ID by URL
   const getAttachmentIdByUrl = (url: string) => {
     const attachment = existingAttachments.find(att => att.file_url === url);

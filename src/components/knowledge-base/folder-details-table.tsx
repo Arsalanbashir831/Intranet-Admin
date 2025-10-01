@@ -13,7 +13,7 @@ import { Pencil, Trash2, Folder as FolderIcon, FileText } from "lucide-react";
 import { TableContextMenu, RowContextMenu } from "@/components/knowledge-base/row-context-menus";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
-import { useDeleteFolder, useGetFolder } from "@/hooks/queries/use-knowledge-folders";
+import { useDeleteFolder } from "@/hooks/queries/use-knowledge-folders";
 import { useDeleteFile } from "@/hooks/queries/use-knowledge-files";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 
@@ -108,7 +108,7 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
       }
       // Remove item from local state
       setRows(prev => prev.filter(row => row.id !== item.id));
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation hooks
     } finally {
       setDeletingId(null);
@@ -130,7 +130,7 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
     };
     window.addEventListener("kb:queue-finished-item", handler);
     return () => window.removeEventListener("kb:queue-finished-item", handler);
-  }, []);
+  }, [title]);
 
   const columns: ColumnDef<FolderItemRow>[] = [
     {
@@ -138,7 +138,6 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
       header: ({ column }) => <CardTableColumnHeader column={column} title="File" />,
       cell: ({ row }) => {
         const isFolder = (row.original.kind ?? "file") === "folder";
-        const ext = (row.original.extension || "").toLowerCase();
         return (
           <div className="flex items-center gap-2">
             {isFolder ? (

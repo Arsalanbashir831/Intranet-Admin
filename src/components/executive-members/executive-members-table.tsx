@@ -65,7 +65,7 @@ export function ExecutiveMembersTable() {
     
     const list = apiData.results || [];
     
-    return list.map((e: any) => ({
+    return list.map((e: { id: number; name?: string; email?: string; role?: string; city?: string; phone?: string; profile_picture?: string | null }) => ({
       id: String(e.id),
       name: String(e.name ?? ""),
       email: String(e.email ?? ""),

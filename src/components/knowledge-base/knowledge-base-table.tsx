@@ -79,10 +79,12 @@ export function KnowledgeBaseTable() {
     search: debouncedSearchQuery,
   }), [debouncedSearchQuery]);
 
-  const { data: foldersData, isLoading, error, isFetching } = debouncedSearchQuery
-    ? useSearchFolders(searchParams)
-    : useGetAllFolders();
-      
+  const searchResult = useSearchFolders(searchParams);
+  const allFoldersResult = useGetAllFolders();
+  
+  // Use search data when searching, otherwise use all folders data
+  const { data: foldersData, isFetching, error } = debouncedSearchQuery ? searchResult : allFoldersResult;
+  
   const deleteFolder = useDeleteFolder();
   const router = useRouter();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
@@ -115,7 +117,7 @@ export function KnowledgeBaseTable() {
     try {
       setDeletingId(folderId);
       await deleteFolder.mutateAsync(folderId);
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation hook
     } finally {
       setDeletingId(null);

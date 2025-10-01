@@ -3,10 +3,10 @@
 import { AppModal } from "@/components/common/app-modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useBranchDepartmentEmployees } from "@/hooks/queries/use-departments";
 import { EmployeeSelector } from "@/components/common/employee-selector";
-import { useCreateManager, useUpdateManager, useDeleteManager } from "@/hooks/queries/use-managers";
+import { useCreateManager, useDeleteManager } from "@/hooks/queries/use-managers";
 import { toast } from "sonner";
 import type { BranchDepartment } from "@/services/departments";
 
@@ -23,7 +23,6 @@ export function EditDepartmentModal({ open, setOpen, branchDepartment }: EditDep
   );
   
   const createManager = useCreateManager();
-  const updateManager = useUpdateManager(branchDepartment?.manager?.id || "");
   const deleteManager = useDeleteManager();
 
   // State for functionality
@@ -117,7 +116,7 @@ export function EditDepartmentModal({ open, setOpen, branchDepartment }: EditDep
       
       // Check for specific error about employee not belonging to branch department
       if (error && typeof error === 'object' && 'message' in error) {
-        const errorMessage = (error as any).message || '';
+        const errorMessage = (error as { message?: string }).message || '';
         if (errorMessage.includes("Employee must belong to the provided branch department")) {
           toast.error("Selected employee must already work in this branch department to be assigned as manager.");
         } else {

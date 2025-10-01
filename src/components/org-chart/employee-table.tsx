@@ -61,21 +61,35 @@ export function EmployeeTable() {
   const { data: apiData, isLoading, error, isFetching } = useEmployees(searchParams);
   const deleteEmployee = useDeleteEmployee();
   const data = React.useMemo<EmployeeRow[]>(() => {
-    const employeesContainer = (apiData as any)?.employees;
+    const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
     const list = Array.isArray(employeesContainer?.results)
       ? employeesContainer.results
       : (Array.isArray(apiData) ? apiData : []);
-    return (list as any[]).map((e) => ({
-      id: String(e.id),
-      name: String(e.emp_name ?? ""),
-      avatar: e.profile_picture ?? undefined,
-      location: String(e?.branch_department?.branch?.branch_name ?? ""),
-      email: String(e.email ?? ""),
-      department: String(e?.branch_department?.department?.dept_name ?? ""),
-      role: String(e.role ?? ""),
-      reportingTo: e?.branch_department?.manager?.employee?.emp_name ?? null,
-      reportingAvatar: undefined,
-    }));
+    return (list as unknown[]).map((e: unknown) => {
+      const employee = e as {
+        id: number;
+        emp_name?: string;
+        profile_picture?: string;
+        email?: string;
+        role?: string;
+        branch_department?: {
+          branch?: { branch_name?: string };
+          department?: { dept_name?: string };
+          manager?: { employee?: { emp_name?: string } };
+        };
+      };
+      return {
+        id: String(employee.id),
+        name: String(employee.emp_name ?? ""),
+        avatar: employee.profile_picture ?? undefined,
+        location: String(employee?.branch_department?.branch?.branch_name ?? ""),
+        email: String(employee.email ?? ""),
+        department: String(employee?.branch_department?.department?.dept_name ?? ""),
+        role: String(employee.role ?? ""),
+        reportingTo: employee?.branch_department?.manager?.employee?.emp_name ?? null,
+        reportingAvatar: undefined,
+      };
+    });
   }, [apiData]);
   const { pinnedIds, togglePin } = usePinnedRows<EmployeeRow>(data);
 

@@ -80,7 +80,7 @@ export function UploadQueueProvider({ children }: { children: React.ReactNode })
       }, 2000);
       
       onSuccess?.();
-    } catch (error) {
+    } catch {
       // Mark all items as error simultaneously
       setItems((prev) => prev.map((item) => 
         uploadItems.some(ui => ui.id === item.id) 

@@ -46,13 +46,13 @@ export function RecentAnnouncementsTable() {
     search: debouncedSearchQuery,
   }), [debouncedSearchQuery]);
 
-  const { data: apiData, isLoading, error, isFetching } = debouncedSearchQuery
-    ? useAnnouncements(searchParams, undefined, {
-        placeholderData: (previousData: any) => previousData,
-      })
-    : useAnnouncements(undefined, undefined, { 
-        placeholderData: (previousData: any) => previousData,
-      });
+  const { data: apiData, isFetching } = useAnnouncements(
+    debouncedSearchQuery ? searchParams : undefined,
+    undefined,
+    {
+      placeholderData: (previousData) => previousData,
+    }
+  );
       
   const deleteAnnouncement = useDeleteAnnouncement();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
@@ -64,7 +64,16 @@ export function RecentAnnouncementsTable() {
       ? apiData.announcements.results
       : (Array.isArray(apiData) ? apiData : []);
     
-    return (list as any[]).map((announcement) => ({
+    return (list as Array<{
+      id: number;
+      title: string;
+      permitted_employees?: number[];
+      permitted_branches?: number[];
+      permitted_departments?: number[];
+      created_at: string;
+      type: string;
+      is_active: boolean;
+    }>).map((announcement) => ({
       id: String(announcement.id),
       title: String(announcement.title ?? ""),
       access: announcement.permitted_employees?.length === 0 && 

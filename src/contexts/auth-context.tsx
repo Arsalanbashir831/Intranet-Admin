@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           try {
             await verifyToken();
             setUser({ id: "self", name: "Admin", role: "ADMIN" });
-          } catch (error) {
+          } catch {
             // Token verification failed, try to refresh manually
             try {
               const { refreshToken } = await import("@/services/auth");

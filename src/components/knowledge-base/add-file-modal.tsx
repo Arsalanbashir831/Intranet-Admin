@@ -52,7 +52,7 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
       setSelected([]);
       onOpenChange(false);
       onFileUploaded?.(); // Notify parent to refresh
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation hook
     }
   };

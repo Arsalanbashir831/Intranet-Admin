@@ -78,7 +78,7 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
           id: number;
           dept_name: string;
         };
-        manager?: any;
+        manager?: unknown;
       };
     }[]).map((e) => ({
       id: e.id,
@@ -89,41 +89,45 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
     }));
   }, [allEmployeesData]);
   
+  // Transform employee data for SelectableTags
+  const employeesData = useEmployees();
+  const transformedEmployees = React.useMemo(() => {
+    if (!employeesData.data) return undefined;
+    const list = Array.isArray(employeesData.data) ? employeesData.data : (employeesData.data?.employees?.results ?? []);
+    return {
+      results: createCustomSelectableItems(
+        list as { id: number | string; emp_name: string; }[],
+        'id',
+        'emp_name'
+      )
+    };
+  }, [employeesData.data]);
+
   // Create hooks for SelectableTags async search with proper data transformation
   const useAllEmployees = React.useCallback(() => {
-    const { data, isLoading } = useEmployees();
-    
-    const transformedData = React.useMemo(() => {
-      if (!data) return undefined;
-      const list = Array.isArray(data) ? data : (data?.employees?.results ?? []);
-      return {
-        results: createCustomSelectableItems(
-          list as { id: number | string; emp_name: string; }[],
-          'id',
-          'emp_name'
-        )
-      };
-    }, [data]);
-    
-    return { data: transformedData, isLoading };
-  }, []);
+    return { data: transformedEmployees, isLoading: employeesData.isLoading };
+  }, [transformedEmployees, employeesData.isLoading]);
+  
+  // Transform data using hooks at the top level
+  const searchEmployees = useSearchEmployees;
   
   const useEmployeeSearch = React.useCallback((query: string) => {
-    const { data, isLoading } = useSearchEmployees(query);
+    const searchData = searchEmployees(query);
     
-    const transformedData = React.useMemo(() => {
-      if (!data) return undefined;
-      return {
+    // Move useMemo outside of callback
+    const transformedSearchData = {
+      data: searchData.data ? {
         results: createCustomSelectableItems(
-          data.results,
+          searchData.data.results,
           'id',
           'emp_name'
         )
-      };
-    }, [data]);
+      } : undefined,
+      isLoading: searchData.isLoading
+    };
     
-    return { data: transformedData, isLoading };
-  }, []);
+    return transformedSearchData;
+  }, [searchEmployees]);
   // Notify parent component of form data changes
   React.useEffect(() => {
     if (onFormDataChange) {

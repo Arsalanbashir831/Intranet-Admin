@@ -1,6 +1,6 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
-import { components, paths } from "@/types/api";
+import { components } from "@/types/api";
 
 // Types
 export type KnowledgeFolder = components["schemas"]["KnowledgeFolder"];
@@ -179,10 +179,10 @@ export async function updateFolder(id: number | string, payload: FolderUpdateReq
 export async function patchFolder(id: number | string, payload: FolderPatchRequest): Promise<FolderUpdateResponse> {
   // Create a clean payload for patching, excluding readonly fields
   const {
-    id: _, // exclude id
-    created_at,
-    updated_at,
-    effective_permissions,
+    id: _id, // exclude id
+    created_at: _created_at,
+    updated_at: _updated_at,
+    effective_permissions: _effective_permissions,
     ...patchData
   } = payload;
   

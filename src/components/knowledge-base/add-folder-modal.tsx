@@ -5,7 +5,7 @@ import { AppModal, useAppModalControls } from "@/components/common/app-modal";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SelectableTags, SelectableItem, createSelectableItems } from "@/components/ui/selectable-tags";
+import { SelectableTags, SelectableItem } from "@/components/ui/selectable-tags";
 import { useCreateFolder, useUpdateFolder, useGetFolder } from "@/hooks/queries/use-knowledge-folders";
 import { useAllEmployees } from "@/hooks/queries/use-employees";
 import { useDepartments } from "@/hooks/queries/use-departments";
@@ -123,7 +123,7 @@ export function AddFolderModal({
       if (onComplete) {
         onComplete();
       }
-    } catch (error) {
+    } catch {
       // Error is handled by the mutation hook
     }
   };

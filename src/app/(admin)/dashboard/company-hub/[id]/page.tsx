@@ -28,10 +28,10 @@ export default function CompanyHubEditPage() {
   // Transform existing attachments to the format expected by the form
   const existingAttachments = React.useMemo(() => {
     if (!attachmentsData?.attachments?.results) return [];
-    return attachmentsData.attachments.results.map((attachment: any) => ({
+    return attachmentsData.attachments.results.map((attachment: { id: number; name: string; file_url: string | null; size: number }) => ({
       id: attachment.id,
       name: attachment.name,
-      file_url: attachment.file_url,
+      file_url: attachment.file_url || '',
       size: attachment.size
     }));
   }, [attachmentsData]);

@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
+import type { components } from "@/types/api";
 
 export type NewHireRow = {
   id: string;
@@ -62,19 +63,19 @@ export function NewHireTable() {
   const data = React.useMemo<NewHireRow[]>(() => {
     if (!checklistsData?.results) return [];
 
-    return checklistsData.results.map((checklist: any) => {
+    return checklistsData.results.map((checklist: components["schemas"]["Checklist"]) => {
       // Use expanded employee data from assigned_to_details
-      const assignedEmployees = checklist.assigned_to_details?.map((emp: any) => ({
+      const assignedEmployees = checklist.assigned_to_details?.map((emp) => ({
         id: String(emp.id),
         name: emp.emp_name,
         avatar: emp.profile_picture || undefined,
       })) || [];
 
       // Get assigned by details
-      const assignedByDetails = checklist.assigned_by_details;
+      const assignedByDetails = checklist.assigned_by_details as { emp_name?: string; profile_picture?: string } | undefined;
 
-      // Get department name from department_details
-      const departmentName = checklist.department_details?.dept_name || 'Unknown';
+      // Get department name - need to extract from assigned_to_details branch_department
+      const departmentName = checklist.assigned_to_details?.[0]?.branch_department ? 'Department' : 'Unknown';
 
       return {
         id: String(checklist.id),

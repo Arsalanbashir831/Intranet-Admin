@@ -11,7 +11,6 @@ import {
   useCreateAttachment, 
   useCreateAttachmentFile,
   useDeleteAttachment,
-  useDeleteAttachmentFile
 } from "@/hooks/queries/use-new-hire";
 import { updateAttachment } from "@/services/new-hire";
 import { toast } from "sonner";
@@ -32,7 +31,7 @@ export default function NewHirePlanEditPage() {
   const createAttachment = useCreateAttachment();
   const createAttachmentFile = useCreateAttachmentFile();
   const deleteAttachment = useDeleteAttachment();
-  const deleteAttachmentFile = useDeleteAttachmentFile();
+  
 
   // Transform API data to form format
   const initialData = React.useMemo(() => {
@@ -41,25 +40,25 @@ export default function NewHirePlanEditPage() {
     // Use attachments directly from checklist response (they're nested in the response)
     const attachments = checklist.attachments || [];
     const taskItems = attachments
-      .filter((att: any) => att.type === "task")
-      .map((att: any) => ({
+      .filter((att) => att.type === "task")
+      .map((att) => ({
         id: String(att.id),
         title: att.title,
         body: att.detail || "",
         type: "task" as const,
         files: [], // Existing files are handled separately
-        existingFiles: att.files || [], // Store existing files for reference
+        existingFiles: att.files || [] as { id: number; attachment: number; file: string; uploaded_at: string }[], // Store existing files for reference
       }));
       
     const trainingItems = attachments
-      .filter((att: any) => att.type === "training")
-      .map((att: any) => ({
+      .filter((att) => att.type === "training")
+      .map((att) => ({
         id: String(att.id),
         title: att.title,
         body: att.detail || "",
         type: "training" as const,
         files: [], // Existing files are handled separately
-        existingFiles: att.files || [], // Store existing files for reference
+        existingFiles: att.files || [] as { id: number; attachment: number; file: string; uploaded_at: string }[], // Store existing files for reference
       }));
     
     return {
@@ -179,46 +178,52 @@ export default function NewHirePlanEditPage() {
 
       toast.success(`New hire plan ${isDraft ? "saved as draft" : "published"} successfully`);
       router.push(ROUTES.ADMIN.NEW_HIRE_PLAN);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to update new hire plan:", error);
       
       // Extract error message from API response
       let errorMessage = "Failed to update new hire plan. Please try again.";
       
-      if (error?.response?.data) {
-        const errorData = error.response.data;
-        
-        // Check for non_field_errors (validation errors)
-        if (errorData.non_field_errors && Array.isArray(errorData.non_field_errors)) {
-          errorMessage = errorData.non_field_errors.join('. ');
-        }
-        // Check for field-specific errors
-        else if (typeof errorData === 'object') {
-          const fieldErrors = Object.entries(errorData)
-            .map(([field, errors]) => {
-              if (Array.isArray(errors)) {
-                return `${field}: ${errors.join(', ')}`;
-              }
-              return `${field}: ${errors}`;
-            })
-            .join('. ');
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response?: { data?: unknown } };
+        if (apiError.response?.data) {
+          const errorData = apiError.response.data;
           
-          if (fieldErrors) {
-            errorMessage = fieldErrors;
+          // Check for non_field_errors (validation errors)
+          if (errorData && typeof errorData === 'object' && 'non_field_errors' in errorData) {
+            const nfe = (errorData as { non_field_errors: unknown }).non_field_errors;
+            if (Array.isArray(nfe)) {
+              errorMessage = nfe.join('. ');
+            }
           }
-        }
-        // Check for direct error message
-        else if (errorData.message) {
-          errorMessage = errorData.message;
-        }
-        // Check for detail message (common in DRF responses)
-        else if (errorData.detail) {
-          errorMessage = errorData.detail;
+          // Check for field-specific errors
+          else if (errorData && typeof errorData === 'object') {
+            const fieldErrors = Object.entries(errorData)
+              .map(([field, errors]) => {
+                if (Array.isArray(errors)) {
+                  return `${field}: ${errors.join(', ')}`;
+                }
+                return `${field}: ${errors}`;
+              })
+              .join('. ');
+            
+            if (fieldErrors) {
+              errorMessage = fieldErrors;
+            }
+          }
+          // Check for direct error message
+          else if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+            errorMessage = String((errorData as { message: unknown }).message);
+          }
+          // Check for detail message (common in DRF responses)
+          else if (errorData && typeof errorData === 'object' && 'detail' in errorData) {
+            errorMessage = String((errorData as { detail: unknown }).detail);
+          }
         }
       }
       // Handle errors from React Query mutations
-      else if (error?.message) {
-        errorMessage = error.message;
+      else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String((error as { message: unknown }).message);
       }
       
       toast.error(errorMessage);

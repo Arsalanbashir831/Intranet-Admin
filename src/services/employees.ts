@@ -167,7 +167,7 @@ export async function updateEmployee(id: number | string, payload: EmployeeUpdat
     return res.data;
   } else if (isRemovingPicture) {
     // User is explicitly removing the profile picture
-    const { profile_picture, ...employeeData } = payload;
+    const { profile_picture: _profile_picture, ...employeeData } = payload;
     
     // First update the employee data (JSON only)
     const res = await apiCaller<EmployeeUpdateResponse>(API_ROUTES.EMPLOYEES.UPDATE(id), "PATCH", employeeData, {}, "json");

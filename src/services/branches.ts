@@ -5,7 +5,7 @@ import { generatePaginationParams } from "@/lib/pagination-utils";
 export type Branch = {
   id: number;
   branch_name: string;
-  location: null | any;
+  location: null | unknown;
   employee_count: number;
   departments: Array<{
     id: number;

@@ -218,7 +218,7 @@ export async function updateFile(id: number | string, payload: FileUpdateRequest
     };
   } else {
     // If not updating file, use JSON
-    const { file, ...jsonPayload } = payload;
+    const jsonPayload = payload;
     const apiPayload = {
       ...jsonPayload,
       permitted_branches: jsonPayload.permitted_branches,
@@ -241,23 +241,31 @@ export async function updateFile(id: number | string, payload: FileUpdateRequest
 
 export async function patchFile(id: number | string, payload: FilePatchRequest): Promise<FileUpdateResponse> {
   // Create a clean payload for patching, excluding readonly fields
-  const {
-    id: _,
-    file_url,
-    uploaded_at,
-    size,
-    content_type,
-    effective_permissions,
-    ...patchData
-  } = payload;
+  const patchData = { ...payload };
+  
+  // Remove readonly fields
+  const mutablePatchData = { ...patchData };
+  delete (mutablePatchData as Record<string, unknown>).id;
+  delete (mutablePatchData as Record<string, unknown>).file_url;
+  delete (mutablePatchData as Record<string, unknown>).uploaded_at;
+  delete (mutablePatchData as Record<string, unknown>).size;
+  delete (mutablePatchData as Record<string, unknown>).content_type;
+  delete (mutablePatchData as Record<string, unknown>).effective_permissions;
   
   // Handle array conversions if present
-  const apiPayload = {
-    ...patchData,
-    permitted_branches: patchData.permitted_branches?.map(String),
-    permitted_departments: patchData.permitted_departments?.map(String),
-    permitted_employees: patchData.permitted_employees?.map(String),
+  const apiPayload: Record<string, string | number | boolean | string[] | null | undefined> = {
+    file: mutablePatchData.file,
+    name: mutablePatchData.name,
+    description: mutablePatchData.description,
+    folder: mutablePatchData.folder,
+    inherits_parent_permissions: mutablePatchData.inherits_parent_permissions,
+    permitted_branches: mutablePatchData.permitted_branches?.map(String),
+    permitted_departments: mutablePatchData.permitted_departments?.map(String),
+    permitted_employees: mutablePatchData.permitted_employees?.map(String),
   };
+  
+  // Remove problematic fields
+  delete apiPayload.effective_permissions;
   
   const res = await apiCaller<KnowledgeFile>(
     API_ROUTES.KNOWLEDGE_BASE.FILES.UPDATE(id), 
@@ -275,7 +283,7 @@ export async function deleteFile(id: number | string): Promise<void> {
   await apiCaller<void>(API_ROUTES.KNOWLEDGE_BASE.FILES.DELETE(id), "DELETE");
 }
 
-export async function bulkUploadFiles(files: File[], folderId: number): Promise<any> {
+export async function bulkUploadFiles(files: File[], folderId: number): Promise<unknown> {
   const formData = new FormData();
   formData.append('folder', folderId.toString());
   formData.append('inherits_parent_permissions', 'true');
@@ -284,7 +292,7 @@ export async function bulkUploadFiles(files: File[], folderId: number): Promise<
     formData.append('files', file);
   });
 
-  const res = await apiCaller<any>(
+  const res = await apiCaller<unknown>(
     API_ROUTES.KNOWLEDGE_BASE.FILES.BULK_UPLOAD, 
     "POST", 
     formData, 

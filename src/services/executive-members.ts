@@ -101,7 +101,7 @@ export async function updateExecutive(id: number | string, payload: ExecutiveUpd
     return res.data;
   } else if (isRemovingPicture) {
     // User is explicitly removing the profile picture
-    const { profile_picture, ...executiveData } = payload;
+    const { profile_picture: _profile_picture, ...executiveData } = payload;
     
     // First update the executive data (FormData without picture)
     const formData = new FormData();

@@ -76,17 +76,14 @@ export const useCreateFolder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: FolderCreateRequest) => createFolder(data),
-    onSuccess: (data) => {
+    mutationFn: (folderData: FolderCreateRequest) => createFolder(folderData),
+    onSuccess: () => {
       // Invalidate and refetch folder queries
       queryClient.invalidateQueries({ queryKey: folderKeys.all });
       toast.success("Folder created successfully");
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error || 
-                          error?.message || 
-                          "Failed to create folder";
+    onError: (error: Error) => {
+      const errorMessage = error?.message || "Failed to create folder";
       toast.error(errorMessage);
     },
   });
@@ -105,11 +102,8 @@ export const useUpdateFolder = () => {
       queryClient.invalidateQueries({ queryKey: folderKeys.lists() });
       toast.success("Folder updated successfully");
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error || 
-                          error?.message || 
-                          "Failed to update folder";
+    onError: (error: Error) => {
+      const errorMessage = error?.message || "Failed to update folder";
       toast.error(errorMessage);
     },
   });
@@ -128,11 +122,8 @@ export const usePatchFolder = () => {
       queryClient.invalidateQueries({ queryKey: folderKeys.lists() });
       toast.success("Folder updated successfully");
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error || 
-                          error?.message || 
-                          "Failed to update folder";
+    onError: (error: Error) => {
+      const errorMessage = error?.message || "Failed to update folder";
       toast.error(errorMessage);
     },
   });
@@ -150,11 +141,8 @@ export const useDeleteFolder = () => {
       queryClient.invalidateQueries({ queryKey: folderKeys.lists() });
       toast.success("Folder deleted successfully");
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.response?.data?.error || 
-                          error?.message || 
-                          "Failed to delete folder";
+    onError: (error: Error) => {
+      const errorMessage = error?.message || "Failed to delete folder";
       toast.error(errorMessage);
     },
   });
