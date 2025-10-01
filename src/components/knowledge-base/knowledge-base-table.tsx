@@ -15,51 +15,69 @@ import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "@/components/card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import { useGetAllFolders, useDeleteFolder } from "@/hooks/queries/use-knowledge-folders";
+import { KnowledgeFolder } from "@/services/knowledge-folders";
+import { format } from "date-fns";
+import { ConfirmPopover } from "@/components/common/confirm-popover";
 
 export type KnowledgeBaseRow = {
   id: string;
   folder: string;
   createdByName: string;
   createdByAvatar?: string;
-  accessLevel: "All Employees" | "Admin Only";
+  accessLevel: "Department Level" | "Employees Level" | "Admin Level";
   dateCreated: string; // YYYY-MM-DD
+  originalData: KnowledgeFolder;
 };
 
-const rows: KnowledgeBaseRow[] = [
-  {
-    id: "1",
-    folder: "Folder 1",
-    createdByName: "Albert Flores",
-    createdByAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60",
-    accessLevel: "All Employees",
-    dateCreated: "2024-07-26",
-  },
-  {
-    id: "2",
-    folder: "Folder 2",
-    createdByName: "Albert Flores",
-    createdByAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60",
-    accessLevel: "All Employees",
-    dateCreated: "2024-07-26",
-  },
-  {
-    id: "3",
-    folder: "Folder 3",
-    createdByName: "Albert Flores",
-    createdByAvatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=200&auto=format&fit=crop&q=60",
-    accessLevel: "Admin Only",
-    dateCreated: "2024-07-26",
-  },
-];
+
+
+// Helper function to determine access level from permissions
+const getAccessLevel = (folder: KnowledgeFolder): "Department Level" | "Employees Level" | "Admin Level" => {
+  // If permitted_departments have values then show department level
+  if (folder.permitted_departments && folder.permitted_departments.length > 0) {
+    return "Department Level";
+  }
+  // If permitted_employees have values then show employees level
+  if (folder.permitted_employees && folder.permitted_employees.length > 0) {
+    return "Employees Level";
+  }
+  // If both are empty then show admin level
+  return "Admin Level";
+};
+
+// Helper function to transform API data to table row format
+const transformFolderToRow = (folder: KnowledgeFolder): KnowledgeBaseRow => {
+  return {
+    id: folder.id.toString(),
+    folder: folder.name,
+    createdByName: "Admin", // TODO: Replace with actual creator name when available
+    createdByAvatar: undefined,
+    accessLevel: getAccessLevel(folder),
+    dateCreated: format(new Date(folder.created_at), "yyyy-MM-dd"),
+    originalData: folder,
+  };
+};
 
 export function KnowledgeBaseTable() {
   const [sortedBy, setSortedBy] = React.useState<string>("folder");
-  const [data, setData] = React.useState<KnowledgeBaseRow[]>(rows);
-  const { pinnedIds, togglePin, ordered } = usePinnedRows<KnowledgeBaseRow>(data);
+  const { data: foldersData, isLoading, error } = useGetAllFolders();
+  const deleteFolder = useDeleteFolder();
   const router = useRouter();
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+
+  // Transform API data to table format
+  const apiData = React.useMemo(() => {
+    if (!foldersData?.folders.results) return [];
+    return foldersData.folders.results.map(transformFolderToRow);
+  }, [foldersData]);
+
+  // Apply sorting
+  const [data, setData] = React.useState<KnowledgeBaseRow[]>([]);
+  const { pinnedIds, togglePin, ordered } = usePinnedRows<KnowledgeBaseRow>(data);
 
   React.useEffect(() => {
-    const copy = [...rows];
+    const copy = [...apiData];
     copy.sort((a, b) => {
       const key = sortedBy as keyof KnowledgeBaseRow;
       const av = (a[key] ?? "") as string;
@@ -68,7 +86,18 @@ export function KnowledgeBaseTable() {
       return String(av).localeCompare(String(bv));
     });
     setData(copy);
-  }, [sortedBy]);
+  }, [sortedBy, apiData]);
+
+  const handleDeleteFolder = async (folderId: string) => {
+    try {
+      setDeletingId(folderId);
+      await deleteFolder.mutateAsync(folderId);
+    } catch (error) {
+      // Error is handled by the mutation hook
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const columns: ColumnDef<KnowledgeBaseRow>[] = [
     {
@@ -105,13 +134,28 @@ export function KnowledgeBaseTable() {
     {
       accessorKey: "accessLevel",
       header: ({ column }) => <CardTableColumnHeader column={column} title="Access Level" />,
-      cell: ({ row }) => (
-        row.original.accessLevel === "All Employees" ? (
-          <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">All Employees</Badge>
-        ) : (
-          <Badge variant="secondary" className="bg-[#EEF3FF] text-[#2F5DD1] border-0">Admin Only</Badge>
-        )
-      ),
+      cell: ({ row }) => {
+        const accessLevel = row.original.accessLevel;
+        if (accessLevel === "Department Level") {
+          return (
+            <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
+              Department Level
+            </Badge>
+          );
+        } else if (accessLevel === "Employees Level") {
+          return (
+            <Badge variant="secondary" className="bg-[#EEF3FF] text-[#2F5DD1] border-0">
+              Employees Level
+            </Badge>
+          );
+        } else {
+          return (
+            <Badge variant="secondary" className="bg-[#F0FDF4] text-[#166534] border-0">
+              Admin Level
+            </Badge>
+          );
+        }
+      },
     },
     {
       accessorKey: "dateCreated",
@@ -123,14 +167,38 @@ export function KnowledgeBaseTable() {
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" className="text-[#D64575]">
-            <Trash2 className="size-4" />
-          </Button>
+          <span onClick={(e) => e.stopPropagation()}>
+            <ConfirmPopover
+              title="Delete folder?"
+              description="This action cannot be undone. All files in this folder will also be deleted."
+              confirmText="Delete"
+              onConfirm={() => handleDeleteFolder(row.original.id)}
+              disabled={deletingId === row.original.id || deleteFolder.isPending}
+            >
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="text-[#D64575]"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </ConfirmPopover>
+          </span>
           <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
     },
   ];
+
+  if (error) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none">
+        <div className="text-center py-8 text-red-600">
+          Error loading folders: {error.message}
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-[#FFF6F6] p-5 shadow-none">
