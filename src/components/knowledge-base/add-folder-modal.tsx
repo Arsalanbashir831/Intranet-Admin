@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SelectableTags, SelectableItem, createSelectableItems } from "@/components/ui/selectable-tags";
-import { useCreateFolder } from "@/hooks/queries/use-knowledge-folders";
+import { useCreateFolder, useUpdateFolder, useGetFolder } from "@/hooks/queries/use-knowledge-folders";
 import { useAllEmployees } from "@/hooks/queries/use-employees";
 import { useDepartments } from "@/hooks/queries/use-departments";
 import { FolderCreateRequest } from "@/services/knowledge-folders";
@@ -19,15 +19,60 @@ type AccessType = "only-you" | "people" | "department";
 
 
 
-export function AddFolderModal({ open, onOpenChange, parentFolderId }: { open: boolean; onOpenChange: (o: boolean) => void; parentFolderId?: number }) {
+export function AddFolderModal({ 
+  open, 
+  onOpenChange, 
+  parentFolderId, 
+  folderId, 
+  onComplete, 
+  isEditMode = false 
+}: { 
+  open: boolean; 
+  onOpenChange: (o: boolean) => void; 
+  parentFolderId?: number; 
+  folderId?: number; 
+  onComplete?: () => void; 
+  isEditMode?: boolean; 
+}) {
   const [folderName, setFolderName] = React.useState("");
   const [access, setAccess] = React.useState<AccessType>("only-you");
   const [selectedPeople, setSelectedPeople] = React.useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = React.useState<string[]>([]);
 
   const createFolder = useCreateFolder();
+  const updateFolder = useUpdateFolder();
   const { data: employeesData } = useAllEmployees();
   const { data: departmentsData } = useDepartments();
+  const { data: folderData, isLoading: isFolderLoading } = useGetFolder(folderId || 0, isEditMode && !!folderId);
+
+  // Load folder data when in edit mode
+  React.useEffect(() => {
+    if (isEditMode && folderData?.folder) {
+      const folder = folderData.folder;
+      setFolderName(folder.name);
+      
+      // Determine access type based on permissions
+      if (folder.permitted_departments && folder.permitted_departments.length > 0) {
+        setAccess("department");
+        setSelectedDepartments(folder.permitted_departments.map((d: number) => d.toString()));
+      } else if (folder.permitted_employees && folder.permitted_employees.length > 0) {
+        setAccess("people");
+        setSelectedPeople(folder.permitted_employees.map((e: number) => e.toString()));
+      } else {
+        setAccess("only-you");
+      }
+    }
+  }, [isEditMode, folderData]);
+
+  // Reset form when modal closes
+  React.useEffect(() => {
+    if (!open) {
+      setFolderName("");
+      setAccess("only-you");
+      setSelectedPeople([]);
+      setSelectedDepartments([]);
+    }
+  }, [open]);
 
   // Create selectable items from API data
   const peopleItems: SelectableItem[] = React.useMemo(() => {
@@ -48,12 +93,12 @@ export function AddFolderModal({ open, onOpenChange, parentFolderId }: { open: b
 
   const canCreate = folderName.trim().length > 0;
 
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     if (!canCreate) return;
 
     const payload: FolderCreateRequest = {
       name: folderName,
-      parent: parentFolderId || null,
+      parent: isEditMode ? (folderData?.folder?.parent || null) : (parentFolderId || null),
       inherits_parent_permissions: true,
       permitted_employees: access === "people" ? selectedPeople : [],
       permitted_departments: access === "department" ? selectedDepartments : [],
@@ -61,13 +106,23 @@ export function AddFolderModal({ open, onOpenChange, parentFolderId }: { open: b
     };
 
     try {
-      await createFolder.mutateAsync(payload);
+      if (isEditMode && folderId) {
+        await updateFolder.mutateAsync({ id: folderId, data: payload });
+      } else {
+        await createFolder.mutateAsync(payload);
+      }
+      
       // Reset form
       setFolderName("");
       setAccess("only-you");
       setSelectedPeople([]);
       setSelectedDepartments([]);
       onOpenChange(false);
+      
+      // Call completion callback if provided
+      if (onComplete) {
+        onComplete();
+      }
     } catch (error) {
       // Error is handled by the mutation hook
     }
@@ -77,13 +132,13 @@ export function AddFolderModal({ open, onOpenChange, parentFolderId }: { open: b
     <AppModal
       open={open}
       onOpenChange={onOpenChange}
-      title="Add New Folder"
-      description="Create new Folder"
+      title={isEditMode ? "Edit Folder" : "Add New Folder"}
+      description={isEditMode ? "Update folder details" : "Create new Folder"}
       icon="/icons/building-2.svg"
-      confirmText="Create"
+      confirmText={isEditMode ? "Update" : "Create"}
       confirmVariant="default"
-      confirmDisabled={!canCreate || createFolder.isPending}
-      onConfirm={handleCreate}
+      confirmDisabled={!canCreate || createFolder.isPending || updateFolder.isPending || isFolderLoading}
+      onConfirm={handleSubmit}
     >
       <div className="px-6 py-4 space-y-5">
         <div className="flex items-center gap-6">

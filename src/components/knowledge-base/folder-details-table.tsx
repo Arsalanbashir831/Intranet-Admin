@@ -12,6 +12,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Pencil, Trash2, Folder as FolderIcon, FileText } from "lucide-react";
 import { TableContextMenu, RowContextMenu } from "@/components/knowledge-base/row-context-menus";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
+import { ConfirmPopover } from "@/components/common/confirm-popover";
+import { useDeleteFolder, useGetFolder } from "@/hooks/queries/use-knowledge-folders";
+import { useDeleteFile } from "@/hooks/queries/use-knowledge-files";
+import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 
 export type FolderItemRow = {
   id: string;
@@ -21,6 +25,7 @@ export type FolderItemRow = {
   createdByName?: string;
   createdByAvatar?: string;
   dateCreated?: string;
+  originalId?: string; // Store the actual API ID
 };
 
 type Props = {
@@ -34,7 +39,12 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
   const [sortedBy, setSortedBy] = React.useState<string>("file");
   const [rows, setRows] = React.useState<FolderItemRow[]>(data);
   const [accessFilter, setAccessFilter] = React.useState<string[]>([]);
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [editingFolderId, setEditingFolderId] = React.useState<string | null>(null);
   const { enqueueFiles } = useUploadQueue();
+  const deleteFolder = useDeleteFolder();
+  const deleteFile = useDeleteFile();
+  const { open: editModalOpen, setOpen: setEditModalOpen, openModal: openEditModal } = useAddFolderModal();
 
   React.useEffect(() => {
     const copy = [...data];
@@ -46,6 +56,38 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
     });
     setRows(copy);
   }, [data, sortedBy]);
+
+  const handleEdit = (item: FolderItemRow) => {
+    if (item.kind === "folder" && item.originalId) {
+      setEditingFolderId(item.originalId);
+      openEditModal();
+    }
+  };
+
+  const handleEditComplete = () => {
+    setEditingFolderId(null);
+    setEditModalOpen(false);
+    // Optionally refresh data here
+  };
+
+  const handleDelete = async (item: FolderItemRow) => {
+    if (!item.originalId) return;
+    
+    try {
+      setDeletingId(item.id);
+      if (item.kind === "folder") {
+        await deleteFolder.mutateAsync(item.originalId);
+      } else {
+        await deleteFile.mutateAsync(item.originalId);
+      }
+      // Remove item from local state
+      setRows(prev => prev.filter(row => row.id !== item.id));
+    } catch (error) {
+      // Error is handled by the mutation hooks
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // Listen to global queue to add finished items to table
   React.useEffect(() => {
@@ -74,23 +116,11 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
         return (
           <div className="flex items-center gap-2">
             {isFolder ? (
-              <FolderIcon className="size-4 text-[#475569]" />
+              <FolderIcon className="size-5" />
             ) : (
-              <FileText className="size-4 text-[#475569]" />
+              <FileText className="size-5" />
             )}
             <span className="text-sm text-[#1F2937] truncate">{row.original.file}</span>
-            {!isFolder && ext ? (
-              <span
-                className={
-                  "ml-1 rounded px-1.5 py-0.5 text-[10px] font-medium " +
-                  (ext === "pdf"
-                    ? "bg-[#FEE2E2] text-[#B91C1C]"
-                    : "bg-[#DBEAFE] text-[#1D4ED8]")
-                }
-              >
-                {ext.toUpperCase()}
-              </span>
-            ) : null}
           </div>
         );
       },
@@ -125,15 +155,34 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
     {
       id: "actions",
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
-      cell: () => (
+      cell: ({ row }) => (
         <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" className="text-[#D64575]">
-            <Trash2 className="size-4" />
-          </Button>
-          <Button size="icon" variant="ghost" className="text-[#2563EB]">
-            <Pencil className="size-4" />
-          </Button>
-          
+          <span onClick={(e) => e.stopPropagation()}>
+            <ConfirmPopover
+              title={`Delete ${row.original.kind === "folder" ? "folder" : "file"}?`}
+              description={`This action cannot be undone. ${row.original.kind === "folder" ? "All files in this folder will also be deleted." : ""}`}
+              confirmText="Delete"
+              onConfirm={() => handleDelete(row.original)}
+              disabled={deletingId === row.original.id || deleteFolder.isPending || deleteFile.isPending}
+            >
+              <Button size="icon" variant="ghost" className="text-[#D64575]">
+                <Trash2 className="size-4" />
+              </Button>
+            </ConfirmPopover>
+          </span>
+          {row.original.kind === "folder" && (
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="text-[#2563EB]"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(row.original);
+              }}
+            >
+              <Pencil className="size-4" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -192,6 +241,10 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
             // Emit a custom event for the consumer to navigate
             const event = new CustomEvent("kb:open-folder", { detail: row.original });
             window.dispatchEvent(event);
+          } else {
+            // For files, we could implement file preview/download
+            // For now, we'll just log the action
+            console.log('File clicked:', row.original);
           }
         }}
         footer={() => null}
@@ -203,6 +256,14 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
         )}
       />
       </Card>
+      
+      <AddFolderModal 
+        open={editModalOpen} 
+        onOpenChange={setEditModalOpen}
+        folderId={editingFolderId ? parseInt(editingFolderId) : undefined}
+        onComplete={handleEditComplete}
+        isEditMode={true}
+      />
     </TableContextMenu>
   );
 }

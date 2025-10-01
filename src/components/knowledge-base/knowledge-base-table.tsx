@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
-import { FolderIcon, Trash2 } from "lucide-react";
+import { FolderIcon, Trash2, Pencil } from "lucide-react";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "@/components/card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useGetAllFolders, useDeleteFolder } from "@/hooks/queries/use-knowledge-folders";
+import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 import { KnowledgeFolder } from "@/services/knowledge-folders";
 import { format } from "date-fns";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
@@ -65,6 +66,8 @@ export function KnowledgeBaseTable() {
   const deleteFolder = useDeleteFolder();
   const router = useRouter();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [editingFolderId, setEditingFolderId] = React.useState<string | null>(null);
+  const { open: editModalOpen, setOpen: setEditModalOpen, openModal: openEditModal } = useAddFolderModal();
 
   // Transform API data to table format
   const apiData = React.useMemo(() => {
@@ -97,6 +100,17 @@ export function KnowledgeBaseTable() {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleEdit = (row: KnowledgeBaseRow) => {
+    setEditingFolderId(row.id);
+    openEditModal();
+  };
+
+  const handleEditComplete = () => {
+    setEditingFolderId(null);
+    setEditModalOpen(false);
+    // Data will be automatically refresed via React Query invalidation
   };
 
   const columns: ColumnDef<KnowledgeBaseRow>[] = [
@@ -184,6 +198,17 @@ export function KnowledgeBaseTable() {
               </Button>
             </ConfirmPopover>
           </span>
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="text-[#2563EB]"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit(row.original);
+            }}
+          >
+            <Pencil className="size-4" />
+          </Button>
           <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
@@ -222,6 +247,14 @@ export function KnowledgeBaseTable() {
         rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] cursor-pointer"}
         onRowClick={(row) => router.push(ROUTES.ADMIN.KNOWLEDGE_BASE_FOLDER_ID(row.original.id))}
         footer={(table) => <CardTablePagination table={table} />}
+      />
+      
+      <AddFolderModal 
+        open={editModalOpen} 
+        onOpenChange={setEditModalOpen}
+        folderId={editingFolderId ? parseInt(editingFolderId) : undefined}
+        onComplete={handleEditComplete}
+        isEditMode={true}
       />
     </Card>
   );
