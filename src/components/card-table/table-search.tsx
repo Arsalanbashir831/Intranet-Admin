@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 
 type TableSearchProps = {
   placeholder?: string;
+  value?: string;
   onChange?: (value: string) => void;
 };
 
-export function TableSearch({ placeholder = "Search", onChange }: TableSearchProps) {
+export function TableSearch({ placeholder = "Search", value, onChange }: TableSearchProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export function TableSearch({ placeholder = "Search", onChange }: TableSearchPro
   return (
     <Input
       ref={inputRef}
+      value={value}
       className="flex-1 border-[#AFAFAF] placeholder:text-muted-foreground rounded-[4px] pr-18"
       containerClassName="max-w-[360px]"
       placeholder={placeholder}

@@ -18,6 +18,7 @@ import { ROUTES } from "@/constants/routes";
 import { useExecutives, useDeleteExecutive } from "@/hooks/queries/use-executive-members";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
+import { cn } from "@/lib/utils";
 // import type { ExecutiveMember } from "@/services/executive-members";
 
 export type ExecutiveMemberRow = {
@@ -33,17 +34,38 @@ export type ExecutiveMemberRow = {
 export function ExecutiveMembersTable() {
   const router = useRouter();
   const [sortedBy, setSortedBy] = React.useState<string>("name");
-  const { data: apiData } = useExecutives();
-  const deleteExecutive = useDeleteExecutive();
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   
-  const data = React.useMemo<ExecutiveMemberRow[]>(() => {
-    // Handle ExecutiveListResponse structure: { results: Executive[] }
-    const list = Array.isArray(apiData?.results)
-      ? apiData.results
-      : (Array.isArray(apiData) ? apiData : []);
+  // Debounce search query to avoid too many API calls
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms debounce
     
-    return (list as any[]).map((e) => ({
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+  
+  // Build search params - only include search if it has a value
+  const searchParams = React.useMemo(() => {
+    const params: Record<string, string | number | boolean> = {};
+    if (debouncedSearchQuery.trim()) {
+      params.search = debouncedSearchQuery.trim();
+    }
+    return Object.keys(params).length > 0 ? params : undefined;
+  }, [debouncedSearchQuery]);
+  
+  const { data: apiData, isLoading, error, isFetching } = useExecutives(searchParams);
+  const deleteExecutive = useDeleteExecutive();
+  
+  const data = React.useMemo<ExecutiveMemberRow[]>(() => {
+    // Handle the paginated response structure
+    if (!apiData) return [];
+    
+    const list = apiData.results || [];
+    
+    return list.map((e: any) => ({
       id: String(e.id),
       name: String(e.name ?? ""),
       email: String(e.email ?? ""),
@@ -56,22 +78,23 @@ export function ExecutiveMembersTable() {
   
   const { pinnedIds, togglePin } = usePinnedRows<ExecutiveMemberRow>(data);
 
-  const handleRowClick = (row: { original: ExecutiveMemberRow }) => {
+  const handleRowClick = React.useCallback((row: { original: ExecutiveMemberRow }) => {
     router.push(ROUTES.ADMIN.EXECUTIVE_MEMBERS_ID(row.original.id));
-  };
+  }, [router]);
 
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
+  // Remove client-side sorting since we're using API search
+  // The API should handle sorting on the server side
   React.useEffect(() => {
-    const copy = [...data];
-    copy.sort((a, b) => {
-      const key = sortedBy as keyof ExecutiveMemberRow;
-      const av = (a[key] ?? "") as string;
-      const bv = (b[key] ?? "") as string;
-      if (typeof av === "number" && typeof bv === "number") return av - bv;
-      return String(av).localeCompare(String(bv));
-    });
+    // This effect can be used for additional client-side operations if needed
+    // For now, we rely on the API to return sorted and filtered data
   }, [data, sortedBy]);
 
-  const columns: ColumnDef<ExecutiveMemberRow>[] = [
+  // Memoize the columns to prevent unnecessary re-renders - MOVED BEFORE CONDITIONAL RETURNS
+  const columns = React.useMemo<ColumnDef<ExecutiveMemberRow>[]>(() => [
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -159,13 +182,38 @@ export function ExecutiveMembersTable() {
         </div>
       ),
     },
-  ];
+  ], [deletingId, deleteExecutive.isPending, pinnedIds, togglePin]);
+
+  // Show loading state only on initial load (no search query and no existing data)
+  if (isLoading && !debouncedSearchQuery && !data.length) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-sm text-[#667085]">Loading executive members...</div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-sm text-red-600">Error loading executive members: {error.message}</div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="border-[#FFF6F6] p-5 shadow-none">
+    <Card className={cn("border-[#FFF6F6] p-5 shadow-none", {
+      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
+    })}>
       <CardTableToolbar
-        title="Recent Additions"
-        onSearchChange={() => { }}
+        title='Recent Additions'
+        searchValue={searchQuery}
+        onSearchChange={handleSearchChange}
         sortOptions={[
           { label: "Executive Name", value: "name" },
           { label: "Executive Email", value: "email" },

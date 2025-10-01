@@ -18,6 +18,8 @@ export function useExecutives(params?: Record<string, string | number | boolean>
     queryKey: ["executives", params],
     queryFn: () => listExecutives(params),
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching
   });
 }
 

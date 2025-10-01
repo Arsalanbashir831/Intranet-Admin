@@ -10,6 +10,7 @@ import { SortingDropdown } from "./sorting-dropdown";
 export type CardTableToolbarProps = {
   title: string;
   placeholder?: string;
+  searchValue?: string;
   onSearchChange?: (value: string) => void;
   onSortChange?: (value: string) => void;
   onFilterClick?: () => void;
@@ -22,6 +23,7 @@ export type CardTableToolbarProps = {
 export function CardTableToolbar({
   title,
   placeholder = "Search",
+  searchValue,
   onSearchChange,
   onSortChange,
   onFilterClick,
@@ -39,6 +41,7 @@ export function CardTableToolbar({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <TableSearch
           placeholder={placeholder ?? "Search"}
+          value={searchValue}
           onChange={onSearchChange ?? (() => {})}
         />
 
