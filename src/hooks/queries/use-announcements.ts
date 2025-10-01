@@ -18,7 +18,8 @@ import type {
 
 export function useAnnouncements(
   params?: Record<string, string | number | boolean>,
-  pagination?: { page?: number; pageSize?: number }
+  pagination?: { page?: number; pageSize?: number },
+  options?: { placeholderData?: (previousData: any) => any }
 ) {
   return useQuery({
     queryKey: ["announcements", params, pagination],
@@ -31,6 +32,7 @@ export function useAnnouncements(
       return listAnnouncements(queryParams, pagination);
     },
     staleTime: 60_000,
+    placeholderData: options?.placeholderData,
   });
 }
 

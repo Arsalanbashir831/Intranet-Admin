@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useAnnouncements, useDeleteAnnouncement } from "@/hooks/queries/use-announcements";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 
 export type AnnouncementRow = {
@@ -29,7 +30,30 @@ export type AnnouncementRow = {
 
 export function RecentAnnouncementsTable() {
   const [sortedBy, setSortedBy] = React.useState<string>("title");
-  const { data: apiData } = useAnnouncements();
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
+  
+  // Debounce search query
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Use search parameters when there's a search query
+  const searchParams = React.useMemo(() => ({
+    search: debouncedSearchQuery,
+  }), [debouncedSearchQuery]);
+
+  const { data: apiData, isLoading, error, isFetching } = debouncedSearchQuery
+    ? useAnnouncements(searchParams, undefined, {
+        placeholderData: (previousData: any) => previousData,
+      })
+    : useAnnouncements(undefined, undefined, { 
+        placeholderData: (previousData: any) => previousData,
+      });
+      
   const deleteAnnouncement = useDeleteAnnouncement();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const router = useRouter();
@@ -146,7 +170,8 @@ export function RecentAnnouncementsTable() {
     <Card className="border-[#FFF6F6] p-5 shadow-none">
       <CardTableToolbar
         title="Recent Announcements"
-        onSearchChange={() => {}}
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
         sortOptions={[
           { label: "Title", value: "title" },
           { label: "Access Level", value: "access" },
@@ -156,6 +181,7 @@ export function RecentAnnouncementsTable() {
         ]}
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}
+        className={cn(isFetching && "opacity-70")}
       />
       <CardTable<AnnouncementRow, unknown>
         columns={columns}
