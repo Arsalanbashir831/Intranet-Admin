@@ -31,11 +31,13 @@ export type FolderItemRow = {
 type Props = {
   title: string;
   data: FolderItemRow[];
+  folderId?: number; // Add folderId for bulk upload
   onNewFolder?: () => void;
   onNewFile?: () => void;
+  onFilesUploaded?: () => void; // Callback when files are uploaded
 };
 
-export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Props) {
+export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFile, onFilesUploaded }: Props) {
   const [sortedBy, setSortedBy] = React.useState<string>("file");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
@@ -43,7 +45,7 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
   const [accessFilter, setAccessFilter] = React.useState<string[]>([]);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [editingFolderId, setEditingFolderId] = React.useState<string | null>(null);
-  const { enqueueFiles } = useUploadQueue();
+  const { enqueueFiles, uploadFiles } = useUploadQueue();
   const deleteFolder = useDeleteFolder();
   const deleteFile = useDeleteFile();
   const { open: editModalOpen, setOpen: setEditModalOpen, openModal: openEditModal } = useAddFolderModal();
@@ -219,12 +221,19 @@ export function FolderDetailsTable({ title, data, onNewFolder, onNewFile }: Prop
         onDragOver={(e) => {
           e.preventDefault();
         }}
-        onDrop={(e) => {
+        onDrop={async (e) => {
           e.preventDefault();
           const files = Array.from(e.dataTransfer.files || [])
             .filter((f) => /pdf$|doc$|docx$/i.test(f.name));
           if (files.length === 0) return;
-          enqueueFiles(files, title);
+          
+          // If we have a folderId, use the upload queue with real API
+          if (folderId) {
+            uploadFiles(files, folderId, onFilesUploaded);
+          } else {
+            // Fallback to queue system
+            enqueueFiles(files, title);
+          }
         }}
       >
       <CardTableToolbar

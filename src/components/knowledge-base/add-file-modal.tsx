@@ -5,8 +5,7 @@ import { AppModal } from "@/components/common/app-modal";
 import { Label } from "@/components/ui/label";
 import { Dropzone } from "@/components/ui/dropzone";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
-import { useCreateFile } from "@/hooks/queries/use-knowledge-files";
-import { FileCreateRequest } from "@/services/knowledge-files";
+import { useBulkUploadFiles } from "@/hooks/queries/use-knowledge-files";
 
 
 
@@ -21,7 +20,7 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
   const { enqueueFiles } = useUploadQueue();
   const [selected, setSelected] = React.useState<File[]>([]);
 
-  const createFile = useCreateFile();
+  const bulkUploadFiles = useBulkUploadFiles();
 
 
 
@@ -42,21 +41,12 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
       return;
     }
 
-    // Use API for file upload
+    // Use bulk upload API for multiple files
     try {
-      for (const file of selected) {
-        const payload: FileCreateRequest = {
-          folder: folderId,
-          name: file.name.replace(/\.[^/.]+$/, ""), // Remove file extension for name
-          file,
-          inherits_parent_permissions: true,
-          permitted_employees: [],
-          permitted_departments: [],
-          permitted_branches: [],
-        };
-
-        await createFile.mutateAsync(payload);
-      }
+      await bulkUploadFiles.mutateAsync({
+        files: selected,
+        folderId: folderId
+      });
 
       // Reset form and notify parent
       setSelected([]);
@@ -74,7 +64,7 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
       description="Upload files to this folder"
       icon="/icons/building-2.svg"
       confirmText="Upload"
-      confirmDisabled={!canCreate || createFile.isPending}
+      confirmDisabled={!canCreate || bulkUploadFiles.isPending}
       onConfirm={handleConfirm}
     >
       <div className="space-y-5 px-6 py-4">

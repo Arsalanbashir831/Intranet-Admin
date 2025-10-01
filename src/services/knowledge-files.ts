@@ -278,6 +278,7 @@ export async function deleteFile(id: number | string): Promise<void> {
 export async function bulkUploadFiles(files: File[], folderId: number): Promise<any> {
   const formData = new FormData();
   formData.append('folder', folderId.toString());
+  formData.append('inherits_parent_permissions', 'true');
   
   files.forEach(file => {
     formData.append('files', file);

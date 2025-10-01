@@ -3,18 +3,10 @@
 import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChevronDown, ChevronUp, X, Loader2 } from "lucide-react";
+import type { UploadItem } from "@/contexts/upload-queue-context";
 
 export type UploadStatus = "pending" | "uploading" | "done" | "error";
-
-export type UploadItem = {
-  id: string;
-  name: string;
-  size: number;
-  progress: number; // 0-100
-  status: UploadStatus;
-  targetPath?: string; // where to add when done
-};
 
 export function UploadQueue({ items, onClear, onRemove, collapsed, setCollapsed }: { items: UploadItem[]; onClear?: () => void; onRemove?: (id: string) => void; collapsed: boolean; setCollapsed: (c: boolean) => void }) {
   if (items.length === 0) return null;
@@ -37,9 +29,16 @@ export function UploadQueue({ items, onClear, onRemove, collapsed, setCollapsed 
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="truncate pr-2">{item.name}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">
-                      {item.status === "done" ? "Done" : item.status === "error" ? "Error" : `${item.progress}%`}
-                    </span>
+                    {item.status === "uploading" ? (
+                      <div className="flex items-center gap-1">
+                        <Loader2 className="size-3 animate-spin" />
+                        <span className="text-muted-foreground">Uploading...</span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        {item.status === "done" ? "Done" : item.status === "error" ? "Error" : "Pending"}
+                      </span>
+                    )}
                     {item.status !== "uploading" && (
                       <button className="text-muted-foreground hover:text-foreground" onClick={() => onRemove?.(item.id)}>
                         <X className="size-4" />
@@ -47,9 +46,15 @@ export function UploadQueue({ items, onClear, onRemove, collapsed, setCollapsed 
                     )}
                   </div>
                 </div>
-                <div className="mt-1 h-1.5 w-full overflow-hidden rounded bg-[#F1F5F9]">
-                  <div className="h-full bg-[#22C55E] transition-all" style={{ width: `${item.progress}%` }} />
-                </div>
+                {item.status === "uploading" ? (
+                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded bg-[#F1F5F9]">
+                    <div className="h-full bg-[#22C55E] animate-pulse" style={{ width: '100%' }} />
+                  </div>
+                ) : item.status !== "pending" ? null : (
+                  <div className="mt-1 h-1.5 w-full overflow-hidden rounded bg-[#F1F5F9]">
+                    <div className="h-full bg-[#94A3B8]" style={{ width: '0%' }} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
