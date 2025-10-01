@@ -17,6 +17,8 @@ export function useEmployees(params?: Record<string, string | number | boolean>)
     queryKey: ["employees", params],
     queryFn: () => listEmployees(params),
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching
   });
 }
 

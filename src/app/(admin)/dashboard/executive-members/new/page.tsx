@@ -19,9 +19,8 @@ export default function NewExecutiveMemberPage() {
         ]}
         action={
           <div className="flex gap-2">
-            <Button 
+            <Button
               onClick={() => submitFn?.()}
-              className="bg-[#D64575] hover:bg-[#D64575]/90 text-white"
             >
               Save
             </Button>

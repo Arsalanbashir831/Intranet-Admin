@@ -15,7 +15,7 @@ export default function ExecutiveMembersPage() {
         ]}
         action={
           <Link href={ROUTES.ADMIN.EXECUTIVE_MEMBERS_NEW}>
-            <Button className="bg-[#D64575] hover:bg-[#D64575]/90 text-white">
+            <Button>
               Add New
             </Button>
           </Link>

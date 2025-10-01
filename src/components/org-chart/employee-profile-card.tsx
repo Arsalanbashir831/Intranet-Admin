@@ -35,7 +35,10 @@ type ApiEmployee = components["schemas"]["Employee"];
 // Small helper types for fields not captured in OpenAPI schema
 interface BranchRef { branch_name?: string }
 interface DepartmentRef { dept_name?: string }
-interface ManagerRef { emp_name?: string }
+interface EmployeeRef { emp_name?: string }
+interface ManagerRef { 
+    employee?: EmployeeRef;
+}
 interface BranchDepartmentRef {
     branch?: BranchRef;
     department?: DepartmentRef;
@@ -66,7 +69,7 @@ export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCar
         phone: String((apiEmployee as unknown as { phone?: string }).phone ?? ""),
         joinDate: hireDate ? new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" }).format(new Date(hireDate)) : "",
         department: String(branchDepartment?.department?.dept_name ?? ""),
-        reportingTo: String(branchDepartment?.manager?.emp_name ?? "--"),
+        reportingTo: String(branchDepartment?.manager?.employee?.emp_name ?? "--"),
         address: String((apiEmployee as unknown as { address?: string }).address ?? ""),
         city: String((apiEmployee as unknown as { city?: string }).city ?? ""),
         branch: String(branchDepartment?.branch?.branch_name ?? ""),
@@ -148,7 +151,7 @@ export function EmployeeProfileCard({ employee, employeeId }: EmployeeProfileCar
                         { iconSrc: "/icons/smartphone.svg", label: "Phone Number", value: resolved.phone },
                         { iconSrc: "/icons/calendar.svg", label: "Join Date", value: resolved.joinDate },
                         { iconSrc: "/icons/hierarchy.svg", label: "Department", value: resolved.department },
-                        { iconSrc: "/icons/manager.svg", label: "Reporting to", value: resolved.reportingTo },
+                        { iconSrc: "/icons/manager.svg", label: "Reporting to", value: resolved.reportingTo !== "--" ? resolved.reportingTo : "No Manager" },
                         { iconSrc: "/icons/map-pin.svg", label: "Address", value: resolved.address },
                         { iconSrc: "/icons/map-pin.svg", label: "City", value: resolved.city },
                         { iconSrc: "/icons/branch.svg", label: "Branch", value: resolved.branch },

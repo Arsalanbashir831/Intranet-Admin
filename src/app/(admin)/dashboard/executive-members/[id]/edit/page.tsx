@@ -15,15 +15,15 @@ export default function EditExecutiveMemberPage() {
 
   const initialValues: ExecutiveMemberInitialValues | undefined = executiveMember
     ? {
-        name: executiveMember.name || "",
-        address: executiveMember.address || "",
-        city: executiveMember.city || "",
-        phone: executiveMember.phone || "",
-        email: executiveMember.email || "",
-        role: executiveMember.role || "",
-        profileImageUrl: executiveMember.profile_picture || undefined,
-        education: executiveMember.education || "",
-      }
+      name: executiveMember.name || "",
+      address: executiveMember.address || "",
+      city: executiveMember.city || "",
+      phone: executiveMember.phone || "",
+      email: executiveMember.email || "",
+      role: executiveMember.role || "",
+      profileImageUrl: executiveMember.profile_picture || undefined,
+      education: executiveMember.education || "",
+    }
     : undefined;
 
   let submitFn: (() => void) | null = null;
@@ -33,7 +33,7 @@ export default function EditExecutiveMemberPage() {
       <PageHeader
         title="Edit Executive Member"
         crumbs={[
-          { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }, 
+          { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
           { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART },
           { label: "Executive Members", href: ROUTES.ADMIN.EXECUTIVE_MEMBERS },
           { label: executiveMember?.name || "Executive Member", href: ROUTES.ADMIN.EXECUTIVE_MEMBERS_ID(String(id)) },
@@ -41,9 +41,8 @@ export default function EditExecutiveMemberPage() {
         ]}
         action={
           <div className="flex gap-2">
-            <Button 
+            <Button
               onClick={() => submitFn?.()}
-              className="bg-[#D64575] hover:bg-[#D64575]/90 text-white"
             >
               Save
             </Button>

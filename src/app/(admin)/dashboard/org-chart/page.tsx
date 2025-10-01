@@ -18,7 +18,7 @@ export default function OrgChartPage() {
         ]}
         action={
           <Link href={ROUTES.ADMIN.ORG_CHART_NEW}>
-            <Button className="bg-[#D64575] hover:bg-[#D64575]/90 text-white">
+            <Button>
               Add New Employee
             </Button>
           </Link>

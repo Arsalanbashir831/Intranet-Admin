@@ -18,6 +18,7 @@ import { ROUTES } from "@/constants/routes";
 import { useEmployees, useDeleteEmployee } from "@/hooks/queries/use-employees";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
+import { cn } from "@/lib/utils";
 
 export type EmployeeRow = {
   id: string;
@@ -35,9 +36,30 @@ export type EmployeeRow = {
 export function EmployeeTable() {
   const router = useRouter();
   const [sortedBy, setSortedBy] = React.useState<string>("name");
-  const { data: apiData } = useEmployees();
-  const deleteEmployee = useDeleteEmployee();
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  
+  // Debounce search query to avoid too many API calls
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms debounce
+    
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+  
+  // Build search params - only include search if it has a value
+  const searchParams = React.useMemo(() => {
+    const params: Record<string, string | number | boolean> = {};
+    if (debouncedSearchQuery.trim()) {
+      params.search = debouncedSearchQuery.trim();
+    }
+    return Object.keys(params).length > 0 ? params : undefined;
+  }, [debouncedSearchQuery]);
+  
+  const { data: apiData, isLoading, error, isFetching } = useEmployees(searchParams);
+  const deleteEmployee = useDeleteEmployee();
   const data = React.useMemo<EmployeeRow[]>(() => {
     const employeesContainer = (apiData as any)?.employees;
     const list = Array.isArray(employeesContainer?.results)
@@ -57,21 +79,22 @@ export function EmployeeTable() {
   }, [apiData]);
   const { pinnedIds, togglePin } = usePinnedRows<EmployeeRow>(data);
 
-  const handleRowClick = (row: { original: EmployeeRow }) => {
+  const handleRowClick = React.useCallback((row: { original: EmployeeRow }) => {
     router.push(ROUTES.ADMIN.ORG_CHART_PROFILE_ID(row.original.id));
-  };
+  }, [router]);
 
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
+  // Remove client-side sorting since we're using API search
   React.useEffect(() => {
-    const copy = [...data];
-    copy.sort((a, b) => {
-      const key = sortedBy as keyof EmployeeRow;
-      const av = (a[key] ?? "") as string;
-      const bv = (b[key] ?? "") as string;
-      if (typeof av === "number" && typeof bv === "number") return av - bv;
-      return String(av).localeCompare(String(bv));
-    });
+    // This effect can be used for additional client-side operations if needed
+    // For now, we rely on the API to return sorted and filtered data
   }, [data, sortedBy]);
-  const columns: ColumnDef<EmployeeRow>[] = [
+
+  // Memoize the columns to prevent unnecessary re-renders
+  const columns = React.useMemo<ColumnDef<EmployeeRow>[]>(() => [
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -165,13 +188,39 @@ export function EmployeeTable() {
         </div>
       ),
     },
-  ];
+  ], [deletingId, deleteEmployee.isPending, pinnedIds, togglePin]);
+
+  // Show loading state only on initial load (no search query and no existing data)
+  if (isLoading && !debouncedSearchQuery && !data.length) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-sm text-[#667085]">Loading employees...</div>
+        </div>
+      </Card>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <Card className="border-[#FFF6F6] p-5 shadow-none">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-sm text-red-600">Error loading employees: {error.message}</div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <Card className="border-[#FFF6F6] p-5 shadow-none">
+    <Card className={cn("border-[#FFF6F6] p-5 shadow-none", {
+      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
+    })}>
       <CardTableToolbar
-        title="Recent Additions"
-        onSearchChange={() => { }}
+        title={`Recent Additions${isFetching && debouncedSearchQuery ? ' (Searching...)' : ''}`}
+        placeholder="Search employees..."
+        searchValue={searchQuery}
+        onSearchChange={handleSearchChange}
         sortOptions={[
           { label: "Employee Name", value: "name" },
           { label: "Branch/location", value: "location" },
