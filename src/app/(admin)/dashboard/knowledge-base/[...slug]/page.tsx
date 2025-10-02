@@ -9,10 +9,49 @@ import { AddFileModal } from "@/components/knowledge-base/add-file-modal";
 import { useRouter } from "next/navigation";
 import { useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";
 
+// Define the folder tree item type locally since it's not exported
+type FolderTreeFile = {
+  id: number;
+  folder: number;
+  name: string;
+  description: string;
+  file: string;
+  file_url: string;
+  inherits_parent_permissions: boolean;
+  permitted_branches: number[];
+  permitted_departments: number[];
+  permitted_employees: number[];
+  uploaded_by: number | null;
+  uploaded_at: string;
+  size: number;
+  content_type: string;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    employees: number[];
+  };
+};
+
+type FolderTreeItem = {
+  id: number;
+  name: string;
+  description: string;
+  parent: number | null;
+  inherits_parent_permissions: boolean;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    employees: number[];
+  };
+  files: FolderTreeFile[];
+  folders: FolderTreeItem[];
+  created_at?: string;
+};
+
 export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promise<{ slug?: string[] }> }) {
   const router = useRouter();
   const { slug } = React.use(params);
-  const segments = slug ?? [];
+  const segments = React.useMemo(() => slug ?? [], [slug]);
   const decodedSegments = React.useMemo(() => segments.map((s) => {
     try { return decodeURIComponent(s); } catch { return s; }
   }), [segments]);
@@ -28,7 +67,7 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promis
   const currentFolder = React.useMemo(() => {
     if (!folderTreeData?.folders || folderId === undefined) return null;
     
-    const findFolder = (folders: any[]): any | null => {
+    const findFolder = (folders: FolderTreeItem[]): FolderTreeItem | null => {
       for (const folder of folders) {
         if (folder.id === folderId) {
           return folder;
@@ -73,7 +112,7 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promis
 
   React.useEffect(() => {
     const handler = (e: Event) => {
-      const row = (e as CustomEvent<any>).detail;
+      const row = (e as CustomEvent<{ id: string; kind: string; originalId: string; }>).detail;
       if (!row || row.kind !== "folder" || !row.originalId) return;
       // Navigate to the subfolder using its ID
       router.push(`/dashboard/knowledge-base/${row.originalId}`);

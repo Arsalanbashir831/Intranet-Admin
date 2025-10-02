@@ -17,6 +17,7 @@ import { useDeleteFolder, useGetFolderTree } from "@/hooks/queries/use-knowledge
 import { useDeleteFile } from "@/hooks/queries/use-knowledge-files";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 // Types from the folder tree API response
 type FolderTreeFile = {
@@ -88,6 +89,7 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
   const deleteFolder = useDeleteFolder();
   const deleteFile = useDeleteFile();
   const { open: editModalOpen, setOpen: setEditModalOpen, openModal: openEditModal } = useAddFolderModal();
+  const router = useRouter();
 
   // Use folder tree API to get folder and file data
   const { data: folderTreeData, isLoading, error, refetch } = useGetFolderTree();
@@ -229,6 +231,17 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
     window.addEventListener("kb:queue-finished-item", handler);
     return () => window.removeEventListener("kb:queue-finished-item", handler);
   }, [title, refetch]);
+
+  React.useEffect(() => {
+    const handler = (e: Event) => {
+      const row = (e as CustomEvent<{ id: string; kind: string; originalId: string; }>).detail;
+      if (!row || row.kind !== "folder" || !row.originalId) return;
+      // Navigate to the subfolder using its ID
+      router.push(`/dashboard/knowledge-base/${row.originalId}`);
+    };
+    window.addEventListener("kb:open-folder", handler);
+    return () => window.removeEventListener("kb:open-folder", handler);
+  }, [router]);
 
   const columns: ColumnDef<FolderItemRow>[] = [
     {
