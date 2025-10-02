@@ -10,7 +10,7 @@ import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { AccessLevelDropdown } from "@/components/card-table/access-level-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Pencil, Trash2, Folder as FolderIcon, FileText } from "lucide-react";
-import { TableContextMenu, RowContextMenu } from "@/components/knowledge-base/row-context-menus";
+import { TableContextMenu } from "@/components/knowledge-base/row-context-menus";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { useDeleteFolder, useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";

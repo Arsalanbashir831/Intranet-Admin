@@ -126,7 +126,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
           // If the file name is empty or just a GUID, we might want to use a more user-friendly name
           // But for now, we'll return what we have
           return fileNameWithoutQuery || 'Unknown File';
-        } catch (e) {
+        } catch {
           // Fallback if decoding fails
           const urlParts = file.split('/');
           return urlParts.length > 0 ? urlParts[urlParts.length - 1].split('?')[0].split('#')[0] : 'Unknown File';
@@ -375,7 +375,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                         </div>
                       );
                     }
-                  } catch (e) {
+                  } catch {
                     // Fallback for any parsing errors
                     return (
                       <div key={index} className="relative group">
@@ -596,7 +596,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                         </Button>
                       </div>
                     );
-                  } catch (e) {
+                  } catch {
                     // Fallback for any parsing errors
                     return (
                       <div key={index} className="relative group">

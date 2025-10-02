@@ -12,7 +12,6 @@ import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
-import { PinRowButton } from "../card-table/pin-row-button";
 import { AvatarStack } from "@/components/ui/avatar-stack";
 import { useChecklists, useDeleteChecklist } from "@/hooks/queries/use-new-hire";
 import { toast } from "sonner";
@@ -177,8 +176,6 @@ export function NewHireTable() {
           >
             <Trash2 className="size-4" />
           </Button>
-
-          <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
     },

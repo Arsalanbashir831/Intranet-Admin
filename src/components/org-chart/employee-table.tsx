@@ -37,7 +37,6 @@ export type EmployeeRow = {
 
 export function EmployeeTable() {
   const router = useRouter();
-  const [sortedBy, setSortedBy] = React.useState<string>("name");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
@@ -167,21 +166,10 @@ export function EmployeeTable() {
     setSearchQuery(value);
   }, []);
 
-  const handleApplyFilters = (newFilters: Record<string, unknown>) => {
-    setFilters(newFilters);
-    setIsFilterOpen(false);
-  };
-
   const handleResetFilters = () => {
     setFilters({});
     setIsFilterOpen(false);
   };
-
-  // Remove client-side sorting since we're using API search
-  React.useEffect(() => {
-    // This effect can be used for additional client-side operations if needed
-    // For now, we rely on the API to return sorted and filtered data
-  }, [data, sortedBy]);
 
   // Memoize the columns to prevent unnecessary re-renders
   const columns = React.useMemo<ColumnDef<EmployeeRow>[]>(() => [
@@ -325,7 +313,6 @@ export function EmployeeTable() {
       <FilterDrawer
         open={isFilterOpen}
         onOpenChange={setIsFilterOpen}
-        onApply={handleApplyFilters}
         onReset={handleResetFilters}
         showFilterButton={false}
         title="Filter Employees"

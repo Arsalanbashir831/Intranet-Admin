@@ -8,7 +8,7 @@ import {
   getDepartmentEmployees, // Add this import
   updateDepartment
 } from "@/services/departments";
-import type { DepartmentCreateRequest, DepartmentUpdateRequest } from "@/services/departments";
+import type { DepartmentCreateRequest, DepartmentUpdateRequest, Department, BranchDepartment, DepartmentListResponse } from "@/services/departments";
 
 export function useDepartments(
   params?: Record<string, string | number | boolean>,
@@ -72,16 +72,16 @@ export function useBranchDepartments(params?: Record<string, string | number | b
   // Extract branch departments from departments data
   const branchDepartments = Array.isArray(departmentsData)
     ? departmentsData
-    : (departmentsData as { departments?: { results?: unknown[] } })?.departments?.results || [];
+    : (departmentsData as DepartmentListResponse)?.departments?.results || [];
   
   // Flatten branch departments from all departments
-  const allBranchDepartments = branchDepartments.flatMap((dept: any) => {
-    const deptName = dept.dept_name || dept.name || 'Unknown Department';
+  const allBranchDepartments = branchDepartments.flatMap((dept: Department) => {
+    const deptName = dept.dept_name || (dept as Record<string, unknown>).name || 'Unknown Department';
     const branchDepartments = dept.branch_departments || [];
     
-    return branchDepartments.map((bd: any) => ({
+    return branchDepartments.map((bd: BranchDepartment) => ({
       id: bd.id,
-      branch: bd.branch || { branch_name: bd.branch_name || 'Unknown Branch' },
+      branch: bd.branch || { branch_name: (bd as Record<string, unknown>).branch_name || 'Unknown Branch' },
       department: { dept_name: deptName },
     }));
   });

@@ -13,7 +13,6 @@ import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
-import { PinRowButton } from "../card-table/pin-row-button";
 import { ROUTES } from "@/constants/routes";
 import { useExecutives, useDeleteExecutive } from "@/hooks/queries/use-executive-members";
 import { toast } from "sonner";
@@ -33,20 +32,19 @@ export type ExecutiveMemberRow = {
 
 export function ExecutiveMembersTable() {
   const router = useRouter();
-  const [sortedBy, setSortedBy] = React.useState<string>("name");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
-  
+
   // Debounce search query to avoid too many API calls
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
     }, 300); // 300ms debounce
-    
+
     return () => clearTimeout(timer);
   }, [searchQuery]);
-  
+
   // Build search params - only include search if it has a value
   const searchParams = React.useMemo(() => {
     const params: Record<string, string | number | boolean> = {};
@@ -55,16 +53,16 @@ export function ExecutiveMembersTable() {
     }
     return Object.keys(params).length > 0 ? params : undefined;
   }, [debouncedSearchQuery]);
-  
+
   const { data: apiData, isLoading, error, isFetching } = useExecutives(searchParams);
   const deleteExecutive = useDeleteExecutive();
-  
+
   const data = React.useMemo<ExecutiveMemberRow[]>(() => {
     // Handle the paginated response structure
     if (!apiData) return [];
-    
+
     const list = apiData.results || [];
-    
+
     return list.map((e: { id: number; name?: string; email?: string; role?: string; city?: string; phone?: string; profile_picture?: string | null }) => ({
       id: String(e.id),
       name: String(e.name ?? ""),
@@ -75,7 +73,7 @@ export function ExecutiveMembersTable() {
       avatar: e.profile_picture ?? undefined,
     }));
   }, [apiData]);
-  
+
   const { pinnedIds, togglePin } = usePinnedRows<ExecutiveMemberRow>(data);
 
   const handleRowClick = React.useCallback((row: { original: ExecutiveMemberRow }) => {
@@ -85,13 +83,6 @@ export function ExecutiveMembersTable() {
   const handleSearchChange = React.useCallback((value: string) => {
     setSearchQuery(value);
   }, []);
-
-  // Remove client-side sorting since we're using API search
-  // The API should handle sorting on the server side
-  React.useEffect(() => {
-    // This effect can be used for additional client-side operations if needed
-    // For now, we rely on the API to return sorted and filtered data
-  }, [data, sortedBy]);
 
   // Memoize the columns to prevent unnecessary re-renders - MOVED BEFORE CONDITIONAL RETURNS
   const columns = React.useMemo<ColumnDef<ExecutiveMemberRow>[]>(() => [
@@ -137,15 +128,15 @@ export function ExecutiveMembersTable() {
         </Badge>
       ),
     },
-    { 
-      accessorKey: "city", 
-      header: ({ column }) => <CardTableColumnHeader column={column} title="City" />, 
-      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span> 
+    {
+      accessorKey: "city",
+      header: ({ column }) => <CardTableColumnHeader column={column} title="City" />,
+      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span>
     },
-    { 
-      accessorKey: "phone", 
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Phone" />, 
-      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span> 
+    {
+      accessorKey: "phone",
+      header: ({ column }) => <CardTableColumnHeader column={column} title="Phone" />,
+      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span>
     },
     {
       id: "actions",
@@ -177,8 +168,6 @@ export function ExecutiveMembersTable() {
               </Button>
             </ConfirmPopover>
           </span>
-          
-          <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
     },

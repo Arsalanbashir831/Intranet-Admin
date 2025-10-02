@@ -11,7 +11,6 @@ import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
-import { PinRowButton } from "../card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useAnnouncements, useDeleteAnnouncement } from "@/hooks/queries/use-announcements";
@@ -168,8 +167,6 @@ export function RecentAnnouncementsTable() {
               </Button>
             </ConfirmPopover>
           </span>
-          
-          <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
     },

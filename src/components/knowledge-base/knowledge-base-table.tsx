@@ -11,8 +11,6 @@ import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { FolderIcon, Trash2, Pencil } from "lucide-react";
-import { usePinnedRows } from "@/hooks/use-pinned-rows";
-import { PinRowButton } from "@/components/card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useGetFolderTree, useDeleteFolder } from "@/hooks/queries/use-knowledge-folders"; // Added useDeleteFolder
@@ -139,10 +137,7 @@ export function KnowledgeBaseTable() {
     return folders.map(transformFolderToRow);
   }, [folderTreeData, debouncedSearchQuery]);
 
-  // Apply sorting
-  const [data, setData] = React.useState<KnowledgeBaseRow[]>([]);
-  const { pinnedIds, togglePin, ordered } = usePinnedRows<KnowledgeBaseRow>(data);
-
+ 
   React.useEffect(() => {
     const copy = [...apiData];
     copy.sort((a, b) => {
@@ -152,7 +147,6 @@ export function KnowledgeBaseTable() {
       if (key === "dateCreated") return String(av).localeCompare(String(bv));
       return String(av).localeCompare(String(bv));
     });
-    setData(copy);
   }, [sortedBy, apiData]);
 
   const handleDeleteFolder = async (folderId: string) => {
@@ -279,8 +273,7 @@ export function KnowledgeBaseTable() {
           >
             <Pencil className="size-4" />
           </Button>
-          <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
-        </div>
+       </div>
       ),
     },
   ];
@@ -314,7 +307,7 @@ export function KnowledgeBaseTable() {
       />
       <CardTable<KnowledgeBaseRow, unknown>
         columns={columns}
-        data={ordered}
+        data={apiData}
         headerClassName="grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr]"
         rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] cursor-pointer"
 }
