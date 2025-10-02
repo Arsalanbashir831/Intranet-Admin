@@ -464,6 +464,7 @@ export interface components {
             assigned_by: number;
             readonly assigned_to_details: components["schemas"]["Employee"][];
             readonly assigned_by_details: components["schemas"]["Employee"];
+            readonly department_details: string;
             status?: components["schemas"]["StatusEnum"];
             /** Format: date-time */
             readonly created_at: string;
@@ -475,7 +476,7 @@ export interface components {
             readonly id: number;
             emp_name: string;
             /** Format: email */
-            email?: string | null;
+            email: string;
             phone?: string | null;
             role?: string | null;
             education?: string | null;
@@ -540,6 +541,10 @@ export interface components {
             readonly effective_permissions: {
                 [key: string]: unknown;
             };
+            readonly permitted_branches_details: string;
+            readonly permitted_departments_details: string;
+            readonly permitted_employees_details: string;
+            readonly created_by_details: string;
         };
         PaginatedAnnouncementAttachmentList: {
             /** @example 123 */
@@ -731,6 +736,7 @@ export interface components {
             assigned_by?: number;
             readonly assigned_to_details?: components["schemas"]["Employee"][];
             readonly assigned_by_details?: components["schemas"]["Employee"];
+            readonly department_details?: string;
             status?: components["schemas"]["StatusEnum"];
             /** Format: date-time */
             readonly created_at?: string;
@@ -794,6 +800,10 @@ export interface components {
             readonly effective_permissions?: {
                 [key: string]: unknown;
             };
+            readonly permitted_branches_details?: string;
+            readonly permitted_departments_details?: string;
+            readonly permitted_employees_details?: string;
+            readonly created_by_details?: string;
         };
         /**
          * @description * `draft` - Draft

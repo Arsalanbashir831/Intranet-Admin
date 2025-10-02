@@ -4,6 +4,7 @@ export const API_ROUTES = {
         REFRESH_TOKEN: "/token/refresh/",
         VERIFY_TOKEN: "/token/verify/",
     },
+    STATS: '/stats/',
     BRANCHES: {
         LIST: "/branches/",
         DETAIL: (id: number | string) => `/branches/${id}/`,
@@ -65,6 +66,7 @@ export const API_ROUTES = {
                 DELETE_ATTACHMENT: (id: number | string) => `/knowledge/announcement-attachments/${id}/`,
             },
         },
+        STATS: "/knowledge/stats/",
     },
     NEW_HIRE: {
         CHECKLISTS: {
