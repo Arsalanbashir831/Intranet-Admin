@@ -74,3 +74,13 @@ export type KnowledgeBaseStatsResponse = {
   recent_announcements_last_30_days: number;
   top_employees_by_announcements: TopEmployeeByAnnouncements[];
 };
+
+export type AnnouncementRateResponse = {
+  results: Array<{
+    period: string;
+    count: number;
+  }>;
+  filter: string;
+  start_date: string;
+  end_date: string;
+};

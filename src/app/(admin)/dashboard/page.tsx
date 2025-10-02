@@ -16,9 +16,7 @@ export default function AdminHomePage() {
 
         <div className="grid gap-4 lg:grid-cols-3 items-stretch">
           <div className="lg:col-span-2 flex flex-col">
-            <AverageAnnouncementChart
-              data={["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => ({ month: m, value: [25, 50, 35, 60, 22, 70, 15, 40, 55, 30, 65, 45][i] }))}
-            />
+            <AverageAnnouncementChart />
           </div>
           <div className="flex flex-col">
           <EmployeeRingChart />

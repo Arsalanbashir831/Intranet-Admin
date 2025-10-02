@@ -67,6 +67,7 @@ export const API_ROUTES = {
             },
         },
         STATS: "/knowledge/stats/",
+        ANNOUNCEMENT_STATS: "/knowledge/announcement-rate/",
     },
     NEW_HIRE: {
         CHECKLISTS: {

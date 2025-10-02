@@ -153,7 +153,7 @@ export async function updateAnnouncement(id: number | string, payload: Announcem
   };
   
   const res = await apiCaller<AnnouncementUpdateResponse>(
-    API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id), 
+    API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)+'?include_inactive=true', 
     "PATCH", 
     apiPayload, 
     {}, 
