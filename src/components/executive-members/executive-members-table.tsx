@@ -214,16 +214,8 @@ export function ExecutiveMembersTable() {
         title='Recent Additions'
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
-        sortOptions={[
-          { label: "Executive Name", value: "name" },
-          { label: "Executive Email", value: "email" },
-          { label: "Role", value: "role" },
-          { label: "City", value: "city" },
-          { label: "Phone", value: "phone" },
-        ]}
-        activeSort={sortedBy}
-        onSortChange={(v) => setSortedBy(v)}
-        onFilterClick={() => { }}
+        showSortOptions={false}
+        showFilters={false}
       />
       <CardTable<ExecutiveMemberRow, unknown>
         columns={columns}

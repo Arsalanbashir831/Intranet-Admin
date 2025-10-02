@@ -19,6 +19,7 @@ export const API_ROUTES = {
         UPDATE: (id: number | string) => `/departments/${id}/`,
         DELETE: (id: number | string) => `/departments/${id}/`,
         GET_ALL_EMPLOYEES: (id: number | string) => `/departments/employees/${id}/`,
+        GET_ALL_DEPT_EMPLOYEES: (id: number | string) => `/departments/employees/${id}/`,
         GET_ALL_BRANCH_DEPT_EMPLOYEES: (id: number | string) => `/branchdepartments/employees/${id}`,
     },
     EMPLOYEES: {

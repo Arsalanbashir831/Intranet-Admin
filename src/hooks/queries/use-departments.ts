@@ -3,9 +3,10 @@ import {
   createDepartment, 
   deleteDepartment, 
   getDepartment, 
-  listDepartments, 
-  updateDepartment,
-  getBranchDepartmentEmployees
+  listDepartments,
+  getBranchDepartmentEmployees,
+  getDepartmentEmployees, // Add this import
+  updateDepartment
 } from "@/services/departments";
 import type { DepartmentCreateRequest, DepartmentUpdateRequest } from "@/services/departments";
 
@@ -35,6 +36,21 @@ export function useSearchDepartments(
   });
 }
 
+export function useDepartmentEmployees(
+  departmentId: string,
+  pagination?: { page?: number; pageSize?: number },
+  params?: Record<string, string | number | boolean>
+) {
+  return useQuery({
+    queryKey: ["department-employees", departmentId, pagination, params],
+    queryFn: () => getDepartmentEmployees(departmentId, pagination, params),
+    enabled: !!departmentId,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching
+  });
+}
+
 export function useBranchDepartmentEmployees(
   branchDepartmentId: number | string,
   pagination?: { page?: number; pageSize?: number },
@@ -48,6 +64,33 @@ export function useBranchDepartmentEmployees(
     refetchOnWindowFocus: false,
     placeholderData: (previousData) => previousData, // Keep previous data while fetching
   });
+}
+
+export function useBranchDepartments(params?: Record<string, string | number | boolean>) {
+  const { data: departmentsData, isLoading, error } = useDepartments({ ...params, page_size: 1000 });
+  
+  // Extract branch departments from departments data
+  const branchDepartments = Array.isArray(departmentsData)
+    ? departmentsData
+    : (departmentsData as { departments?: { results?: unknown[] } })?.departments?.results || [];
+  
+  // Flatten branch departments from all departments
+  const allBranchDepartments = branchDepartments.flatMap((dept: any) => {
+    const deptName = dept.dept_name || dept.name || 'Unknown Department';
+    const branchDepartments = dept.branch_departments || [];
+    
+    return branchDepartments.map((bd: any) => ({
+      id: bd.id,
+      branch: bd.branch || { branch_name: bd.branch_name || 'Unknown Branch' },
+      department: { dept_name: deptName },
+    }));
+  });
+  
+  return {
+    data: allBranchDepartments,
+    isLoading,
+    error,
+  };
 }
 
 export function useDepartment(id: number | string) {

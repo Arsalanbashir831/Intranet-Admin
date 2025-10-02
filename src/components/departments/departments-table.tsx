@@ -254,14 +254,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
           title='Departments'
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
-          sortOptions={[
-            { label: "Department", value: "department" },
-            { label: "Branch/Location", value: "branchLocation" },
-            { label: "Manager", value: "managerName" },
-            { label: "Staff Count", value: "staffCount" },
-          ]}
-          activeSort={sortedBy}
-          onSortChange={(v) => setSortedBy(v)}
+          showSortOptions={false}
           onFilterClick={() => { }}
         />
         <CardTable<DepartmentRow, unknown>

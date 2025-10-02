@@ -13,12 +13,14 @@ import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
-import { PinRowButton } from "../card-table/pin-row-button";
 import { ROUTES } from "@/constants/routes";
 import { useEmployees, useDeleteEmployee } from "@/hooks/queries/use-employees";
+import { useBranchDepartmentEmployees, useDepartmentEmployees } from "@/hooks/queries/use-departments";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
+import { FilterDrawer } from "@/components/card-table/filter-drawer";
+import { DepartmentFilter, BranchDepartmentFilter } from "@/components/card-table/filter-components";
 
 export type EmployeeRow = {
   id: string;
@@ -39,33 +41,96 @@ export function EmployeeTable() {
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
-  
+  const [isFilterOpen, setIsFilterOpen] = React.useState(false);
+  const [filters, setFilters] = React.useState<Record<string, unknown>>({});
+
   // Debounce search query to avoid too many API calls
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
     }, 300); // 300ms debounce
-    
+
     return () => clearTimeout(timer);
   }, [searchQuery]);
-  
+
   // Build search params - only include search if it has a value
   const searchParams = React.useMemo(() => {
     const params: Record<string, string | number | boolean> = {};
     if (debouncedSearchQuery.trim()) {
       params.search = debouncedSearchQuery.trim();
     }
+    
+    // Add branch filter if selected (but not if it's the "All" option)
+    if (filters.branch && filters.branch !== "__all__") {
+      params.branch = String(filters.branch);
+    }
+    
+    // Add branch department filter if selected (but not if it's the "All" option)
+    if (filters.branchDepartment && filters.branchDepartment !== "__all__") {
+      params.branch_department = String(filters.branchDepartment);
+    }
+    
     return Object.keys(params).length > 0 ? params : undefined;
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, filters]);
+
+  // Determine which hook to use based on filters
+  const shouldUseDepartmentFilter = filters.department && 
+    filters.department !== "__all__" && 
+    String(filters.department).length > 0;
+
+  const shouldUseBranchDepartmentFilter = filters.branchDepartment && 
+    filters.branchDepartment !== "__all__" && 
+    String(filters.branchDepartment).length > 0;
+
+  // Use the appropriate hook based on filters
+  const employeesQuery = useEmployees(
+    shouldUseDepartmentFilter || shouldUseBranchDepartmentFilter ? undefined : searchParams
+  );
   
-  const { data: apiData, isLoading, error, isFetching } = useEmployees(searchParams);
+  const departmentEmployeesQuery = useDepartmentEmployees(
+    shouldUseDepartmentFilter ? String(filters.department) : "",
+    undefined,
+    shouldUseDepartmentFilter ? searchParams : undefined
+  );
+  
+  const branchDeptEmployeesQuery = useBranchDepartmentEmployees(
+    shouldUseBranchDepartmentFilter ? String(filters.branchDepartment) : "",
+    undefined,
+    shouldUseBranchDepartmentFilter ? searchParams : undefined
+  );
+
+  // Use the appropriate query result
+  const { data: apiData, isLoading, error, isFetching } = 
+    shouldUseDepartmentFilter ? departmentEmployeesQuery :
+    shouldUseBranchDepartmentFilter ? branchDeptEmployeesQuery :
+    employeesQuery;
+
   const deleteEmployee = useDeleteEmployee();
   const data = React.useMemo<EmployeeRow[]>(() => {
-    const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
-    const list = Array.isArray(employeesContainer?.results)
-      ? employeesContainer.results
-      : (Array.isArray(apiData) ? apiData : []);
-    return (list as unknown[]).map((e: unknown) => {
+    // Handle different data structures from different APIs
+    let employeesList: unknown[] = [];
+    
+    if (shouldUseDepartmentFilter) {
+      // For department employees, the data structure is different
+      const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
+      employeesList = Array.isArray(employeesContainer?.results)
+        ? employeesContainer.results
+        : (Array.isArray(apiData) ? apiData : []);
+    } else if (shouldUseBranchDepartmentFilter) {
+      // For branch department employees, the data structure is different
+      const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
+      employeesList = Array.isArray(employeesContainer?.results)
+        ? employeesContainer.results
+        : (Array.isArray(apiData) ? apiData : []);
+    } else {
+      // For regular employees query
+      const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
+      employeesList = Array.isArray(employeesContainer?.results)
+        ? employeesContainer.results
+        : (Array.isArray(apiData) ? apiData : []);
+    }
+    
+    return (employeesList as unknown[]).map((e: unknown) => {
       const employee = e as {
         id: number;
         emp_name?: string;
@@ -90,7 +155,8 @@ export function EmployeeTable() {
         reportingAvatar: undefined,
       };
     });
-  }, [apiData]);
+  }, [apiData, shouldUseDepartmentFilter, shouldUseBranchDepartmentFilter]);
+  
   const { pinnedIds, togglePin } = usePinnedRows<EmployeeRow>(data);
 
   const handleRowClick = React.useCallback((row: { original: EmployeeRow }) => {
@@ -100,6 +166,16 @@ export function EmployeeTable() {
   const handleSearchChange = React.useCallback((value: string) => {
     setSearchQuery(value);
   }, []);
+
+  const handleApplyFilters = (newFilters: Record<string, unknown>) => {
+    setFilters(newFilters);
+    setIsFilterOpen(false);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({});
+    setIsFilterOpen(false);
+  };
 
   // Remove client-side sorting since we're using API search
   React.useEffect(() => {
@@ -173,32 +249,30 @@ export function EmployeeTable() {
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <span onClick={(e) => e.stopPropagation()}>
-          <ConfirmPopover
-            title="Delete employee?"
-            description="This action cannot be undone."
-            confirmText="Delete"
-            onConfirm={async () => {
-              const id = row.original.id;
-              try {
-                setDeletingId(id);
-                await deleteEmployee.mutateAsync(id);
-                toast.success("Employee deleted");
-              } catch (err) {
-                console.error(err);
-                toast.error("Failed to delete employee");
-              } finally {
-                setDeletingId(null);
-              }
-            }}
-            disabled={deletingId === row.original.id || deleteEmployee.isPending}
-          >
-            <Button size="icon" variant="ghost" className="text-[#D64575]">
-              <Trash2 className="size-4" />
-            </Button>
-          </ConfirmPopover>
+            <ConfirmPopover
+              title="Delete employee?"
+              description="This action cannot be undone."
+              confirmText="Delete"
+              onConfirm={async () => {
+                const id = row.original.id;
+                try {
+                  setDeletingId(id);
+                  await deleteEmployee.mutateAsync(id);
+                  toast.success("Employee deleted");
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Failed to delete employee");
+                } finally {
+                  setDeletingId(null);
+                }
+              }}
+              disabled={deletingId === row.original.id || deleteEmployee.isPending}
+            >
+              <Button size="icon" variant="ghost" className="text-[#D64575]">
+                <Trash2 className="size-4" />
+              </Button>
+            </ConfirmPopover>
           </span>
-          
-          <PinRowButton row={row} pinnedIds={pinnedIds} togglePin={togglePin} />
         </div>
       ),
     },
@@ -227,35 +301,47 @@ export function EmployeeTable() {
   }
 
   return (
-    <Card className={cn("border-[#FFF6F6] p-5 shadow-none", {
-      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
-    })}>
-      <CardTableToolbar
-        title="Recent Additions"
-        searchValue={searchQuery}
-        onSearchChange={handleSearchChange}
-        sortOptions={[
-          { label: "Employee Name", value: "name" },
-          { label: "Branch/location", value: "location" },
-          { label: "Employee Email", value: "email" },
-          { label: "Department", value: "department" },
-          { label: "Role", value: "role" },
-          { label: "Reporting to", value: "reportingTo" },
-        ]}
-        activeSort={sortedBy}
-        onSortChange={(v) => setSortedBy(v)}
-        onFilterClick={() => { }}
-      />
-      <CardTable<EmployeeRow, unknown>
-        columns={columns}
-        data={data}
-        headerClassName="grid-cols-[1.2fr_1fr_1.2fr_0.9fr_0.8fr_1fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.2fr_0.9fr_0.8fr_1fr_0.8fr] cursor-pointer"}
-        onRowClick={handleRowClick}
-        footer={(table) => <CardTablePagination table={table} />}
-      />
-    </Card>
+    <>
+      <Card className={cn("border-[#FFF6F6] p-5 shadow-none", {
+        "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
+      })}>
+        <CardTableToolbar
+          title="Recent Additions"
+          searchValue={searchQuery}
+          showSortOptions={false}
+          onSearchChange={handleSearchChange}
+          onFilterClick={() => setIsFilterOpen(true)}
+        />
+        <CardTable<EmployeeRow, unknown>
+          columns={columns}
+          data={data}
+          headerClassName="grid-cols-[1.2fr_1fr_1.2fr_0.9fr_0.8fr_1fr_0.8fr]"
+          rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.2fr_0.9fr_0.8fr_1fr_0.8fr] cursor-pointer"}
+          onRowClick={handleRowClick}
+          footer={(table) => <CardTablePagination table={table} />}
+        />
+      </Card>
+      
+      <FilterDrawer
+        open={isFilterOpen}
+        onOpenChange={setIsFilterOpen}
+        onApply={handleApplyFilters}
+        onReset={handleResetFilters}
+        showFilterButton={false}
+        title="Filter Employees"
+        description="Filter employees by department, branch, or branch department"
+      >
+        <div className="space-y-6 py-4">
+          <DepartmentFilter 
+            value={(filters.department as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
+          />
+          <BranchDepartmentFilter 
+            value={(filters.branchDepartment as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, branchDepartment: value }))}
+          />
+        </div>
+      </FilterDrawer>
+    </>
   );
 }
-
-

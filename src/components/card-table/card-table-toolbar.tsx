@@ -15,6 +15,8 @@ export type CardTableToolbarProps = {
   onSortChange?: (value: string) => void;
   onFilterClick?: () => void;
   className?: string;
+  showSortOptions?: boolean;
+  showFilters?: boolean;
   sortOptions?: { label: string; value: string }[];
   activeSort?: string;
   accessControl?: React.ReactNode; // optional control like AccessLevelDropdown
@@ -25,7 +27,9 @@ export function CardTableToolbar({
   placeholder = "Search",
   searchValue,
   onSearchChange,
+  showSortOptions = true,
   onSortChange,
+  showFilters = true,
   onFilterClick,
   className,
   sortOptions = [
@@ -47,15 +51,20 @@ export function CardTableToolbar({
 
         {accessControl}
 
+        {showSortOptions && (
         <SortingDropdown
           sortOptions={sortOptions}
           activeSort={activeSort ?? "name"}
           onSortChange={onSortChange ?? (() => {})}
         />
+        )}
 
+        {showFilters && (
         <Button variant="outline" className="gap-1" onClick={onFilterClick ?? (() => {})}>
           <Filter className="size-4" /> Filter
         </Button>
+        )}
+        
       </div>
     </div>
   );
