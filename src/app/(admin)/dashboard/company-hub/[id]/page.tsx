@@ -106,12 +106,12 @@ export default function CompanyHubEditPage() {
         type: currentFormData.type === "policy" ? "policy" : "announcement",
         hash_tags: currentFormData.tags || undefined,
         is_active: !isDraft,
-        permitted_branches: currentFormData.selectedBranches && currentFormData.selectedBranches.length > 0 
+        permitted_branches: currentFormData.selectedBranches 
           ? currentFormData.selectedBranches.map(Number) 
-          : undefined,
-        permitted_departments: currentFormData.selectedDepartments && currentFormData.selectedDepartments.length > 0 
+          : [],
+        permitted_departments: currentFormData.selectedDepartments 
           ? currentFormData.selectedDepartments.map(Number) 
-          : undefined,
+          : [],
       });
       
       // Upload new attachments if any files are selected

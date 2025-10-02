@@ -61,13 +61,13 @@ export default function CompanyHubPage() {
         hash_tags: formData.tags || null,
         is_active: !isDraft, // Published if not draft
         inherits_parent_permissions: true, // Default to true
-        // If both arrays are empty, it means public access (no restrictions)
-        permitted_branches: formData.selectedBranches.length > 0 
+        // Always send arrays, even if empty, to properly clear selections
+        permitted_branches: formData.selectedBranches 
           ? formData.selectedBranches.map(Number) 
-          : undefined,
-        permitted_departments: formData.selectedDepartments.length > 0 
+          : [],
+        permitted_departments: formData.selectedDepartments 
           ? formData.selectedDepartments.map(Number) 
-          : undefined,
+          : [],
       };
 
       // Create the announcement first

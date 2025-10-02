@@ -42,9 +42,17 @@ export type CompanyHubFormData = {
   attachedFiles: File[];
 };
 
+// Add a new type for the form submission data
+export type CompanyHubFormSubmitData = CompanyHubFormData & {
+  // Ensure these fields are always present even when empty
+  selectedBranches: string[];
+  selectedDepartments: string[];
+};
+
 export function CompanyHubForm({ 
   initialData,
   onFormDataChange,
+  onSubmit,
   existingAttachments = [],
   onAttachmentDelete
 }: CompanyHubFormProps) {
@@ -121,6 +129,22 @@ export function CompanyHubForm({
     description,
     attachedFiles,
   }), [typeValue, title, tags, selectedBranches, selectedDepartments, description, attachedFiles]);
+
+  // Create a submit handler that ensures empty arrays are sent
+  const handleSubmit = React.useCallback((isDraft: boolean) => {
+    // Ensure we always send arrays, even if empty
+    const submitData: CompanyHubFormSubmitData = {
+      type: typeValue,
+      title,
+      tags,
+      selectedBranches: selectedBranches || [],
+      selectedDepartments: selectedDepartments || [],
+      description,
+      attachedFiles,
+    };
+    
+    onSubmit?.(submitData, isDraft);
+  }, [typeValue, title, tags, selectedBranches, selectedDepartments, description, attachedFiles, onSubmit]);
 
   React.useEffect(() => {
     onFormDataChange?.(currentFormData);
