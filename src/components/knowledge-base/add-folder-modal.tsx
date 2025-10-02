@@ -25,7 +25,8 @@ export function AddFolderModal({
   parentFolderId, 
   folderId, 
   onComplete, 
-  isEditMode = false 
+  isEditMode = false,
+  showAccessOptions = true
 }: { 
   open: boolean; 
   onOpenChange: (o: boolean) => void; 
@@ -33,6 +34,7 @@ export function AddFolderModal({
   folderId?: number; 
   onComplete?: () => void; 
   isEditMode?: boolean; 
+  showAccessOptions?: boolean;
 }) {
   const [folderName, setFolderName] = React.useState("");
   const [access, setAccess] = React.useState<AccessType>("only-you");
@@ -151,54 +153,56 @@ export function AddFolderModal({
           />
         </div>
 
-        <div className="flex flex-col items-start gap-6">
-          <Label className="w-28 pt-1">Who can access</Label>
-          <div className="flex-1 space-y-3 px-4 w-full">
-            <RadioGroup value={access} onValueChange={(v) => setAccess(v as AccessType)} className="space-y-2">
-                <div className="flex items-start gap-3 px-4">
-                  <RadioGroupItem id="access-only-you" value="only-you" />
-                  <div>
-                    <Label htmlFor="access-only-you" className="text-sm font-medium cursor-pointer">Only you</Label>
-                    <div className="text-xs text-muted-foreground">Only you can access this folder</div>
+        {showAccessOptions && (
+          <div className="flex flex-col items-start gap-6">
+            <Label className="w-28 pt-1">Who can access</Label>
+            <div className="flex-1 space-y-3 px-4 w-full">
+              <RadioGroup value={access} onValueChange={(v) => setAccess(v as AccessType)} className="space-y-2">
+                  <div className="flex items-start gap-3 px-4">
+                    <RadioGroupItem id="access-only-you" value="only-you" />
+                    <div>
+                      <Label htmlFor="access-only-you" className="text-sm font-medium cursor-pointer">Only you</Label>
+                      <div className="text-xs text-muted-foreground">Only you can access this folder</div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-3 px-4">
-                  <RadioGroupItem id="access-people" value="people" />
-                  <div>
-                    <Label htmlFor="access-people" className="text-sm font-medium cursor-pointer">Specific people</Label>
-                    <div className="text-xs text-muted-foreground">Choose who to share this folder with</div>
+                  <div className="flex items-start gap-3 px-4">
+                    <RadioGroupItem id="access-people" value="people" />
+                    <div>
+                      <Label htmlFor="access-people" className="text-sm font-medium cursor-pointer">Specific people</Label>
+                      <div className="text-xs text-muted-foreground">Choose who to share this folder with</div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-3 px-4">
-                  <RadioGroupItem id="access-department" value="department" />
-                  <div>
-                    <Label htmlFor="access-department" className="text-sm font-medium cursor-pointer">Specific Department</Label>
-                    <div className="text-xs text-muted-foreground">Choose who to share this folder with</div>
+                  <div className="flex items-start gap-3 px-4">
+                    <RadioGroupItem id="access-department" value="department" />
+                    <div>
+                      <Label htmlFor="access-department" className="text-sm font-medium cursor-pointer">Specific Department</Label>
+                      <div className="text-xs text-muted-foreground">Choose who to share this folder with</div>
+                    </div>
                   </div>
-                </div>
              
-            </RadioGroup>
+              </RadioGroup>
 
-            {access === "people" ? (
-              <SelectableTags
-                items={peopleItems}
-                selectedItems={selectedPeople}
-                onSelectionChange={setSelectedPeople}
-                placeholder="Add people"
-                className="w-full"
-              />
-            ) : null}
+              {access === "people" ? (
+                <SelectableTags
+                  items={peopleItems}
+                  selectedItems={selectedPeople}
+                  onSelectionChange={setSelectedPeople}
+                  placeholder="Add people"
+                  className="w-full"
+                />
+              ) : null}
 
-            {access === "department" ? (
-              <SelectableTags
-                items={departmentItems}
-                selectedItems={selectedDepartments}
-                onSelectionChange={setSelectedDepartments}
-                placeholder="Select departments"
-              />
-            ) : null}
+              {access === "department" ? (
+                <SelectableTags
+                  items={departmentItems}
+                  selectedItems={selectedDepartments}
+                  onSelectionChange={setSelectedDepartments}
+                  placeholder="Select departments"
+                />
+              ) : null}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </AppModal>
   );

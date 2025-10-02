@@ -46,6 +46,48 @@ export type FolderUpdateResponse = {
   folder: KnowledgeFolder;
 };
 
+// Add new types for folder tree structure
+export type FolderTreeFile = {
+  id: number;
+  folder: number;
+  name: string;
+  description: string;
+  file: string;
+  file_url: string;
+  inherits_parent_permissions: boolean;
+  permitted_branches: number[];
+  permitted_departments: number[];
+  permitted_employees: number[];
+  uploaded_by: number | null;
+  uploaded_at: string;
+  size: number;
+  content_type: string;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    employees: number[];
+  };
+};
+
+export type FolderTreeItem = {
+  id: number;
+  name: string;
+  description: string;
+  parent: number | null;
+  inherits_parent_permissions: boolean;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    employees: number[];
+  };
+  files: FolderTreeFile[];
+  folders: FolderTreeItem[]; // Recursive type for nested folders
+};
+
+export type FolderTreeResponse = {
+  folders: FolderTreeItem[];
+};
+
 // Service functions
 export async function getAllFolders(): Promise<FolderListResponse> {
   let page = 1;
@@ -126,11 +168,12 @@ export async function getFolder(id: number | string): Promise<FolderDetailRespon
 }
 
 export async function getFolderTree(employeeId?: number | string) {
-  const url = employeeId 
-    ? API_ROUTES.KNOWLEDGE_BASE.FOLDERS.FOLDER_TREE(employeeId)
-    : "/knowledge/folders/tree/";
+  let url = API_ROUTES.KNOWLEDGE_BASE.FOLDERS.FOLDER_TREE;
+  if (employeeId) {
+    url += `?employee_id=${employeeId}`;
+  }
   
-  const res = await apiCaller<KnowledgeFolder>(url, "GET");
+  const res = await apiCaller<FolderTreeResponse>(url, "GET");
   return res.data;
 }
 

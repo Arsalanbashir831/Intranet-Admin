@@ -44,7 +44,7 @@ export const API_ROUTES = {
             CREATE: "/knowledge/folders/",
             UPDATE: (id: number | string) => `/knowledge/folders/${id}/`,
             DELETE: (id: number | string) => `/knowledge/folders/${id}/`,
-            FOLDER_TREE: (employee_id: number | string) => `/knowledge/folders/tree?employee_id=${employee_id}/`,
+            FOLDER_TREE: "/knowledge/folders/tree/",
         },
         FILES: {
             LIST: "/knowledge/files/",

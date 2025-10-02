@@ -13,9 +13,48 @@ import { Pencil, Trash2, Folder as FolderIcon, FileText } from "lucide-react";
 import { TableContextMenu, RowContextMenu } from "@/components/knowledge-base/row-context-menus";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
-import { useDeleteFolder } from "@/hooks/queries/use-knowledge-folders";
+import { useDeleteFolder, useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";
 import { useDeleteFile } from "@/hooks/queries/use-knowledge-files";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
+import { format } from "date-fns";
+
+// Types from the folder tree API response
+type FolderTreeFile = {
+  id: number;
+  folder: number;
+  name: string;
+  description: string;
+  file: string;
+  file_url: string;
+  inherits_parent_permissions: boolean;
+  permitted_branches: number[];
+  permitted_departments: number[];
+  permitted_employees: number[];
+  uploaded_by: number | null;
+  uploaded_at: string;
+  size: number;
+  content_type: string;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    employees: number[];
+  };
+};
+
+type FolderTreeItem = {
+  id: number;
+  name: string;
+  description: string;
+  parent: number | null;
+  inherits_parent_permissions: boolean;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    employees: number[];
+  };
+  files: FolderTreeFile[];
+  folders: FolderTreeItem[];
+};
 
 export type FolderItemRow = {
   id: string;
@@ -26,22 +65,22 @@ export type FolderItemRow = {
   createdByAvatar?: string;
   dateCreated?: string;
   originalId?: string; // Store the actual API ID
+  fileSize?: number; // For files
 };
 
 type Props = {
   title: string;
-  data: FolderItemRow[];
   folderId?: number; // Add folderId for bulk upload
   onNewFolder?: () => void;
   onNewFile?: () => void;
   onFilesUploaded?: () => void; // Callback when files are uploaded
 };
 
-export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFile, onFilesUploaded }: Props) {
+export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, onFilesUploaded }: Props) {
   const [sortedBy, setSortedBy] = React.useState<string>("file");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
-  const [rows, setRows] = React.useState<FolderItemRow[]>(data);
+  const [rows, setRows] = React.useState<FolderItemRow[]>([]);
   const [accessFilter, setAccessFilter] = React.useState<string[]>([]);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [editingFolderId, setEditingFolderId] = React.useState<string | null>(null);
@@ -49,6 +88,66 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
   const deleteFolder = useDeleteFolder();
   const deleteFile = useDeleteFile();
   const { open: editModalOpen, setOpen: setEditModalOpen, openModal: openEditModal } = useAddFolderModal();
+
+  // Use folder tree API to get folder and file data
+  const { data: folderTreeData, isLoading, error, refetch } = useGetFolderTree();
+
+  // Find the current folder in the tree data
+  const currentFolder = React.useMemo(() => {
+    if (!folderTreeData?.folders || folderId === undefined) return null;
+
+    const findFolder = (folders: FolderTreeItem[]): FolderTreeItem | null => {
+      for (const folder of folders) {
+        if (folder.id === folderId) {
+          return folder;
+        }
+        const found = findFolder(folder.folders);
+        if (found) return found;
+      }
+      return null;
+    };
+
+    return findFolder(folderTreeData.folders);
+  }, [folderTreeData, folderId]);
+
+  // Transform folder tree data to table rows
+  React.useEffect(() => {
+    if (!currentFolder) {
+      setRows([]);
+      return;
+    }
+
+    const newRows: FolderItemRow[] = [];
+
+    // Add subfolders
+    currentFolder.folders.forEach(folder => {
+      newRows.push({
+        id: `folder-${folder.id}`,
+        file: folder.name,
+        kind: "folder",
+        createdByName: "Admin", // TODO: Get actual creator name
+        dateCreated: folderTreeData ? new Date().toISOString().slice(0, 10) : undefined, // TODO: Use actual created date
+        originalId: folder.id.toString(),
+      });
+    });
+
+    // Add files
+    currentFolder.files.forEach(file => {
+      const extension = file.name.split('.').pop()?.toLowerCase() || "";
+      newRows.push({
+        id: `file-${file.id}`,
+        file: file.name,
+        kind: "file",
+        extension,
+        createdByName: "Admin", // TODO: Get actual uploader name
+        dateCreated: file.uploaded_at ? format(new Date(file.uploaded_at), "yyyy-MM-dd") : undefined,
+        originalId: file.id.toString(),
+        fileSize: file.size,
+      });
+    });
+
+    setRows(newRows);
+  }, [currentFolder, folderTreeData]);
 
   // Debounce search query
   React.useEffect(() => {
@@ -59,19 +158,19 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
   }, [searchQuery]);
 
   // Filter and sort data based on search query and sort option
-  React.useEffect(() => {
-    let filteredData = [...data];
-    
+  const filteredAndSortedRows = React.useMemo(() => {
+    let filteredData = [...rows];
+
     // Apply client-side search filter
     if (debouncedSearchQuery.trim()) {
       const searchLower = debouncedSearchQuery.toLowerCase();
-      filteredData = filteredData.filter(item => 
+      filteredData = filteredData.filter(item =>
         item.file.toLowerCase().includes(searchLower) ||
         item.createdByName?.toLowerCase().includes(searchLower) ||
         item.dateCreated?.toLowerCase().includes(searchLower)
       );
     }
-    
+
     // Apply sorting
     filteredData.sort((a, b) => {
       const key = sortedBy as keyof FolderItemRow;
@@ -79,9 +178,9 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
       const bv = (b[key] ?? "") as string;
       return String(av).localeCompare(String(bv));
     });
-    
-    setRows(filteredData);
-  }, [data, sortedBy, debouncedSearchQuery]);
+
+    return filteredData;
+  }, [rows, sortedBy, debouncedSearchQuery]);
 
   const handleEdit = (item: FolderItemRow) => {
     if (item.kind === "folder" && item.originalId) {
@@ -93,21 +192,22 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
   const handleEditComplete = () => {
     setEditingFolderId(null);
     setEditModalOpen(false);
-    // Optionally refresh data here
+    // Refresh the folder tree data
+    refetch();
   };
 
   const handleDelete = async (item: FolderItemRow) => {
     if (!item.originalId) return;
-    
+
     try {
       setDeletingId(item.id);
       if (item.kind === "folder") {
-        await deleteFolder.mutateAsync(item.originalId);
+        await deleteFolder.mutateAsync(parseInt(item.originalId));
       } else {
-        await deleteFile.mutateAsync(item.originalId);
+        await deleteFile.mutateAsync(parseInt(item.originalId));
       }
-      // Remove item from local state
-      setRows(prev => prev.filter(row => row.id !== item.id));
+      // Refresh the folder tree data
+      refetch();
     } catch {
       // Error is handled by the mutation hooks
     } finally {
@@ -122,15 +222,13 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
       if (!item) return;
       // Only add to this table if it matches current folder title or no path provided
       if (!item.targetPath || item.targetPath === title) {
-        setRows((prev) => [
-          ...prev,
-          { id: item.id, file: item.name, kind: "file", extension: item.name.split('.').pop()?.toLowerCase(), createdByName: "You", dateCreated: new Date().toISOString().slice(0, 10) },
-        ]);
+        // Refresh the folder tree data when new files are uploaded
+        refetch();
       }
     };
     window.addEventListener("kb:queue-finished-item", handler);
     return () => window.removeEventListener("kb:queue-finished-item", handler);
-  }, [title]);
+  }, [title, refetch]);
 
   const columns: ColumnDef<FolderItemRow>[] = [
     {
@@ -196,9 +294,9 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
             </ConfirmPopover>
           </span>
           {row.original.kind === "folder" && (
-            <Button 
-              size="icon" 
-              variant="ghost" 
+            <Button
+              size="icon"
+              variant="ghost"
               className="text-[#2563EB]"
               onClick={(e) => {
                 e.stopPropagation();
@@ -213,8 +311,34 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
     },
   ];
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile}>
+        <Card className="border-[#FFF6F6] p-5 shadow-none hover:bg-[#fffbfd]">
+          <div className="text-center py-8">
+            Loading folder contents...
+          </div>
+        </Card>
+      </TableContextMenu>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile}>
+        <Card className="border-[#FFF6F6] p-5 shadow-none hover:bg-[#fffbfd]">
+          <div className="text-center py-8 text-red-600">
+            Error loading folder contents: {error.message}
+          </div>
+        </Card>
+      </TableContextMenu>
+    );
+  }
+
   return (
-    <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile}>
+    <>
       <Card
         className="border-[#FFF6F6] p-5 shadow-none hover:bg-[#fffbfd]"
         onDragOver={(e) => {
@@ -225,80 +349,90 @@ export function FolderDetailsTable({ title, data, folderId, onNewFolder, onNewFi
           const files = Array.from(e.dataTransfer.files || [])
             .filter((f) => /pdf$|doc$|docx$/i.test(f.name));
           if (files.length === 0) return;
-          
+
           // If we have a folderId, use the upload queue with real API
           if (folderId) {
-            uploadFiles(files, folderId, onFilesUploaded);
+            uploadFiles(files, folderId, () => {
+              onFilesUploaded?.();
+              // Refresh the folder tree data after upload
+              refetch();
+            });
           } else {
             // Fallback to queue system
             enqueueFiles(files, title);
           }
         }}
       >
-      <CardTableToolbar
-        title={title}
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        sortOptions={[{ label: "File", value: "file" }, { label: "Created By", value: "createdByName" }, { label: "Date Created", value: "dateCreated" }]}
-        activeSort={sortedBy}
-        onSortChange={(v) => setSortedBy(v)}
-        onFilterClick={() => {}}
-        accessControl={<AccessLevelDropdown
-          items={[
-            { label: "Elanor Pera", value: "elanor" },
-            { label: "Chantal Shelburne", value: "chantal" },
-            { label: "Georgette Strobel", value: "georgette" },
-            { label: "Charolette Hanlin", value: "charolette" },
-          ]}
-          selected={accessFilter}
-          onChange={setAccessFilter}
-        />}
-      />
-      <CardTable<FolderItemRow, unknown>
-        columns={columns}
-        data={rows}
-        headerClassName="grid-cols-[1.4fr_1fr_1fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_0.8fr] cursor-pointer"}
-        wrapRow={(rowEl, row) => (
-          <RowContextMenu
-            key={row.id}
-            onRename={() => {}}
-            onDelete={() => {}}
-          >
-            {rowEl}
-          </RowContextMenu>
-        )}
-        onRowClick={(row) => {
-          const isFolder = (row.original.kind ?? "file") === "folder";
-          if (isFolder) {
-            // Emit a custom event for the consumer to navigate
-            const event = new CustomEvent("kb:open-folder", { detail: row.original });
-            window.dispatchEvent(event);
-          } else {
-            // For files, we could implement file preview/download
-            // For now, we'll just log the action
-            console.log('File clicked:', row.original);
-          }
-        }}
-        footer={() => null}
-        noResultsContent={(
-          <div className="text-center">
-            <div className="text-[13px] font-medium text-[#111827]">This folder is empty</div>
-            <div className="text-[11px] text-[#6B7280]">Drag and drop files onto this window to upload</div>
-          </div>
-        )}
-      />
+        <CardTableToolbar
+          title={title}
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortOptions={[{ label: "File", value: "file" }, { label: "Created By", value: "createdByName" }, { label: "Date Created", value: "dateCreated" }]}
+          activeSort={sortedBy}
+          onSortChange={(v) => setSortedBy(v)}
+          onFilterClick={() => { }}
+          accessControl={<AccessLevelDropdown
+            items={[
+              { label: "Elanor Pera", value: "elanor" },
+              { label: "Chantal Shelburne", value: "chantal" },
+              { label: "Georgette Strobel", value: "georgette" },
+              { label: "Charolette Hanlin", value: "charolette" },
+            ]}
+            selected={accessFilter}
+            onChange={setAccessFilter}
+          />}
+        />
+        <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile}>
+          <CardTable<FolderItemRow, unknown>
+            columns={columns}
+            data={filteredAndSortedRows}
+            headerClassName="grid-cols-[1.4fr_1fr_1fr_0.8fr]"
+            rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_0.8fr] cursor-pointer"}
+            // wrapRow={(rowEl, row) => (
+            //   <RowContextMenu
+            //     key={row.id}
+            //     onRename={() => {}}
+            //     onDelete={() => {}}
+            //   >
+            //     {rowEl}
+            //   </RowContextMenu>
+            // )}
+            onRowClick={(row) => {
+              const isFolder = (row.original.kind ?? "file") === "folder";
+              if (isFolder) {
+                // Emit a custom event for the consumer to navigate
+                const event = new CustomEvent("kb:open-folder", { detail: row.original });
+                window.dispatchEvent(event);
+              } else {
+                // For files, open in new tab
+                const fileRow = row.original;
+                if (fileRow.originalId) {
+                  const file = currentFolder?.files.find(f => f.id.toString() === fileRow.originalId);
+                  if (file) {
+                    window.open(file.file_url, '_blank');
+                  }
+                }
+              }
+            }}
+            footer={() => null}
+            noResultsContent={(
+              <div className="text-center">
+                <div className="text-[13px] font-medium text-[#111827]">This folder is empty</div>
+                <div className="text-[11px] text-[#6B7280]">Drag and drop files onto this window to upload</div>
+              </div>
+            )}
+          />
+        </TableContextMenu>
       </Card>
-      
-      <AddFolderModal 
-        open={editModalOpen} 
+
+      <AddFolderModal
+        open={editModalOpen}
         onOpenChange={setEditModalOpen}
         folderId={editingFolderId ? parseInt(editingFolderId) : undefined}
         onComplete={handleEditComplete}
         isEditMode={true}
+        showAccessOptions={false}
       />
-    </TableContextMenu>
+    </>
   );
 }
-
-

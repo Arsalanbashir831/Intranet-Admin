@@ -15,48 +15,88 @@ import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { PinRowButton } from "@/components/card-table/pin-row-button";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { useGetAllFolders, useDeleteFolder, useSearchFolders } from "@/hooks/queries/use-knowledge-folders";
+import { useGetFolderTree, useDeleteFolder } from "@/hooks/queries/use-knowledge-folders"; // Added useDeleteFolder
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
-import { KnowledgeFolder } from "@/services/knowledge-folders";
 import { format } from "date-fns";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
+
+// Types for folder tree data
+type FolderTreeFile = {
+  id: number;
+  folder: number;
+  name: string;
+  description: string;
+  file: string;
+  file_url: string;
+  inherits_parent_permissions: boolean;
+  permitted_branches: number[];
+  permitted_departments: number[];
+  permitted_employees: number[];
+  uploaded_by: number | null;
+  uploaded_at: string;
+  size: number;
+  content_type: string;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    employees: number[];
+  };
+};
+
+type FolderTreeItem = {
+  id: number;
+  name: string;
+  description: string;
+  parent: number | null;
+  inherits_parent_permissions: boolean;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    employees: number[];
+  };
+  files: FolderTreeFile[];
+  folders: FolderTreeItem[];
+  created_at?: string;
+};
 
 export type KnowledgeBaseRow = {
   id: string;
   folder: string;
   createdByName: string;
   createdByAvatar?: string;
-  accessLevel: "Department Level" | "Employees Level" | "Admin Level";
+  accessLevel: "Specific Departments" | "Specific Branches" | "Specific Employees" | "All Employees";
   dateCreated: string; // YYYY-MM-DD
-  originalData: KnowledgeFolder;
+  originalData: FolderTreeItem; // Changed to FolderTreeItem
 };
 
-
-
 // Helper function to determine access level from permissions
-const getAccessLevel = (folder: KnowledgeFolder): "Department Level" | "Employees Level" | "Admin Level" => {
-  // If permitted_departments have values then show department level
-  if (folder.permitted_departments && folder.permitted_departments.length > 0) {
-    return "Department Level";
+const getAccessLevel = (folder: FolderTreeItem): "Specific Departments" | "Specific Branches" | "Specific Employees" | "All Employees" => {
+  // Check branches first
+  if (folder.effective_permissions.branches && folder.effective_permissions.branches.length > 0) {
+    return "Specific Branches";
   }
-  // If permitted_employees have values then show employees level
-  if (folder.permitted_employees && folder.permitted_employees.length > 0) {
-    return "Employees Level";
+  // Check departments
+  if (folder.effective_permissions.departments && folder.effective_permissions.departments.length > 0) {
+    return "Specific Departments";
   }
-  // If both are empty then show admin level
-  return "Admin Level";
+  // Check employees
+  if (folder.effective_permissions.employees && folder.effective_permissions.employees.length > 0) {
+    return "Specific Employees";
+  }
+  // If all are empty, it's accessible to all employees
+  return "All Employees";
 };
 
 // Helper function to transform API data to table row format
-const transformFolderToRow = (folder: KnowledgeFolder): KnowledgeBaseRow => {
+const transformFolderToRow = (folder: FolderTreeItem): KnowledgeBaseRow => {
   return {
     id: folder.id.toString(),
     folder: folder.name,
     createdByName: "Admin", // TODO: Replace with actual creator name when available
     createdByAvatar: undefined,
     accessLevel: getAccessLevel(folder),
-    dateCreated: format(new Date(folder.created_at), "yyyy-MM-dd"),
+    dateCreated: folder.created_at ? format(new Date(folder.created_at), "yyyy-MM-dd") : "Unknown",
     originalData: folder,
   };
 };
@@ -74,16 +114,8 @@ export function KnowledgeBaseTable() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Use search API when there's a search query, otherwise use regular API
-  const searchParams = React.useMemo(() => ({
-    search: debouncedSearchQuery,
-  }), [debouncedSearchQuery]);
-
-  const searchResult = useSearchFolders(searchParams);
-  const allFoldersResult = useGetAllFolders();
-  
-  // Use search data when searching, otherwise use all folders data
-  const { data: foldersData, isFetching, error } = debouncedSearchQuery ? searchResult : allFoldersResult;
+  // Use folder tree API instead of folders list
+  const { data: folderTreeData, isFetching, error } = useGetFolderTree();
   
   const deleteFolder = useDeleteFolder();
   const router = useRouter();
@@ -91,11 +123,21 @@ export function KnowledgeBaseTable() {
   const [editingFolderId, setEditingFolderId] = React.useState<string | null>(null);
   const { open: editModalOpen, setOpen: setEditModalOpen, openModal: openEditModal } = useAddFolderModal();
 
-  // Transform API data to table format
+  // Transform API data to table format - only use top-level folders
   const apiData = React.useMemo(() => {
-    if (!foldersData?.folders.results) return [];
-    return foldersData.folders.results.map(transformFolderToRow);
-  }, [foldersData]);
+    if (!folderTreeData?.folders) return [];
+    
+    // Filter folders based on search query if provided
+    let folders = folderTreeData.folders;
+    if (debouncedSearchQuery) {
+      const searchLower = debouncedSearchQuery.toLowerCase();
+      folders = folders.filter(folder => 
+        folder.name.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    return folders.map(transformFolderToRow);
+  }, [folderTreeData, debouncedSearchQuery]);
 
   // Apply sorting
   const [data, setData] = React.useState<KnowledgeBaseRow[]>([]);
@@ -116,7 +158,7 @@ export function KnowledgeBaseTable() {
   const handleDeleteFolder = async (folderId: string) => {
     try {
       setDeletingId(folderId);
-      await deleteFolder.mutateAsync(folderId);
+      await deleteFolder.mutateAsync(parseInt(folderId));
     } catch {
       // Error is handled by the mutation hook
     } finally {
@@ -132,7 +174,7 @@ export function KnowledgeBaseTable() {
   const handleEditComplete = () => {
     setEditingFolderId(null);
     setEditModalOpen(false);
-    // Data will be automatically refresed via React Query invalidation
+    // Data will be automatically refreshed via React Query invalidation
   };
 
   const columns: ColumnDef<KnowledgeBaseRow>[] = [
@@ -172,22 +214,28 @@ export function KnowledgeBaseTable() {
       header: ({ column }) => <CardTableColumnHeader column={column} title="Access Level" />,
       cell: ({ row }) => {
         const accessLevel = row.original.accessLevel;
-        if (accessLevel === "Department Level") {
+        if (accessLevel === "Specific Departments") {
           return (
             <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
-              Department Level
+              Specific Departments
             </Badge>
           );
-        } else if (accessLevel === "Employees Level") {
+        } else if (accessLevel === "Specific Branches") {
+          return (
+            <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
+              Specific Branches
+            </Badge>
+          );
+        } else if (accessLevel === "Specific Employees") {
           return (
             <Badge variant="secondary" className="bg-[#EEF3FF] text-[#2F5DD1] border-0">
-              Employees Level
+              Specific Employees
             </Badge>
           );
         } else {
           return (
             <Badge variant="secondary" className="bg-[#F0FDF4] text-[#166534] border-0">
-              Admin Level
+              All Employees
             </Badge>
           );
         }
@@ -268,7 +316,8 @@ export function KnowledgeBaseTable() {
         columns={columns}
         data={ordered}
         headerClassName="grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] cursor-pointer"}
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] cursor-pointer"
+}
         onRowClick={(row) => router.push(ROUTES.ADMIN.KNOWLEDGE_BASE_FOLDER_ID(row.original.id))}
         footer={(table) => <CardTablePagination table={table} />}
       />
@@ -283,5 +332,3 @@ export function KnowledgeBaseTable() {
     </Card>
   );
 }
-
-
