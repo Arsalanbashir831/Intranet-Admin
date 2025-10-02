@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Card } from "@/components/ui/card";
 import { CardTable } from "@/components/card-table/card-table";
@@ -8,11 +9,10 @@ import { CardTableColumnHeader } from "@/components/card-table/card-table-column
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
 import { useBranchDepartmentEmployees } from "@/hooks/queries/use-departments";
 import type { BranchDepartmentEmployee } from "@/services/departments";
 import { cn } from "@/lib/utils";
+import { ROUTES } from "@/constants/routes";
 
 export type DepartmentEmployeeRow = {
   id: string;
@@ -21,6 +21,7 @@ export type DepartmentEmployeeRow = {
   address: string;
   role: string;
   avatar?: string;
+  dateOfJoining?: string;
 };
 
 interface DepartmentsDetailTableProps {
@@ -29,25 +30,26 @@ interface DepartmentsDetailTableProps {
   branchName?: string;
 }
 
-export function DepartmentsDetailTable({ 
-  branchDepartmentId, 
+export function DepartmentsDetailTable({
+  branchDepartmentId,
   departmentName = "Department",
   branchName = "Branch"
 }: DepartmentsDetailTableProps) {
+  const router = useRouter();
   const [sortedBy, setSortedBy] = React.useState<string>("name");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [pagination, setPagination] = React.useState({ page: 1, pageSize: 10 });
-  
+
   // Debounce search query to avoid too many API calls
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
     }, 300); // 300ms debounce
-    
+
     return () => clearTimeout(timer);
   }, [searchQuery]);
-  
+
   // Build search params - only include search if it has a value
   const searchParams = React.useMemo(() => {
     const params: Record<string, string | number | boolean> = {};
@@ -56,9 +58,9 @@ export function DepartmentsDetailTable({
     }
     return Object.keys(params).length > 0 ? params : undefined;
   }, [debouncedSearchQuery]);
-  
+
   const { data: employeesData, isLoading, error, isFetching } = useBranchDepartmentEmployees(
-    branchDepartmentId || "", 
+    branchDepartmentId || "",
     pagination,
     searchParams
   );
@@ -84,6 +86,7 @@ export function DepartmentsDetailTable({
       address: `${emp.address}${emp.city ? `, ${emp.city}` : ""}` || "N/A",
       role: emp.role || "N/A",
       avatar: emp.profile_picture || undefined,
+      dateOfJoining: emp.hire_date || undefined,
     }));
   }, [employeesData]);
 
@@ -141,16 +144,19 @@ export function DepartmentsDetailTable({
       ),
     },
     {
-      id: "actions",
-      header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
-      cell: () => (
-        <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" className="text-[#D64575]">
-            <Trash2 className="size-4" />
-          </Button>
-
-        </div>
-      ),
+      accessorKey: "dateOfJoining",
+      header: ({ column }) => <CardTableColumnHeader column={column} title="Date of Joining" />,
+      cell: ({ getValue }) => {
+        const date = getValue() as string | undefined;
+        if (!date) return <span className="text-sm text-[#667085]">N/A</span>;
+        
+        // Format the date for display
+        try {
+          return <span className="text-sm text-[#667085]">{new Date(date).toLocaleDateString()}</span>;
+        } catch {
+          return <span className="text-sm text-[#667085]">{date}</span>;
+        }
+      },
     },
   ], []);
 
@@ -188,6 +194,7 @@ export function DepartmentsDetailTable({
           { label: "Employee Email", value: "email" },
           { label: "Address", value: "address" },
           { label: "Role", value: "role" },
+          { label: "Date of Joining", value: "dateOfJoining" }, // Add this new sort option
         ]}
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}
@@ -196,11 +203,15 @@ export function DepartmentsDetailTable({
       <CardTable<DepartmentEmployeeRow, unknown>
         columns={columns}
         data={data}
-        headerClassName="grid-cols-[1.4fr_1.6fr_1.6fr_0.8fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1.6fr_1.6fr_0.8fr_0.8fr]"}
+        headerClassName="grid-cols-[1.4fr_1.6fr_1.6fr_0.8fr_1fr]" // Updated to accommodate 5 columns
+        rowClassName={() => "cursor-pointer hover:bg-[#FAFAFB] grid-cols-[1.4fr_1.6fr_1.6fr_0.8fr_1fr]"} // Updated to accommodate 5 columns
+        onRowClick={(row) => {
+          router.push(ROUTES.ADMIN.ORG_CHART_PROFILE_ID(String(row.original.id)));
+        }
+        }
         footer={(table) => (
-          <CardTablePagination 
-            table={table} 
+          <CardTablePagination
+            table={table}
             paginationInfo={employeesData?.employees}
             onPageChange={handlePageChange}
           />

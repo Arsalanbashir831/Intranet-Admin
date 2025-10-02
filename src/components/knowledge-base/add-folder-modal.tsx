@@ -15,7 +15,7 @@ import type { Department } from "@/services/departments";
 
 type Employee = components["schemas"]["Employee"];
 
-type AccessType = "only-you" | "people" | "department";
+type AccessType = "all-employees" | "people" | "department";
 
 
 
@@ -37,7 +37,7 @@ export function AddFolderModal({
   showAccessOptions?: boolean;
 }) {
   const [folderName, setFolderName] = React.useState("");
-  const [access, setAccess] = React.useState<AccessType>("only-you");
+  const [access, setAccess] = React.useState<AccessType>("all-employees");
   const [selectedPeople, setSelectedPeople] = React.useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = React.useState<string[]>([]);
 
@@ -61,7 +61,7 @@ export function AddFolderModal({
         setAccess("people");
         setSelectedPeople(folder.permitted_employees.map((e: number) => e.toString()));
       } else {
-        setAccess("only-you");
+        setAccess("all-employees");
       }
     }
   }, [isEditMode, folderData]);
@@ -70,7 +70,7 @@ export function AddFolderModal({
   React.useEffect(() => {
     if (!open) {
       setFolderName("");
-      setAccess("only-you");
+      setAccess("all-employees");
       setSelectedPeople([]);
       setSelectedDepartments([]);
     }
@@ -105,6 +105,7 @@ export function AddFolderModal({
       permitted_employees: access === "people" ? selectedPeople : [],
       permitted_departments: access === "department" ? selectedDepartments : [],
       permitted_branches: [], // Can be expanded later if needed
+
     };
 
     try {
@@ -116,7 +117,7 @@ export function AddFolderModal({
       
       // Reset form
       setFolderName("");
-      setAccess("only-you");
+      setAccess("all-employees");
       setSelectedPeople([]);
       setSelectedDepartments([]);
       onOpenChange(false);
@@ -159,10 +160,10 @@ export function AddFolderModal({
             <div className="flex-1 space-y-3 px-4 w-full">
               <RadioGroup value={access} onValueChange={(v) => setAccess(v as AccessType)} className="space-y-2">
                   <div className="flex items-start gap-3 px-4">
-                    <RadioGroupItem id="access-only-you" value="only-you" />
+                    <RadioGroupItem id="access-all-employees" value="all-employees" />
                     <div>
-                      <Label htmlFor="access-only-you" className="text-sm font-medium cursor-pointer">Only you</Label>
-                      <div className="text-xs text-muted-foreground">Only you can access this folder</div>
+                      <Label htmlFor="access-all-employees" className="text-sm font-medium cursor-pointer">All employees</Label>
+                      <div className="text-xs text-muted-foreground">All employees can access this folder</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 px-4">
