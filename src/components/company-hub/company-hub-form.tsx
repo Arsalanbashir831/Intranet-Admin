@@ -120,7 +120,7 @@ export function CompanyHubForm({
         const decodedData = decodeURIComponent(url.replace('attachment://', ''));
         const fileInfo = JSON.parse(decodedData);
         return fileInfo.id;
-      } catch (e) {
+      } catch {
         return null;
       }
     }
@@ -160,22 +160,6 @@ export function CompanyHubForm({
     description,
     attachedFiles,
   }), [typeValue, title, tags, selectedBranches, selectedDepartments, description, attachedFiles]);
-
-  // Create a submit handler that ensures empty arrays are sent
-  const handleSubmit = React.useCallback((isDraft: boolean) => {
-    // Ensure we always send arrays, even if empty
-    const submitData: CompanyHubFormSubmitData = {
-      type: typeValue,
-      title,
-      tags,
-      selectedBranches: selectedBranches || [],
-      selectedDepartments: selectedDepartments || [],
-      description,
-      attachedFiles,
-    };
-    
-    onSubmit?.(submitData, isDraft);
-  }, [typeValue, title, tags, selectedBranches, selectedDepartments, description, attachedFiles, onSubmit]);
 
   React.useEffect(() => {
     onFormDataChange?.(currentFormData);

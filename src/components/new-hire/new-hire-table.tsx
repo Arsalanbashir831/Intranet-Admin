@@ -20,6 +20,16 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 import type { components } from "@/types/api";
+import { FilterDrawer } from "@/components/card-table/filter-drawer";
+import { DepartmentFilter } from "@/components/card-table/filter-components";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export type NewHireRow = {
   id: string;
@@ -36,6 +46,8 @@ export function NewHireTable() {
   const [sortedBy, setSortedBy] = React.useState<string>("dateOfCreation");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
+  const [isFilterOpen, setIsFilterOpen] = React.useState(false);
+  const [filters, setFilters] = React.useState<Record<string, unknown>>({});
 
   // Debounce search query to avoid too many API calls
   React.useEffect(() => {
@@ -52,8 +64,19 @@ export function NewHireTable() {
     if (debouncedSearchQuery.trim()) {
       params.search = debouncedSearchQuery.trim();
     }
+    
+    // Add status filter if selected (but not if it's the "All" option)
+    if (filters.status && filters.status !== "__all__") {
+      params.status = String(filters.status);
+    }
+    
+    // Add department filter if selected (but not if it's the "All" option)
+    if (filters.department && filters.department !== "__all__") {
+      params.department = String(filters.department);
+    }
+    
     return Object.keys(params).length > 0 ? params : undefined;
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, filters]);
 
   const { data: checklistsData, isLoading, isFetching } = useChecklists(searchParams);
   const deleteChecklist = useDeleteChecklist();
@@ -73,8 +96,21 @@ export function NewHireTable() {
       // Get assigned by details
       const assignedByDetails = checklist.assigned_by_details as { emp_name?: string; profile_picture?: string } | undefined;
 
-      // Get department name - need to extract from assigned_to_details branch_department
-      const departmentName = checklist.assigned_to_details?.[0]?.branch_department ? 'Department' : 'Unknown';
+      // Get department name from department_details (handling both string and object formats)
+      let departmentName = 'Unknown';
+      if (typeof checklist.department_details === 'string') {
+        try {
+          // Try to parse if it's a JSON string
+          const parsed = JSON.parse(checklist.department_details);
+          departmentName = parsed.dept_name || parsed.name || checklist.department_details || 'Unknown';
+        } catch (e) {
+          // If parsing fails, use the string value directly
+          departmentName = checklist.department_details || 'Unknown';
+        }
+      } else if (checklist.department_details && typeof checklist.department_details === 'object') {
+        // If it's already an object (as in the API response you provided)
+        departmentName = (checklist.department_details as { dept_name?: string }).dept_name || 'Unknown';
+      }
 
       return {
         id: String(checklist.id),
@@ -97,6 +133,11 @@ export function NewHireTable() {
   const handleSearchChange = React.useCallback((value: string) => {
     setSearchQuery(value);
   }, []);
+
+  const handleResetFilters = () => {
+    setFilters({});
+    setIsFilterOpen(false);
+  };
 
   const handleDelete = async (id: string) => {
     try {
@@ -208,7 +249,7 @@ export function NewHireTable() {
         ]}
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}
-        onFilterClick={() => { }}
+        onFilterClick={() => setIsFilterOpen(true)}
       />
       <CardTable<NewHireRow, unknown>
         columns={columns}
@@ -218,8 +259,63 @@ export function NewHireTable() {
         onRowClick={(row) => handleRowClick(row.original)}
         footer={(table) => <CardTablePagination table={table} />}
       />
+      
+      <FilterDrawer
+        open={isFilterOpen}
+        onOpenChange={setIsFilterOpen}
+        onReset={handleResetFilters}
+        showFilterButton={false}
+        title="Filter New Hire Plans"
+        description="Filter new hire plans by status or department"
+      >
+        <div className="space-y-6 py-4">
+          <SelectFilter 
+            label="Status"
+            value={(filters.status as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, status: value }))}
+            options={[
+              { value: "__all__", label: "All Statuses" },
+              { value: "publish", label: "Published" },
+              { value: "draft", label: "Draft" }
+            ]}
+          />
+          <DepartmentFilter 
+            value={(filters.department as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
+          />
+        </div>
+      </FilterDrawer>
     </Card>
   );
 }
 
-
+// Custom Select Filter Component
+function SelectFilter({ 
+  label,
+  value, 
+  onValueChange,
+  options
+}: { 
+  label: string;
+  value: string; 
+  onValueChange: (value: string) => void; 
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={`filter-${label.toLowerCase()}`}>{label}</Label>
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger id={`filter-${label.toLowerCase()}`} className="w-full border-[#E4E4E4]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}

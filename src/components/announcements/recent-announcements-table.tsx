@@ -10,7 +10,6 @@ import { Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
-import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useAnnouncements, useDeleteAnnouncement } from "@/hooks/queries/use-announcements";
@@ -85,8 +84,6 @@ export function RecentAnnouncementsTable() {
       status: announcement.is_active ? "Published" : "Draft",
     }));
   }, [apiData]);
-
-  const { pinnedIds, togglePin, ordered } = usePinnedRows<AnnouncementRow>(data);
 
   const handleRowClick = (row: AnnouncementRow) => {
     // Navigate to company hub edit page for announcements
@@ -191,7 +188,7 @@ export function RecentAnnouncementsTable() {
       />
       <CardTable<AnnouncementRow, unknown>
         columns={columns}
-        data={ordered}
+        data={data}
         headerClassName="grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr]"
         rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr] cursor-pointer"}
         onRowClick={(row) => handleRowClick(row.original)}

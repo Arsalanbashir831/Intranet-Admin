@@ -121,7 +121,7 @@ export function BranchDepartmentFilter({ value, onValueChange, placeholder = "Se
     return (branchDeptsData as { 
       id: number; 
       branch: { branch_name: string };
-      department: { dept_name: string | {} };
+      department: { dept_name: string | unknown };
     }[]).map(bd => ({
       id: bd.id,
       name: `${typeof bd.department?.dept_name === 'string' ? bd.department.dept_name : 'Unknown Department'} - ${bd.branch?.branch_name || 'Unknown Branch'}`

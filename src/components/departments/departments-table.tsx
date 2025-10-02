@@ -257,17 +257,6 @@ export function DepartmentsTable({ className }: { className?: string }) {
     }
   }, [clientPagination.pageSize, serverPagination.pageSize, debouncedSearchQuery]);
 
-  const handleApplyFilters = (newFilters: Record<string, unknown>) => {
-    setFilters(newFilters);
-    setIsFilterOpen(false);
-    // Reset pagination when applying filters
-    setClientPagination({ pageIndex: 0, pageSize: clientPagination.pageSize });
-    setServerPagination({ page: 1, pageSize: serverPagination.pageSize });
-    // Clear cache when applying filters to start fresh
-    setDepartmentCache(new Map());
-    setBranchCache(new Map()); // Clear branch cache too
-  };
-
   const handleResetFilters = () => {
     setFilters({});
     setIsFilterOpen(false);
@@ -538,8 +527,8 @@ export function DepartmentsTable({ className }: { className?: string }) {
       <FilterDrawer
         open={isFilterOpen}
         onOpenChange={setIsFilterOpen}
-        onApply={handleApplyFilters}
         onReset={handleResetFilters}
+        showFilterButton={false}
         title="Filter Departments"
         description="Filter departments by department or branch"
       >

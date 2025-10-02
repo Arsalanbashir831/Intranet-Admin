@@ -67,7 +67,7 @@ export function EmployeeRingChart() {
       
       // Create a map of department names to colors for this branch
       const branchDepartmentColors: Record<string, string> = {};
-      branch.departments.forEach((dept, index) => {
+      branch.departments.forEach((dept) => {
         const deptIndex = uniqueDepartments.indexOf(dept.dept_name);
         branchDepartmentColors[dept.dept_name] = DEPARTMENT_COLORS[deptIndex % DEPARTMENT_COLORS.length];
       });

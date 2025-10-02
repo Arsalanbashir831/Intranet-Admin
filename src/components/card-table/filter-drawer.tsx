@@ -72,7 +72,7 @@ interface FilterTriggerProps {
     children?: React.ReactNode;
 }
 
-export function FilterTrigger({ onClick, isActive, className, children }: FilterTriggerProps) {
+export function FilterTrigger({ onClick, className, children }: FilterTriggerProps) {
     return (
         <Button
             variant="outline"
