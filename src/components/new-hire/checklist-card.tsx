@@ -20,12 +20,20 @@ export function ChecklistCard({
     const [items, setItems] = React.useState<ChecklistItemData[]>(initial);
     const [open, setOpen] = React.useState(false);
     const [editItem, setEditItem] = React.useState<ChecklistItemData | null>(null);
-  
+    const [blobUrls, setBlobUrls] = React.useState<string[]>([]); // Track blob URLs for cleanup
+
     // Update items when initial data changes
     React.useEffect(() => {
       setItems(initial);
     }, [initial]);
-  
+
+    // Clean up blob URLs when component unmounts
+    React.useEffect(() => {
+      return () => {
+        blobUrls.forEach(url => URL.revokeObjectURL(url));
+      };
+    }, [blobUrls]);
+
     const handleDelete = (id: string) => {
       const updatedItems = items.filter((i) => i.id !== id);
       setItems(updatedItems);
@@ -52,10 +60,17 @@ export function ChecklistCard({
       setEditItem(null); // Clear edit state
     };
 
-    const handleUpdate = (id: string, { title: t, detail, files }: { title: string; detail: string; files?: File[] }) => {
+    const handleUpdate = (id: string, { title: t, detail, files, deletedFileIds }: { title: string; detail: string; files?: File[]; deletedFileIds?: number[] }) => {
       const updatedItems = items.map(item => 
         item.id === id 
-          ? { ...item, title: t, body: detail, files: files || item.files }
+          ? { 
+              ...item, 
+              title: t, 
+              body: detail, 
+              // Update files with newly added files
+              files: files !== undefined ? files : item.files,
+              deletedFileIds: deletedFileIds || []
+            }
           : item
       );
       setItems(updatedItems);
@@ -66,7 +81,48 @@ export function ChecklistCard({
     const handleModalClose = () => {
       setOpen(false);
       setEditItem(null);
+      // Clean up blob URLs
+      blobUrls.forEach(url => URL.revokeObjectURL(url));
+      setBlobUrls([]);
     };
+  
+    // Prepare edit item with filtered existing files (exclude deleted ones) and preserve newly added files
+    const prepareEditItem = React.useMemo(() => {
+      if (!editItem) return null;
+      
+      // If there are deleted file IDs, filter them out from existingFiles
+      let filteredExistingFiles = editItem.existingFiles;
+      if (editItem.deletedFileIds && editItem.deletedFileIds.length > 0 && editItem.existingFiles) {
+        filteredExistingFiles = editItem.existingFiles.filter(
+          file => !editItem.deletedFileIds?.includes(file.id)
+        );
+      }
+      
+      // Create attachment URLs for existing files
+      const existingFileUrls = filteredExistingFiles ? 
+        filteredExistingFiles.map(file => {
+          // Create attachment:// URLs with metadata for proper preview handling
+          const fileInfo = {
+            url: file.file,
+            name: file.file.split('/').pop() || 'Unknown File'
+          };
+          return `attachment://${encodeURIComponent(JSON.stringify(fileInfo))}`;
+        }) : [];
+      
+      // Create blob URLs for newly added files
+      const newFileUrls = editItem.files ? 
+        editItem.files.map(file => URL.createObjectURL(file)) : [];
+      
+      // Update blob URLs state
+      setBlobUrls(newFileUrls);
+      
+      return {
+        ...editItem,
+        existingFiles: filteredExistingFiles,
+        // Combine existing file URLs and new file URLs for the dropzone
+        initialPreviewUrls: [...existingFileUrls, ...newFileUrls]
+      };
+    }, [editItem]);
   
     return (
       <Card className="border-[#CFDBE8] p-4 shadow-none border-dashed">
@@ -88,12 +144,7 @@ export function ChecklistCard({
           setOpen={handleModalClose} 
           onCreate={handleCreate} 
           onUpdate={handleUpdate}
-          editItem={editItem ? {
-            id: editItem.id,
-            title: editItem.title,
-            body: editItem.body,
-            existingFiles: editItem.existingFiles
-          } : null}
+          editItem={prepareEditItem}
         />
       </Card>
     );

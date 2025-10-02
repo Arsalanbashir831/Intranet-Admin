@@ -11,6 +11,7 @@ import {
   useCreateAttachment,
   useCreateAttachmentFile,
   useDeleteAttachment,
+  useDeleteAttachmentFile,
 } from "@/hooks/queries/use-new-hire";
 import { updateAttachment } from "@/services/new-hire";
 import { toast } from "sonner";
@@ -33,6 +34,7 @@ export default function NewHirePlanEditPage() {
   const createAttachment = useCreateAttachment();
   const createAttachmentFile = useCreateAttachmentFile();
   const deleteAttachment = useDeleteAttachment();
+  const deleteAttachmentFile = useDeleteAttachmentFile();
 
   // Transform API data to form format
   const initialData = React.useMemo(() => {
@@ -49,6 +51,7 @@ export default function NewHirePlanEditPage() {
         type: "task" as const,
         files: [], // Existing files are handled separately
         existingFiles: att.files || [] as { id: number; attachment: number; file: string; uploaded_at: string }[], // Store existing files for reference
+        deletedFileIds: [], // Initialize with empty array
       }));
 
     const trainingItems = attachments
@@ -60,6 +63,7 @@ export default function NewHirePlanEditPage() {
         type: "training" as const,
         files: [], // Existing files are handled separately
         existingFiles: att.files || [] as { id: number; attachment: number; file: string; uploaded_at: string }[], // Store existing files for reference
+        deletedFileIds: [], // Initialize with empty array
       }));
 
     return {
@@ -149,6 +153,15 @@ export default function NewHirePlanEditPage() {
               });
             });
             await Promise.all(uploadPromises);
+          }
+
+          // Handle deleted files for this attachment
+          if ('deletedFileIds' in item && item.deletedFileIds && (item.deletedFileIds as number[]).length > 0) {
+            // Actually delete the files when saving/publishing
+            const deleteFilePromises = (item.deletedFileIds as number[]).map(async (fileId) => {
+              await deleteAttachmentFile.mutateAsync(fileId);
+            });
+            await Promise.all(deleteFilePromises);
           }
 
           return attachmentId;

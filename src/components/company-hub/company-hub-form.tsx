@@ -100,13 +100,32 @@ export function CompanyHubForm({
 
   // Combine existing attachment URLs for dropzone preview
   const initialPreviewUrls = React.useMemo(() => {
-    return existingAttachments
-      .filter(attachment => attachment.file_url.match(/\.(jpg|jpeg|png|gif|svg)$/i))
-      .map(attachment => attachment.file_url);
+    // Create special URLs that include both the file URL and the original file name
+    return existingAttachments.map(attachment => {
+      // Create a data URL that contains both the file URL and original name
+      const fileInfo = {
+        url: attachment.file_url,
+        name: attachment.name,
+        id: attachment.id
+      };
+      return `attachment://${encodeURIComponent(JSON.stringify(fileInfo))}`;
+    });
   }, [existingAttachments]);
   
   // Helper to find attachment ID by URL
   const getAttachmentIdByUrl = (url: string) => {
+    // Check if this is our special attachment URL
+    if (url.startsWith('attachment://')) {
+      try {
+        const decodedData = decodeURIComponent(url.replace('attachment://', ''));
+        const fileInfo = JSON.parse(decodedData);
+        return fileInfo.id;
+      } catch (e) {
+        return null;
+      }
+    }
+    
+    // Fallback to original method for direct URLs
     const attachment = existingAttachments.find(att => att.file_url === url);
     return attachment?.id;
   };
@@ -282,19 +301,29 @@ export function CompanyHubForm({
               }}
               onClear={() => {
                 setAttachedFiles([]);
-                // Mark all existing image attachments for deletion when clearing all
-                const imageAttachments = existingAttachments.filter(attachment => 
-                  attachment.file_url.match(/\.(jpg|jpeg|png|gif|svg)$/i)
-                );
-                if (imageAttachments.length > 0 && onAttachmentDelete) {
-                  imageAttachments.forEach(attachment => {
+                // Mark all existing attachments for deletion when clearing all
+                if (existingAttachments.length > 0 && onAttachmentDelete) {
+                  existingAttachments.forEach(attachment => {
                     onAttachmentDelete(attachment.id);
                   });
                 }
               }}
               onImageRemove={(url) => {
-                // Check if this is an existing attachment (not a blob URL)
-                if (!url.startsWith('blob:')) {
+                // Check if this is our special attachment URL
+                if (url.startsWith('attachment://')) {
+                  try {
+                    const decodedData = decodeURIComponent(url.replace('attachment://', ''));
+                    const fileInfo = JSON.parse(decodedData);
+                    const attachmentId = fileInfo.id;
+                    if (attachmentId && onAttachmentDelete) {
+                      onAttachmentDelete(attachmentId);
+                    }
+                  } catch (e) {
+                    console.error("Error parsing attachment URL:", e);
+                  }
+                }
+                // Check if this is an existing attachment (not blob URL)
+                else if (!url.startsWith('blob:') && !url.startsWith('file://')) {
                   const attachmentId = getAttachmentIdByUrl(url);
                   if (attachmentId && onAttachmentDelete) {
                     onAttachmentDelete(attachmentId);
@@ -307,50 +336,6 @@ export function CompanyHubForm({
               showPreview={true}
               initialPreviewUrls={initialPreviewUrls}
             />
-            
-            {/* Show non-image attachments separately */}
-            {existingAttachments.filter(attachment => !attachment.file_url.match(/\.(jpg|jpeg|png|gif|svg)$/i)).length > 0 && (
-              <div className="mt-4 rounded-md border border-[#E2E8F0] p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm text-muted-foreground">
-                    Non-image attachments
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 gap-3">
-                  {existingAttachments
-                    .filter(attachment => !attachment.file_url.match(/\.(jpg|jpeg|png|gif|svg)$/i))
-                    .map((attachment) => (
-                    <div key={attachment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-center gap-3">
-                        <div className="text-sm">
-                          <div className="font-medium text-gray-900">{attachment.name}</div>
-                          <div className="text-gray-500">{(attachment.size / 1024).toFixed(1)} KB</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <a 
-                          href={attachment.file_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 text-sm"
-                        >
-                          View
-                        </a>
-                        {onAttachmentDelete && (
-                          <button
-                            type="button"
-                            onClick={() => onAttachmentDelete(attachment.id)}
-                            className="text-red-600 hover:text-red-800 text-sm"
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
 

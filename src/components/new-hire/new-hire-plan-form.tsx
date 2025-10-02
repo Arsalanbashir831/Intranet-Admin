@@ -13,6 +13,7 @@ export type ChecklistItemData = {
   body: string; 
   type: "task" | "training";
   files?: File[];
+  deletedFileIds?: number[];
   existingFiles?: Array<{
     id: number;
     attachment: number;
