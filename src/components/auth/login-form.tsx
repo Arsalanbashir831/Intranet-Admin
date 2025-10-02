@@ -5,10 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLogin } from "@/hooks/queries/use-auth";
 import { toast } from "sonner";
 import { ROUTES } from "@/constants/routes";
@@ -17,7 +17,6 @@ const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
-
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
@@ -38,7 +37,6 @@ export function LoginForm() {
     try {
       await loginMutation.mutateAsync(data);
       toast.success("Login successful!");
-      // The login mutation will handle the redirect via the auth context
       router.push(ROUTES.ADMIN.DASHBOARD);
     } catch (error: unknown) {
       const err = error as { response?: { data?: { detail?: string } } };
@@ -49,38 +47,66 @@ export function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sign in</CardTitle>
-          <CardDescription className="text-center">
-            Enter your email and password to access your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+    <div className="min-h-screen w-full">
+      <div className="mx-auto grid min-h-screen grid-cols-1 overflow-hidden bg-white lg:grid-cols-2">
+        {/* Left: Form (centered content) */}
+        <div className="relative flex flex-col items-center justify-center px-6 py-14 sm:px-10 lg:px-14">
+          {/* Keep logo at the top-left while centering the rest */}
+          <div className="absolute left-6 top-6 sm:left-10 sm:top-8">
+            <Image
+              src="/logo-primary.svg"
+              alt="Cartwright King"
+              width={200}
+              height={52}
+              className="h-auto w-[200px] md:w-[240px]"
+              priority
+            />
+          </div>
+
+          {/* Title */}
+          <h1 className="mb-8 text-center text-4xl font-medium tracking-tight text-[#373332] sm:mb-10 sm:text-5xl">
+            ADMIN LOGIN
+          </h1>
+
+          {/* Fields */}
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex w-full max-w-md flex-col items-stretch space-y-6 text-center"
+          >
+            <div className="w-full space-y-2">
+              <Label htmlFor="username" className="text-sm text-[#2b2b2b]">
+                Username <span className="text-[#27ae60]">*</span>
+              </Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Enter your username"
+                placeholder="Username"
                 {...register("username")}
-                className={errors.username ? "border-red-500" : ""}
+                className={[
+                  "h-11 rounded-md border border-[#E5E7EB] bg-white text-[15px] shadow-none",
+                  "focus-visible:ring-0 focus-visible:border-[#c62d64]",
+                  errors.username ? "border-red-500" : "",
+                ].join(" ")}
               />
               {errors.username && (
                 <p className="text-sm text-red-500">{errors.username.message}</p>
               )}
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+
+            <div className="w-full space-y-2">
+              <Label htmlFor="password" className="text-sm text-[#2b2b2b]">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Password"
                 {...register("password")}
-                className={errors.password ? "border-red-500" : ""}
+                className={[
+                  "h-11 rounded-md border border-[#E5E7EB] bg-white text-[15px] shadow-none",
+                  "focus-visible:ring-0 focus-visible:border-[#c62d64]",
+                  errors.password ? "border-red-500" : "",
+                ].join(" ")}
               />
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password.message}</p>
@@ -89,14 +115,27 @@ export function LoginForm() {
 
             <Button
               type="submit"
-              className="w-full"
               disabled={isLoading || loginMutation.isPending}
+              className="h-11 w-full rounded-full bg-secondary text-white disabled:opacity-70"
             >
               {isLoading || loginMutation.isPending ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Right: Image with spacing + rounded corners */}
+        <div className="relative hidden items-center justify-center p-6 sm:p-8 lg:flex xl:p-12">
+          <div className="relative h-[87vh] w-full overflow-hidden rounded-2xl shadow-md">
+            <Image
+              src="/auth-img.png"
+              alt="Office"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
