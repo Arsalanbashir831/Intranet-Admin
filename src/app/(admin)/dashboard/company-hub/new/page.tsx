@@ -9,13 +9,15 @@ import { useCreateAnnouncement, useCreateAnnouncementAttachment } from "@/hooks/
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import type { AnnouncementCreateRequest } from "@/services/announcements";
+import { Loader2 } from "lucide-react";
 
 export default function CompanyHubPage() {
   const router = useRouter();
   const createAnnouncement = useCreateAnnouncement();
   const createAttachment = useCreateAnnouncementAttachment();
   const [formData, setFormData] = React.useState<CompanyHubFormData | null>(null);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false); // For draft saving
+  const [isPublishing, setIsPublishing] = React.useState(false); // For publishing
 
   const uploadAttachments = async (announcementId: number, files: File[]) => {
     const uploadPromises = files.map(async (file) => {
@@ -52,7 +54,13 @@ export default function CompanyHubPage() {
       return;
     }
 
-    setIsSubmitting(true);
+    // Set the appropriate loading state
+    if (isDraft) {
+      setIsSaving(true);
+    } else {
+      setIsPublishing(true);
+    }
+
     try {
       const payload: AnnouncementCreateRequest = {
         title: formData.title.trim(),
@@ -91,7 +99,12 @@ export default function CompanyHubPage() {
       console.error("Error saving announcement:", error);
       toast.error(`Failed to ${isDraft ? "save draft" : "publish"} ${formData.type === "policy" ? "policy" : "announcement"}`);
     } finally {
-      setIsSubmitting(false);
+      // Reset the appropriate loading state
+      if (isDraft) {
+        setIsSaving(false);
+      } else {
+        setIsPublishing(false);
+      }
     }
   };
 
@@ -110,16 +123,15 @@ export default function CompanyHubPage() {
               variant='outline' 
               className="border-primary"
               onClick={() => handleSave(true)}
-              disabled={isSubmitting || !formData}
+              disabled={isSaving || isPublishing || !formData}
             >
-              {isSubmitting ? "Saving..." : "Save As Draft"}
+              {isSaving ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save As Draft"}
             </Button>
             <Button 
               onClick={() => handleSave(false)}
-              disabled={isSubmitting || !formData}
-              className="bg-[#D64575] hover:bg-[#B53A63]"
+              disabled={isSaving || isPublishing || !formData}
             >
-              {isSubmitting ? "Publishing..." : "Publish"}
+              {isPublishing ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Publishing...</span></> : "Publish"}
             </Button>
           </div>
         } 

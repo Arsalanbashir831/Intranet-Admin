@@ -60,7 +60,7 @@ export function CompanyHubForm({
   const { data: departmentsData } = useDepartments();
   const { data: branchesData } = useAllBranches();
   
-  // Create department options (unique departments only)
+  // Create department options (unique departments only) with "All" option
   const departments = React.useMemo(() => {
     if (!departmentsData?.departments?.results) return [];
     
@@ -74,16 +74,28 @@ export function CompanyHubForm({
       }
     });
     
-    return Array.from(uniqueDepartments.values());
+    // Convert to array and add "All" option at the beginning
+    const departmentArray = Array.from(uniqueDepartments.values());
+    return [
+      { id: "all", name: "All Departments" },
+      ...departmentArray
+    ];
   }, [departmentsData]);
 
-  // Create branch options
+  // Create branch options with "All" option
   const branches = React.useMemo(() => {
     if (!branchesData?.branches?.results) return [];
-    return branchesData.branches.results.map((branch: { id: number; branch_name: string }) => ({
+    
+    const branchArray = branchesData.branches.results.map((branch: { id: number; branch_name: string }) => ({
       id: String(branch.id),
       name: branch.branch_name
     }));
+    
+    // Add "All" option at the beginning
+    return [
+      { id: "all", name: "All Branches" },
+      ...branchArray
+    ];
   }, [branchesData]);
 
   // Combine existing attachment URLs for dropzone preview
@@ -149,6 +161,84 @@ export function CompanyHubForm({
   React.useEffect(() => {
     onFormDataChange?.(currentFormData);
   }, [currentFormData, onFormDataChange]);
+
+  // Handle special case for "All" selection in departments
+  const handleDepartmentSelectionChange = React.useCallback((newSelection: string[]) => {
+    const allDepartmentIds = departments
+      .filter(dept => dept.id !== "all")
+      .map(dept => dept.id);
+    
+    // Check if "all" was just added to the selection
+    const allOptionSelected = newSelection.includes("all");
+    
+    if (allOptionSelected) {
+      // User clicked "all", select all departments
+      setSelectedDepartments(allDepartmentIds);
+    } else {
+      // Filter out "all" from the selection and only work with actual departments
+      const filteredSelection = newSelection.filter(id => id !== "all" && allDepartmentIds.includes(id));
+      setSelectedDepartments(filteredSelection);
+    }
+  }, [departments]);
+
+  // Handle special case for "All" selection in branches
+  const handleBranchSelectionChange = React.useCallback((newSelection: string[]) => {
+    const allBranchIds = branches
+      .filter(branch => branch.id !== "all")
+      .map(branch => branch.id);
+    
+    // Check if "all" was just added to the selection
+    const allOptionSelected = newSelection.includes("all");
+    
+    if (allOptionSelected) {
+      // User clicked "all", select all branches
+      setSelectedBranches(allBranchIds);
+    } else {
+      // Filter out "all" from the selection and only work with actual branches
+      const filteredSelection = newSelection.filter(id => id !== "all" && allBranchIds.includes(id));
+      setSelectedBranches(filteredSelection);
+    }
+  }, [branches]);
+
+  // Determine if all departments/branches are selected for UI purposes
+  const areAllDepartmentsSelected = React.useMemo(() => {
+    const allDepartmentIds = departments
+      .filter(dept => dept.id !== "all")
+      .map(dept => dept.id);
+    return allDepartmentIds.length > 0 && 
+           selectedDepartments.length === allDepartmentIds.length &&
+           selectedDepartments.every(id => allDepartmentIds.includes(id));
+  }, [departments, selectedDepartments]);
+
+  const areAllBranchesSelected = React.useMemo(() => {
+    const allBranchIds = branches
+      .filter(branch => branch.id !== "all")
+      .map(branch => branch.id);
+    return allBranchIds.length > 0 && 
+           selectedBranches.length === allBranchIds.length &&
+           selectedBranches.every(id => allBranchIds.includes(id));
+  }, [branches, selectedBranches]);
+
+  // Create items for the selectable tags, conditionally hiding "all" option
+  const departmentItems = React.useMemo(() => {
+    if (areAllDepartmentsSelected) {
+      // Hide "all" option when all departments are selected
+      return departments.filter(dept => dept.id !== "all");
+    }
+    return departments;
+  }, [departments, areAllDepartmentsSelected]);
+
+  const branchItems = React.useMemo(() => {
+    if (areAllBranchesSelected) {
+      // Hide "all" option when all branches are selected
+      return branches.filter(branch => branch.id !== "all");
+    }
+    return branches;
+  }, [branches, areAllBranchesSelected]);
+
+  // For display, we never show "all" as selected since we're managing it through visibility
+  const displayedSelectedDepartments = selectedDepartments;
+  const displayedSelectedBranches = selectedBranches;
 
   return (
       <div className="grid gap-6">
@@ -280,9 +370,9 @@ export function CompanyHubForm({
           <Label className="col-span-12 md:col-span-2 text-sm">Branch Access:</Label>
           <div className="col-span-12 md:col-span-10">
             <SelectableTags
-              items={createSelectableItems(branches)}
-              selectedItems={selectedBranches}
-              onSelectionChange={setSelectedBranches}
+              items={createSelectableItems(branchItems)}
+              selectedItems={displayedSelectedBranches}
+              onSelectionChange={handleBranchSelectionChange}
               placeholder="Select branches (empty = public access)"
               searchPlaceholder="Search branches..."
               emptyMessage="No branches found."
@@ -295,9 +385,9 @@ export function CompanyHubForm({
           <Label className="col-span-12 md:col-span-2 text-sm">Department Access:</Label>
           <div className="col-span-12 md:col-span-10">
             <SelectableTags
-              items={createSelectableItems(departments)}
-              selectedItems={selectedDepartments}
-              onSelectionChange={setSelectedDepartments}
+              items={createSelectableItems(departmentItems)}
+              selectedItems={displayedSelectedDepartments}
+              onSelectionChange={handleDepartmentSelectionChange}
               placeholder="Select departments (empty = public access)"
               searchPlaceholder="Search departments..."
               emptyMessage="No departments found."

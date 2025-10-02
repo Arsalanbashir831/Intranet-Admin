@@ -9,12 +9,14 @@ import { useParams, useRouter } from "next/navigation";
 import { useAnnouncement, useUpdateAnnouncement, useCreateAnnouncementAttachment, useAnnouncementAttachments, useDeleteAnnouncementAttachment, useAttachmentDeletions } from "@/hooks/queries/use-announcements";
 import { toast } from "sonner";
 import * as React from "react";
+import { Loader2 } from "lucide-react";
 
 export default function CompanyHubEditPage() {
   const params = useParams();
   const router = useRouter();
   const id = (params?.id as string) ?? "";
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false); // For draft saving
+  const [isPublishing, setIsPublishing] = React.useState(false); // For publishing
   const [currentFormData, setCurrentFormData] = React.useState<CompanyHubFormData | null>(null);
 
   // Fetch announcement data and attachments
@@ -95,10 +97,15 @@ export default function CompanyHubEditPage() {
   }, [announcement]);
 
   const handleSubmit = async (isDraft: boolean = false) => {
-    if (!id || isSubmitting || !currentFormData) return;
+    if (!id || isSaving || isPublishing || !currentFormData) return;
     
     try {
-      setIsSubmitting(true);
+      // Set the appropriate loading state
+      if (isDraft) {
+        setIsSaving(true);
+      } else {
+        setIsPublishing(true);
+      }
       
       await updateAnnouncement.mutateAsync({
         title: currentFormData.title || "",
@@ -145,7 +152,12 @@ export default function CompanyHubEditPage() {
       console.error("Failed to update announcement:", error);
       toast.error("Failed to update announcement. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      // Reset the appropriate loading state
+      if (isDraft) {
+        setIsSaving(false);
+      } else {
+        setIsPublishing(false);
+      }
     }
   };
 
@@ -163,16 +175,16 @@ export default function CompanyHubEditPage() {
             <Button 
               variant="outline" 
               className="border-primary"
-              disabled={isSubmitting || isLoading || !currentFormData}
+              disabled={isSaving || isPublishing || isLoading || !currentFormData}
               onClick={() => handleSubmit(true)}
             >
-              {isSubmitting ? "Saving..." : "Save As Draft"}
+              {isSaving ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save As Draft"}
             </Button>
             <Button 
-              disabled={isSubmitting || isLoading || !currentFormData}
+              disabled={isSaving || isPublishing || isLoading || !currentFormData}
               onClick={() => handleSubmit(false)}
             >
-              {isSubmitting ? "Saving..." : "Save"}
+              {isPublishing ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Publishing...</span></> : "Publish"}
             </Button>
           </div>
         }
