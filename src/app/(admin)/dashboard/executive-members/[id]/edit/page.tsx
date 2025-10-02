@@ -1,17 +1,20 @@
 "use client";
 
+import * as React from "react";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { ExecutiveMemberForm, type ExecutiveMemberInitialValues } from "@/components/executive-members/executive-member-form";
 import { useParams } from "next/navigation";
 import { useExecutive } from "@/hooks/queries/use-executive-members";
+import { Loader2 } from "lucide-react";
 
 export default function EditExecutiveMemberPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
 
   const { data: executiveMember, isLoading, isError } = useExecutive(String(id));
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const initialValues: ExecutiveMemberInitialValues | undefined = executiveMember
     ? {
@@ -28,6 +31,11 @@ export default function EditExecutiveMemberPage() {
 
   let submitFn: (() => void) | null = null;
 
+  const handleSave = () => {
+    setIsSubmitting(true);
+    submitFn?.();
+  };
+
   return (
     <>
       <PageHeader
@@ -42,9 +50,10 @@ export default function EditExecutiveMemberPage() {
         action={
           <div className="flex gap-2">
             <Button
-              onClick={() => submitFn?.()}
+              onClick={handleSave}
+              disabled={isSubmitting}
             >
-              Save
+              {isSubmitting ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save"}
             </Button>
           </div>
         }

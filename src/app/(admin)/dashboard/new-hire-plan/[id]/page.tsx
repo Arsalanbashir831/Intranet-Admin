@@ -5,38 +5,39 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { NewHirePlanForm, type NewHirePlanFormData } from "@/components/new-hire/new-hire-plan-form";
-import { 
-  useChecklist, 
-  useUpdateChecklist, 
-  useCreateAttachment, 
+import {
+  useChecklist,
+  useUpdateChecklist,
+  useCreateAttachment,
   useCreateAttachmentFile,
   useDeleteAttachment,
 } from "@/hooks/queries/use-new-hire";
 import { updateAttachment } from "@/services/new-hire";
 import { toast } from "sonner";
 import { useRouter, useParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export default function NewHirePlanEditPage() {
   const router = useRouter();
   const params = useParams();
   const id = (params?.id as string) ?? "";
-  
+
   const [formData, setFormData] = React.useState<NewHirePlanFormData | null>(null);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  
+  const [isSaving, setIsSaving] = React.useState(false); // For draft saving
+  const [isPublishing, setIsPublishing] = React.useState(false); // For publishing
+
   // Fetch checklist data (attachments are included in the response)
   const { data: checklist, isLoading } = useChecklist(id);
-  
+
   const updateChecklist = useUpdateChecklist(id);
   const createAttachment = useCreateAttachment();
   const createAttachmentFile = useCreateAttachmentFile();
   const deleteAttachment = useDeleteAttachment();
-  
 
   // Transform API data to form format
   const initialData = React.useMemo(() => {
     if (!checklist) return undefined;
-    
+
     // Use attachments directly from checklist response (they're nested in the response)
     const attachments = checklist.attachments || [];
     const taskItems = attachments
@@ -49,7 +50,7 @@ export default function NewHirePlanEditPage() {
         files: [], // Existing files are handled separately
         existingFiles: att.files || [] as { id: number; attachment: number; file: string; uploaded_at: string }[], // Store existing files for reference
       }));
-      
+
     const trainingItems = attachments
       .filter((att) => att.type === "training")
       .map((att) => ({
@@ -60,7 +61,7 @@ export default function NewHirePlanEditPage() {
         files: [], // Existing files are handled separately
         existingFiles: att.files || [] as { id: number; attachment: number; file: string; uploaded_at: string }[], // Store existing files for reference
       }));
-    
+
     return {
       assignees: checklist.assigned_to.map(String),
       taskItems,
@@ -84,7 +85,13 @@ export default function NewHirePlanEditPage() {
       return;
     }
 
-    setIsSubmitting(true);
+    // Set the appropriate loading state
+    if (isDraft) {
+      setIsSaving(true);
+    } else {
+      setIsPublishing(true);
+    }
+
     try {
       // Step 1: Update checklist
       await updateChecklist.mutateAsync({
@@ -95,21 +102,21 @@ export default function NewHirePlanEditPage() {
       // Step 2: Handle attachments CRUD operations
       const allCurrentItems = [...formData.taskItems, ...formData.trainingItems];
       const existingAttachments = checklist.attachments || [];
-      
+
       // Create maps for comparison
       const existingItemsMap = new Map(existingAttachments.map(att => [String(att.id), att]));
       const currentItemsMap = new Map(allCurrentItems.map(item => [item.id, item]));
-      
+
       // Identify items to delete (in existing but not in current)
       const itemsToDelete = existingAttachments.filter(att => !currentItemsMap.has(String(att.id)));
-      
+
       // Identify items to update (in both existing and current)
-      const itemsToUpdate = allCurrentItems.filter(item => 
+      const itemsToUpdate = allCurrentItems.filter(item =>
         existingItemsMap.has(item.id) && !item.id.startsWith('task-') && !item.id.startsWith('training-')
       );
-      
+
       // Identify items to create (new items with generated IDs or completely new)
-      const itemsToCreate = allCurrentItems.filter(item => 
+      const itemsToCreate = allCurrentItems.filter(item =>
         !existingItemsMap.has(item.id) || item.id.startsWith('task-') || item.id.startsWith('training-')
       );
 
@@ -125,7 +132,7 @@ export default function NewHirePlanEditPage() {
       if (itemsToUpdate.length > 0) {
         const updatePromises = itemsToUpdate.map(async (item) => {
           const attachmentId = Number(item.id);
-          
+
           // Update attachment details using service function
           await updateAttachment(attachmentId, {
             title: item.title,
@@ -180,15 +187,15 @@ export default function NewHirePlanEditPage() {
       router.push(ROUTES.ADMIN.NEW_HIRE_PLAN);
     } catch (error) {
       console.error("Failed to update new hire plan:", error);
-      
+
       // Extract error message from API response
       let errorMessage = "Failed to update new hire plan. Please try again.";
-      
+
       if (error && typeof error === 'object' && 'response' in error) {
         const apiError = error as { response?: { data?: unknown } };
         if (apiError.response?.data) {
           const errorData = apiError.response.data;
-          
+
           // Check for non_field_errors (validation errors)
           if (errorData && typeof errorData === 'object' && 'non_field_errors' in errorData) {
             const nfe = (errorData as { non_field_errors: unknown }).non_field_errors;
@@ -206,7 +213,7 @@ export default function NewHirePlanEditPage() {
                 return `${field}: ${errors}`;
               })
               .join('. ');
-            
+
             if (fieldErrors) {
               errorMessage = fieldErrors;
             }
@@ -225,10 +232,15 @@ export default function NewHirePlanEditPage() {
       else if (error && typeof error === 'object' && 'message' in error) {
         errorMessage = String((error as { message: unknown }).message);
       }
-      
+
       toast.error(errorMessage);
     } finally {
-      setIsSubmitting(false);
+      // Reset the appropriate loading state
+      if (isDraft) {
+        setIsSaving(false);
+      } else {
+        setIsPublishing(false);
+      }
     }
   };
 
@@ -243,20 +255,19 @@ export default function NewHirePlanEditPage() {
         ]}
         action={
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-primary"
               onClick={() => handleSave(true)}
-              disabled={isSubmitting || isLoading || !formData}
+              disabled={isSaving || isPublishing || isLoading || !formData}
             >
-              {isSubmitting ? "Saving..." : "Save As Draft"}
+              {isSaving ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save As Draft"}
             </Button>
-            <Button 
+            <Button
               onClick={() => handleSave(false)}
-              disabled={isSubmitting || isLoading || !formData}
-              className="bg-[#D64575] hover:bg-[#B53A63]"
+              disabled={isSaving || isPublishing || isLoading || !formData}
             >
-              {isSubmitting ? "Publishing..." : "Publish"}
+              {isPublishing ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Publishing...</span></> : "Publish"}
             </Button>
           </div>
         }
@@ -267,7 +278,7 @@ export default function NewHirePlanEditPage() {
             <div className="text-gray-500">Loading new hire plan...</div>
           </div>
         ) : (
-          <NewHirePlanForm 
+          <NewHirePlanForm
             onFormDataChange={setFormData}
             initialData={initialData}
           />

@@ -199,7 +199,6 @@ export function AnnouncementForm({
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="bg-[#D64575] hover:bg-[#B53A63]"
               >
                 {isLoading ? "Saving..." : isEdit ? "Update" : "Create"} Announcement
               </Button>

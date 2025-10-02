@@ -12,12 +12,14 @@ import {
 } from "@/hooks/queries/use-new-hire";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export default function NewHirePlanCreatePage() {
   const router = useRouter();
   
   const [formData, setFormData] = React.useState<NewHirePlanFormData | null>(null);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false); // For draft saving
+  const [isPublishing, setIsPublishing] = React.useState(false); // For publishing
   
   const createChecklist = useCreateChecklist();
   const createAttachment = useCreateAttachment();
@@ -39,7 +41,13 @@ export default function NewHirePlanCreatePage() {
       return;
     }
 
-    setIsSubmitting(true);
+    // Set the appropriate loading state
+    if (isDraft) {
+      setIsSaving(true);
+    } else {
+      setIsPublishing(true);
+    }
+
     try {
       // Step 1: Create checklist
       const checklist = await createChecklist.mutateAsync({
@@ -127,7 +135,12 @@ export default function NewHirePlanCreatePage() {
       
       toast.error(errorMessage);
     } finally {
-      setIsSubmitting(false);
+      // Reset the appropriate loading state
+      if (isDraft) {
+        setIsSaving(false);
+      } else {
+        setIsPublishing(false);
+      }
     }
   };
   return (
@@ -145,16 +158,16 @@ export default function NewHirePlanCreatePage() {
               variant="outline" 
               className="border-primary"
               onClick={() => handleSave(true)}
-              disabled={isSubmitting || !formData}
+              disabled={isSaving || isPublishing || !formData}
             >
-              {isSubmitting ? "Saving..." : "Save As Draft"}
+              {isSaving ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save As Draft"}
             </Button>
             <Button 
               onClick={() => handleSave(false)}
-              disabled={isSubmitting || !formData}
+              disabled={isSaving || isPublishing || !formData}
               className="bg-[#D64575] hover:bg-[#B53A63]"
             >
-              {isSubmitting ? "Publishing..." : "Publish"}
+              {isPublishing ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Publishing...</span></> : "Publish"}
             </Button>
           </div>
         }

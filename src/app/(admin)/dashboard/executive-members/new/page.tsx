@@ -1,12 +1,20 @@
 "use client";
 
+import * as React from "react";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { ExecutiveMemberForm } from "@/components/executive-members/executive-member-form";
+import { Loader2 } from "lucide-react";
 
 export default function NewExecutiveMemberPage() {
   let submitFn: (() => void) | null = null;
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSave = () => {
+    setIsSubmitting(true);
+    submitFn?.();
+  };
 
   return (
     <>
@@ -20,9 +28,10 @@ export default function NewExecutiveMemberPage() {
         action={
           <div className="flex gap-2">
             <Button
-              onClick={() => submitFn?.()}
+              onClick={handleSave}
+              disabled={isSubmitting}
             >
-              Save
+              {isSubmitting ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save"}
             </Button>
           </div>
         }
