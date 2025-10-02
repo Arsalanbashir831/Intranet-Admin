@@ -16,6 +16,16 @@ import { useAnnouncements, useDeleteAnnouncement } from "@/hooks/queries/use-ann
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
+import { FilterDrawer } from "@/components/card-table/filter-drawer";
+import { DepartmentFilter, BranchFilter } from "@/components/card-table/filter-components";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export type AnnouncementRow = {
   id: string;
@@ -30,6 +40,8 @@ export function RecentAnnouncementsTable() {
   const [sortedBy, setSortedBy] = React.useState<string>("title");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
+  const [isFilterOpen, setIsFilterOpen] = React.useState(false);
+  const [filters, setFilters] = React.useState<Record<string, unknown>>({});
   
   // Debounce search query
   React.useEffect(() => {
@@ -39,13 +51,43 @@ export function RecentAnnouncementsTable() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Use search parameters when there's a search query
-  const searchParams = React.useMemo(() => ({
-    search: debouncedSearchQuery,
-  }), [debouncedSearchQuery]);
+  // Build search params with filters
+  const searchParams = React.useMemo(() => {
+    const params: Record<string, string | number | boolean> = {};
+    
+    // Add search query
+    if (debouncedSearchQuery) {
+      params.search = debouncedSearchQuery;
+    }
+    
+    // Add include_inactive filter
+    if (filters.includeInactive !== undefined && filters.includeInactive !== "__all__") {
+      params.include_inactive = filters.includeInactive === "true";
+    } else {
+      // Default to true to include drafts
+      params.include_inactive = true;
+    }
+    
+    // Add type filter
+    if (filters.type && filters.type !== "__all__") {
+      params.type = String(filters.type);
+    }
+    
+    // Add branch filter
+    if (filters.branch && filters.branch !== "__all__") {
+      params.branch = String(filters.branch);
+    }
+    
+    // Add department filter
+    if (filters.department && filters.department !== "__all__") {
+      params.department = String(filters.department);
+    }
+    
+    return Object.keys(params).length > 0 ? params : undefined;
+  }, [debouncedSearchQuery, filters]);
 
   const { data: apiData, isFetching } = useAnnouncements(
-    debouncedSearchQuery ? searchParams : undefined,
+    searchParams,
     undefined,
     {
       placeholderData: (previousData) => previousData,
@@ -100,6 +142,12 @@ export function RecentAnnouncementsTable() {
       return String(av).localeCompare(String(bv));
     });
   }, [data, sortedBy]);
+
+  const handleResetFilters = () => {
+    setFilters({});
+    setIsFilterOpen(false);
+  };
+
   const columns: ColumnDef<AnnouncementRow>[] = [
     {
       accessorKey: "title",
@@ -184,6 +232,7 @@ export function RecentAnnouncementsTable() {
         ]}
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}
+        onFilterClick={() => setIsFilterOpen(true)}
         className={cn(isFetching && "opacity-70")}
       />
       <CardTable<AnnouncementRow, unknown>
@@ -194,8 +243,77 @@ export function RecentAnnouncementsTable() {
         onRowClick={(row) => handleRowClick(row.original)}
         footer={(table) => <CardTablePagination table={table} />}
       />
+      
+      <FilterDrawer
+        open={isFilterOpen}
+        onOpenChange={setIsFilterOpen}
+        onReset={handleResetFilters}
+        showFilterButton={false}
+        title="Filter Announcements"
+        description="Filter announcements by various criteria"
+      >
+        <div className="space-y-6 py-4">
+          <SelectFilter 
+            label="Status"
+            value={(filters.includeInactive as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, includeInactive: value }))}
+            options={[
+              { value: "__all__", label: "All Statuses" },
+              { value: "true", label: "Include Drafts" },
+              { value: "false", label: "Published Only" }
+            ]}
+          />
+          <SelectFilter 
+            label="Type"
+            value={(filters.type as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, type: value }))}
+            options={[
+              { value: "__all__", label: "All Types" },
+              { value: "announcement", label: "Announcement" },
+              { value: "policy", label: "Policy" }
+            ]}
+          />
+          <BranchFilter 
+            value={(filters.branch as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, branch: value }))}
+          />
+          <DepartmentFilter 
+            value={(filters.department as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
+          />
+        </div>
+      </FilterDrawer>
     </Card>
   );
 }
 
-
+// Custom Select Filter Component
+function SelectFilter({ 
+  label,
+  value, 
+  onValueChange,
+  options
+}: { 
+  label: string;
+  value: string; 
+  onValueChange: (value: string) => void; 
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={`filter-${label.toLowerCase().replace(/\s+/g, '-')}`}>{label}</Label>
+      <Select value={value} onValueChange={onValueChange}>
+        <SelectTrigger id={`filter-${label.toLowerCase().replace(/\s+/g, '-')}`} className="w-full border-[#E4E4E4]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}

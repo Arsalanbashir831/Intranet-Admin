@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
-import { AccessLevelDropdown } from "@/components/card-table/access-level-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Pencil, Trash2, Folder as FolderIcon, FileText } from "lucide-react";
 import { TableContextMenu } from "@/components/knowledge-base/row-context-menus";
@@ -380,20 +379,8 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
           title={title}
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
-          sortOptions={[{ label: "File", value: "file" }, { label: "Created By", value: "createdByName" }, { label: "Date Created", value: "dateCreated" }]}
-          activeSort={sortedBy}
-          onSortChange={(v) => setSortedBy(v)}
-          onFilterClick={() => { }}
-          accessControl={<AccessLevelDropdown
-            items={[
-              { label: "Elanor Pera", value: "elanor" },
-              { label: "Chantal Shelburne", value: "chantal" },
-              { label: "Georgette Strobel", value: "georgette" },
-              { label: "Charolette Hanlin", value: "charolette" },
-            ]}
-            selected={accessFilter}
-            onChange={setAccessFilter}
-          />}
+          showFilters={false}
+          showSortOptions={false}
         />
         <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile}>
           <CardTable<FolderItemRow, unknown>

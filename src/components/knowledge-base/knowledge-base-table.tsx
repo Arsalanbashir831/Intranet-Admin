@@ -294,15 +294,8 @@ export function KnowledgeBaseTable() {
         title="Knowledge Base"
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
-        sortOptions={[
-          { label: "Folder", value: "folder" },
-          { label: "Created By", value: "createdByName" },
-          { label: "Access Level", value: "accessLevel" },
-          { label: "Date Created", value: "dateCreated" },
-        ]}
-        activeSort={sortedBy}
-        onSortChange={(v) => setSortedBy(v)}
-        onFilterClick={() => { }}
+        showFilters={false}
+        showSortOptions={false}
         className={cn(isFetching && "opacity-70")}
       />
       <CardTable<KnowledgeBaseRow, unknown>
