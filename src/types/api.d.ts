@@ -404,6 +404,10 @@ export interface components {
             readonly effective_permissions: {
                 [key: string]: unknown;
             };
+            readonly permitted_branches_details: string;
+            readonly permitted_departments_details: string;
+            readonly permitted_employees_details: string;
+            readonly created_by_details: string;
         };
         AnnouncementAttachment: {
             readonly id: number;
@@ -461,7 +465,7 @@ export interface components {
             title?: string | null;
             detail?: string | null;
             assigned_to: number[];
-            assigned_by: number;
+            assigned_by?: number | null;
             readonly assigned_to_details: components["schemas"]["Employee"][];
             readonly assigned_by_details: components["schemas"]["Employee"];
             readonly department_details: string;
@@ -471,6 +475,10 @@ export interface components {
             /** Format: date-time */
             readonly updated_at: string;
             readonly attachments: components["schemas"]["Attachment"][];
+        };
+        CustomTokenObtainPair: {
+            username: string;
+            password: string;
         };
         Employee: {
             readonly id: number;
@@ -688,6 +696,10 @@ export interface components {
             readonly effective_permissions?: {
                 [key: string]: unknown;
             };
+            readonly permitted_branches_details?: string;
+            readonly permitted_departments_details?: string;
+            readonly permitted_employees_details?: string;
+            readonly created_by_details?: string;
         };
         PatchedAnnouncementAttachment: {
             readonly id?: number;
@@ -733,7 +745,7 @@ export interface components {
             title?: string | null;
             detail?: string | null;
             assigned_to?: number[];
-            assigned_by?: number;
+            assigned_by?: number | null;
             readonly assigned_to_details?: components["schemas"]["Employee"][];
             readonly assigned_by_details?: components["schemas"]["Employee"];
             readonly department_details?: string;
@@ -811,12 +823,6 @@ export interface components {
          * @enum {string}
          */
         StatusEnum: "draft" | "publish";
-        TokenObtainPair: {
-            username: string;
-            password: string;
-            readonly access: string;
-            readonly refresh: string;
-        };
         TokenRefresh: {
             readonly access: string;
             refresh: string;
@@ -2103,9 +2109,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TokenObtainPair"];
-                "application/x-www-form-urlencoded": components["schemas"]["TokenObtainPair"];
-                "multipart/form-data": components["schemas"]["TokenObtainPair"];
+                "application/json": components["schemas"]["CustomTokenObtainPair"];
+                "application/x-www-form-urlencoded": components["schemas"]["CustomTokenObtainPair"];
+                "multipart/form-data": components["schemas"]["CustomTokenObtainPair"];
             };
         };
         responses: {
@@ -2114,7 +2120,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokenObtainPair"];
+                    "application/json": components["schemas"]["CustomTokenObtainPair"];
                 };
             };
         };

@@ -68,8 +68,11 @@ export function ChecklistCard({
               title: t, 
               body: detail, 
               // Update files with newly added files
-              files: files !== undefined ? files : item.files,
-              deletedFileIds: deletedFileIds || []
+              files: files !== undefined ? [...(item.files || []), ...files] : item.files,
+              // Merge deleted file IDs with existing ones
+              deletedFileIds: deletedFileIds 
+                ? [...(item.deletedFileIds || []), ...deletedFileIds] 
+                : item.deletedFileIds
             }
           : item
       );
@@ -100,26 +103,37 @@ export function ChecklistCard({
       
       // Create attachment URLs for existing files
       const existingFileUrls = filteredExistingFiles ? 
-        filteredExistingFiles.map(file => {
-          // Create attachment:// URLs with metadata for proper preview handling
-          const fileInfo = {
-            url: file.file,
-            name: file.file.split('/').pop() || 'Unknown File'
-          };
-          return `attachment://${encodeURIComponent(JSON.stringify(fileInfo))}`;
-        }) : [];
+        filteredExistingFiles.map(file => file.file) : [];
       
-      // Create blob URLs for newly added files
-      const newFileUrls = editItem.files ? 
-        editItem.files.map(file => URL.createObjectURL(file)) : [];
+      // Create preview URLs for newly added files
+      const newFileUrls: string[] = [];
+      if (editItem.files) {
+        editItem.files.forEach(file => {
+          // Check if it's an image file
+          if (file.type.startsWith('image/')) {
+            // For images, create blob URLs
+            newFileUrls.push(URL.createObjectURL(file));
+          } else {
+            // For documents, create file:// URLs with file info
+            const fileInfo = {
+              name: file.name,
+              type: file.type,
+              size: file.size
+            };
+            const fileDataUrl = `file://${encodeURIComponent(JSON.stringify(fileInfo))}`;
+            newFileUrls.push(fileDataUrl);
+          }
+        });
+      }
       
-      // Update blob URLs state
-      setBlobUrls(newFileUrls);
+      // Update blob URLs state (only for blob URLs)
+      const blobUrls = newFileUrls.filter(url => url.startsWith('blob:'));
+      setBlobUrls(blobUrls);
       
       return {
         ...editItem,
         existingFiles: filteredExistingFiles,
-        // Combine existing file URLs and new file URLs for the dropzone
+        deletedFileIds: editItem.deletedFileIds || [],
         initialPreviewUrls: [...existingFileUrls, ...newFileUrls]
       };
     }, [editItem]);

@@ -95,13 +95,11 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
   const transformedEmployees = React.useMemo(() => {
     if (!employeesData.data) return undefined;
     const list = Array.isArray(employeesData.data) ? employeesData.data : (employeesData.data?.employees?.results ?? []);
-    return {
-      results: createCustomSelectableItems(
-        list as { id: number | string; emp_name: string; }[],
-        'id',
-        'emp_name'
-      )
-    };
+    return createCustomSelectableItems(
+      list as { id: number | string; emp_name: string; }[],
+      'id',
+      'emp_name'
+    );
   }, [employeesData.data]);
 
   // Create hooks for SelectableTags async search with proper data transformation
@@ -115,20 +113,20 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
   const useEmployeeSearch = React.useCallback((query: string) => {
     const searchData = searchEmployees(query);
     
-    // Move useMemo outside of callback
+    // Transform the search results to match SelectableTags expected format
     const transformedSearchData = {
-      data: searchData.data ? {
-        results: createCustomSelectableItems(
+      data: searchData.data ? 
+        createCustomSelectableItems(
           searchData.data.results,
           'id',
           'emp_name'
-        )
-      } : undefined,
+        ) : undefined,
       isLoading: searchData.isLoading
     };
     
     return transformedSearchData;
   }, [searchEmployees]);
+
   // Notify parent component of form data changes
   React.useEffect(() => {
     if (onFormDataChange) {

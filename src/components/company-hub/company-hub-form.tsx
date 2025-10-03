@@ -63,55 +63,64 @@ export function CompanyHubForm({
    * Adapters (async search) — normalize to SelectableItem[] only.
    * These match SelectableTags’ updated expectation.
    */
+  // Create adapter hooks for SelectableTags search functionality
   const useSearchDepartmentsAdapter = (query: string) => {
     const searchResult = useSearchDepartments(query, { page: 1, pageSize: 50 });
-
     const selectableItems = React.useMemo(() => {
-      const raw = searchResult.data;
-      if (!raw) return [];
-      // Accept { departments: { results: [...] } } | { results: [...] } | array
-      if (Array.isArray(raw)) {
-        return createCustomSelectableItems(raw, "id", "dept_name");
-      }
-      const asAny = raw as any;
-      if (asAny?.departments?.results) {
-        return createCustomSelectableItems(asAny.departments.results ?? [], "id", "dept_name");
-      }
-      if (asAny?.results) {
-        return createCustomSelectableItems(asAny.results ?? [], "id", "dept_name");
+      // Transform the API response to match what SelectableTags expects
+      if (searchResult.data) {
+        // Handle the structure: { departments: { results: [...] } }
+        if (typeof searchResult.data === 'object' && 'departments' in searchResult.data) {
+          const departmentsData = searchResult.data as any;
+          const rawData = departmentsData.departments?.results || [];
+          return createCustomSelectableItems(rawData, 'id', 'dept_name');
+        }
+        // Handle the structure: { results: [...] }
+        if (typeof searchResult.data === 'object' && 'results' in searchResult.data) {
+          return createCustomSelectableItems((searchResult.data as any).results || [], 'id', 'dept_name');
+        }
+        // Handle direct array
+        if (Array.isArray(searchResult.data)) {
+          return createCustomSelectableItems(searchResult.data, 'id', 'dept_name');
+        }
       }
       return [];
     }, [searchResult.data]);
-
-    return {
+    
+    // Return in the format that SelectableTags expects
+    return { 
       data: selectableItems,
-      isLoading: !!searchResult.isLoading,
+      isLoading: searchResult.isLoading
     };
   };
-
+  
   const useSearchBranchesAdapter = (query: string) => {
     const searchResult = useSearchBranches(query, { page: 1, pageSize: 50 });
-
     const selectableItems = React.useMemo(() => {
-      const raw = searchResult.data;
-      if (!raw) return [];
-      // Accept { branches: { results: [...] } | { results: [...] } | array
-      if (Array.isArray(raw)) {
-        return createCustomSelectableItems(raw, "id", "branch_name");
-      }
-      const asAny = raw as any;
-      if (asAny?.branches?.results) {
-        return createCustomSelectableItems(asAny.branches.results ?? [], "id", "branch_name");
-      }
-      if (asAny?.results) {
-        return createCustomSelectableItems(asAny.results ?? [], "id", "branch_name");
+      // Transform the API response to match what SelectableTags expects
+      if (searchResult.data) {
+        // Handle the structure: { branches: { results: [...] } }
+        if (typeof searchResult.data === 'object' && 'branches' in searchResult.data) {
+          const branchesData = searchResult.data as any;
+          const rawData = branchesData.branches?.results || [];
+          return createCustomSelectableItems(rawData, 'id', 'branch_name');
+        }
+        // Handle the structure: { results: [...] }
+        if (typeof searchResult.data === 'object' && 'results' in searchResult.data) {
+          return createCustomSelectableItems((searchResult.data as any).results || [], 'id', 'branch_name');
+        }
+        // Handle direct array
+        if (Array.isArray(searchResult.data)) {
+          return createCustomSelectableItems(searchResult.data, 'id', 'branch_name');
+        }
       }
       return [];
     }, [searchResult.data]);
-
-    return {
+    
+    // Return in the format that SelectableTags expects
+    return { 
       data: selectableItems,
-      isLoading: !!searchResult.isLoading,
+      isLoading: searchResult.isLoading
     };
   };
 

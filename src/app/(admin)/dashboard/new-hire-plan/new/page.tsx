@@ -52,7 +52,7 @@ export default function NewHirePlanCreatePage() {
       // Step 1: Create checklist
       const checklist = await createChecklist.mutateAsync({
         assigned_to: formData.assignees.map(Number),
-        assigned_by: 1, // TODO: Get from auth context
+        assigned_by: null, 
         status: isDraft ? "draft" : "publish",
       });
 

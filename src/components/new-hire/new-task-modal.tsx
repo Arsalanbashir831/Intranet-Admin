@@ -23,7 +23,8 @@ export type NewTaskModalProps = {
       file: string;
       uploaded_at: string;
     }>;
-    initialPreviewUrls?: string[]; // Add this property
+    initialPreviewUrls?: string[];
+    deletedFileIds?: number[]; // Add this property
   } | null;
 };
 
@@ -41,9 +42,9 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
     if (editItem) {
       setTitle(editItem.title);
       setDetail(editItem.body);
-      // Don't reset files when editing - preserve them
-      // setFiles([]); // Reset files when editing
-      setDeletedFileIds([]); // Reset deleted file IDs when editing
+      // Reset files when editing to avoid duplicates
+      setFiles([]);
+      setDeletedFileIds(editItem.deletedFileIds || []);
     } else {
       setTitle(isTraining ? "Training 1" : "Task 1");
       setDetail("");
@@ -93,6 +94,23 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
     setBlobUrls([]);
     setOpen(false);
   };
+
+  // Prepare initial preview URLs for the Dropzone
+  const initialPreviewUrls = React.useMemo(() => {
+    if (!isEditing || !editItem) return [];
+    
+    // Use initialPreviewUrls from editItem if available
+    if (editItem.initialPreviewUrls) {
+      return editItem.initialPreviewUrls;
+    }
+    
+    // Fallback to existing files that haven't been marked for deletion
+    const existingFiles = editItem.existingFiles?.filter(
+      file => !deletedFileIds.includes(file.id)
+    ) || [];
+    
+    return existingFiles.map(file => file.file);
+  }, [isEditing, editItem, deletedFileIds]);
 
   return (
     <AppModal
@@ -172,7 +190,7 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
                 }
               }}
               multiple
-              initialPreviewUrls={isEditing && editItem?.initialPreviewUrls ? editItem.initialPreviewUrls : []}
+              initialPreviewUrls={initialPreviewUrls}
               showPreview={true}
             />
           </div>

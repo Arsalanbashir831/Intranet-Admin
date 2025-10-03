@@ -118,7 +118,7 @@ export function NewHireTable() {
         department: departmentName,
         dateOfCreation: format(new Date(checklist.created_at), 'M/d/yy'),
         status: checklist.status === 'publish' ? 'Published' as const : 'Draft' as const,
-        assignedBy: assignedByDetails?.emp_name || 'Unknown',
+        assignedBy: assignedByDetails?.emp_name || 'Admin',
         assignedByAvatar: assignedByDetails?.profile_picture || undefined,
       };
     });
@@ -192,11 +192,12 @@ export function NewHireTable() {
         <div className="flex items-center gap-2">
           <Avatar className="size-6">
             <AvatarImage src={row.original.assignedByAvatar} alt={row.original.assignedBy} />
-            <AvatarFallback className="text-[10px]">
-              {row.original.assignedBy
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
+            <AvatarFallback className="text-[10px] border border-primary">
+              {row.original.assignedBy === 'Admin' ? 'A' : 
+                row.original.assignedBy
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
             </AvatarFallback>
           </Avatar>
           <span className="text-sm text-[#667085]">{row.original.assignedBy}</span>

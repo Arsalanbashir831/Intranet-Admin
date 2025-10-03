@@ -19,7 +19,7 @@ export type ChecklistCreateRequest = {
   title?: string | null;
   detail?: string | null;
   assigned_to: number[];
-  assigned_by: number;
+  assigned_by: number | null;
   status?: StatusEnum;
 };
 
@@ -30,7 +30,7 @@ export type ChecklistUpdateRequest = {
   title?: string | null;
   detail?: string | null;
   assigned_to?: number[];
-  assigned_by?: number;
+  assigned_by?: number | null;
   status?: StatusEnum;
 };
 

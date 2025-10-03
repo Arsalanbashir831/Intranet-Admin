@@ -86,67 +86,106 @@ export function SelectableTags({
   onSearchValueChange,
   initialSearchValue = "",
 }: SelectableTagsProps) {
-  // ----- search state -----
   const [searchValue, setSearchValue] = React.useState(initialSearchValue);
+  
+  // Handler for search value changes
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearchValue(value);
+    onSearchValueChange?.(value);
+  }, [onSearchValueChange]);
+  
   const debouncedSearchValue = useDebounce(searchValue, searchDebounce);
-  const trimmed = debouncedSearchValue.trim();
+  
+  // Store previous search results to avoid flashing
+  const previousSearchResults = React.useRef<SelectableItem[]>([]);
 
-  const handleSearchChange = useCallback(
-    (val: string) => {
-      setSearchValue(val);
-      onSearchValueChange?.(val);
-    },
-    [onSearchValueChange]
-  );
-
-  // Keep previous results to avoid flashing while new results load
-  const previousSearchResults = useRef<SelectableItem[]>([]);
-
-  // ----- async data (if provided) -----
-  // Call hooks UNCONDITIONALLY when provided to keep hook order stable
-  const searchResult = useSearch ? useSearch(debouncedSearchValue) : undefined;
-  const allItemsResult = useAllItems ? useAllItems() : undefined;
+  // Use async search hooks if provided
+  const searchResult = useSearch?.(debouncedSearchValue);
+  const allItemsResult = useAllItems?.();
 
   const inAsyncMode = Boolean(useSearch && useAllItems);
 
   // ----- current items (async vs static) -----
-  const currentItems: SelectableItem[] = useMemo(() => {
-    if (inAsyncMode) {
-      // Searching
-      if (trimmed) {
+  // Determine which items to use (async or static)
+  const currentItems = React.useMemo(() => {
+    if (useSearch && useAllItems) {
+      // Using async search
+      if (debouncedSearchValue && debouncedSearchValue.trim()) {
+        // Use search results
         if (searchResult?.isLoading) {
-          return keepPreviousWhileLoading ? previousSearchResults.current : [];
+          // While loading, keep showing previous results if available
+          return previousSearchResults.current.length > 0 
+            ? previousSearchResults.current 
+            : [];
         }
-        const data = (searchResult?.data ?? []) as SelectableItem[];
-        previousSearchResults.current = data;
-        return data;
-        // No search term -> show all items
+        
+        // Process search data
+        const searchData: any = searchResult?.data;
+        let itemsToReturn: SelectableItem[] = [];
+        
+        // Handle different data structures
+        if (Array.isArray(searchData)) {
+          itemsToReturn = searchData;
+        } else if (searchData?.results) {
+          itemsToReturn = searchData.results;
+        } else if (searchData?.branches?.results) {
+          itemsToReturn = searchData.branches.results;
+        } else if (searchData?.departments?.results) {
+          itemsToReturn = searchData.departments.results;
+        }
+        
+        // Update previous results and return
+        previousSearchResults.current = itemsToReturn;
+        return itemsToReturn;
       } else {
-        if (allItemsResult?.isLoading) return [];
-        return (allItemsResult?.data ?? []) as SelectableItem[];
+        // Use all items
+        if (allItemsResult?.isLoading) {
+          return [];
+        }
+        
+        const allData: any = allItemsResult?.data;
+        let itemsToReturn: SelectableItem[] = [];
+        
+        // Handle different data structures for all items
+        if (Array.isArray(allData)) {
+          itemsToReturn = allData;
+        } else if (allData?.results) {
+          itemsToReturn = allData.results;
+        } else if (allData?.branches?.results) {
+          itemsToReturn = allData.branches.results;
+        } else if (allData?.departments?.results) {
+          itemsToReturn = allData.departments.results;
+        }
+        
+        // Clear previous search results when showing all items
+        previousSearchResults.current = [];
+        return itemsToReturn;
       }
+    } else {
+      // Using static items with local filtering
+      if (!debouncedSearchValue) return items;
+      
+      return items.filter((item) =>
+        item.label.toLowerCase().includes(debouncedSearchValue.toLowerCase())
+      );
     }
-
-    // Static mode: local filter on provided items
-    if (!trimmed) return items;
-    const term = trimmed.toLowerCase();
-    return items.filter((i) => i.label.toLowerCase().includes(term));
-  }, [
-    inAsyncMode,
-    trimmed,
-    searchResult?.isLoading,
-    searchResult?.data,
-    allItemsResult?.isLoading,
-    allItemsResult?.data,
-    items,
-    keepPreviousWhileLoading,
-  ]);
+  }, [useSearch, useAllItems, debouncedSearchValue, searchResult, allItemsResult, items]);
+  
+  // Make sure currentItems is always an array
+  const safeCurrentItems = Array.isArray(currentItems) ? currentItems : [];
 
   // Loading state
-  const isLoading = useMemo(() => {
-    if (!inAsyncMode) return false;
-    return trimmed ? Boolean(searchResult?.isLoading) : Boolean(allItemsResult?.isLoading);
-  }, [inAsyncMode, trimmed, searchResult?.isLoading, allItemsResult?.isLoading]);
+  const isLoading = React.useMemo(() => {
+    if (useSearch && useAllItems) {
+      // When searching, use search loading state
+      if (debouncedSearchValue && debouncedSearchValue.trim()) {
+        return searchResult?.isLoading ?? false;
+      }
+      // When not searching, use all items loading state
+      return allItemsResult?.isLoading ?? false;
+    }
+    return false;
+  }, [useSearch, useAllItems, debouncedSearchValue, searchResult?.isLoading, allItemsResult?.isLoading]);
 
   // Selected set for O(1) lookups
   const selectedSet = useMemo(() => new Set(selectedItems), [selectedItems]);
@@ -155,15 +194,15 @@ export function SelectableTags({
   const labelMap = useMemo(() => {
     const m = new Map<string, string>();
     items.forEach((i) => m.set(i.id, i.label));
-    currentItems.forEach((i) => m.set(i.id, i.label));
+    safeCurrentItems.forEach((i) => m.set(i.id, i.label));
     return m;
-  }, [items, currentItems]);
+  }, [items, safeCurrentItems]);
 
   // Available options in the dropdown
   const availableItems = useMemo(() => {
-    if (!hideSelectedFromList) return currentItems;
-    return currentItems.filter((item) => !selectedSet.has(item.id));
-  }, [currentItems, selectedSet, hideSelectedFromList]);
+    if (!hideSelectedFromList) return safeCurrentItems;
+    return safeCurrentItems.filter((item) => !selectedSet.has(item.id));
+  }, [safeCurrentItems, selectedSet, hideSelectedFromList]);
 
   // ----- handlers -----
   const handleRemove = useCallback(
@@ -277,7 +316,7 @@ export function SelectableTags({
 
                 {allowCreate &&
                   searchValue.trim() &&
-                  !currentItems.some(
+                  !safeCurrentItems.some(
                     (it) =>
                       it.label.toLowerCase() === searchValue.trim().toLowerCase()
                   ) && (
