@@ -22,12 +22,12 @@ import { cn } from "@/lib/utils";
 import type { components } from "@/types/api";
 import { FilterDrawer } from "@/components/card-table/filter-drawer";
 import { DepartmentFilter } from "@/components/card-table/filter-components";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
@@ -64,17 +64,17 @@ export function NewHireTable() {
     if (debouncedSearchQuery.trim()) {
       params.search = debouncedSearchQuery.trim();
     }
-    
+
     // Add status filter if selected (but not if it's the "All" option)
     if (filters.status && filters.status !== "__all__") {
       params.status = String(filters.status);
     }
-    
+
     // Add department filter if selected (but not if it's the "All" option)
     if (filters.department && filters.department !== "__all__") {
       params.department = String(filters.department);
     }
-    
+
     return Object.keys(params).length > 0 ? params : undefined;
   }, [debouncedSearchQuery, filters]);
 
@@ -97,19 +97,19 @@ export function NewHireTable() {
       const assignedByDetails = checklist.assigned_by_details as { emp_name?: string; profile_picture?: string } | undefined;
 
       // Get department name from department_details (handling both string and object formats)
-      let departmentName = 'Unknown';
+      let departmentName = 'N/A';
       if (typeof checklist.department_details === 'string') {
         try {
           // Try to parse if it's a JSON string
           const parsed = JSON.parse(checklist.department_details);
-          departmentName = parsed.dept_name || parsed.name || checklist.department_details || 'Unknown';
+          departmentName = parsed.dept_name || parsed.name || checklist.department_details || 'N/A';
         } catch (e) {
           // If parsing fails, use the string value directly
-          departmentName = checklist.department_details || 'Unknown';
+          departmentName = checklist.department_details || 'N/A';
         }
       } else if (checklist.department_details && typeof checklist.department_details === 'object') {
         // If it's already an object (as in the API response you provided)
-        departmentName = (checklist.department_details as { dept_name?: string }).dept_name || 'Unknown';
+        departmentName = (checklist.department_details as { dept_name?: string }).dept_name || 'N/A';
       }
 
       return {
@@ -156,14 +156,16 @@ export function NewHireTable() {
       header: ({ column }) => <CardTableColumnHeader column={column} title="Assigned to" />,
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <AvatarStack size={24} className="-space-x-2">
-            {row.original.assignedTo.map((employee, idx) => (
-              <Avatar key={idx} className="z-1">
-                <AvatarImage src={employee.avatar} alt={employee.name} />
-                <AvatarFallback className="text-[10px] border border-primary">{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-              </Avatar>
-            ))}
-          </AvatarStack>
+          {row.original.assignedTo.length > 0 ?
+            <AvatarStack size={24} className="-space-x-2">
+              {row.original.assignedTo.map((employee, idx) => (
+                <Avatar key={idx} className="z-1">
+                  <AvatarImage src={employee.avatar} alt={employee.name} />
+                  <AvatarFallback className="text-[10px] border border-primary">{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+              ))}
+            </AvatarStack>
+            : <span className="text-sm text-[#667085]"> N/A </span>}
           {row.original.assignedTo.length > 3 ? (
             <span className="text-xs text-muted-foreground">+{row.original.assignedTo.length - 3}</span>
           ) : null}
@@ -193,7 +195,7 @@ export function NewHireTable() {
           <Avatar className="size-6">
             <AvatarImage src={row.original.assignedByAvatar} alt={row.original.assignedBy} />
             <AvatarFallback className="text-[10px] border border-primary">
-              {row.original.assignedBy === 'Admin' ? 'A' : 
+              {row.original.assignedBy === 'Admin' ? 'A' :
                 row.original.assignedBy
                   .split(" ")
                   .map((n) => n[0])
@@ -260,7 +262,7 @@ export function NewHireTable() {
         onRowClick={(row) => handleRowClick(row.original)}
         footer={(table) => <CardTablePagination table={table} />}
       />
-      
+
       <FilterDrawer
         open={isFilterOpen}
         onOpenChange={setIsFilterOpen}
@@ -270,9 +272,9 @@ export function NewHireTable() {
         description="Filter new hire plans by status or department"
       >
         <div className="space-y-6 py-4">
-          <SelectFilter 
+          <SelectFilter
             label="Status"
-            value={(filters.status as string) || "__all__"} 
+            value={(filters.status as string) || "__all__"}
             onValueChange={(value: string) => setFilters(prev => ({ ...prev, status: value }))}
             options={[
               { value: "__all__", label: "All Statuses" },
@@ -280,8 +282,8 @@ export function NewHireTable() {
               { value: "draft", label: "Draft" }
             ]}
           />
-          <DepartmentFilter 
-            value={(filters.department as string) || "__all__"} 
+          <DepartmentFilter
+            value={(filters.department as string) || "__all__"}
             onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
           />
         </div>
@@ -291,15 +293,15 @@ export function NewHireTable() {
 }
 
 // Custom Select Filter Component
-function SelectFilter({ 
+function SelectFilter({
   label,
-  value, 
+  value,
   onValueChange,
   options
-}: { 
+}: {
   label: string;
-  value: string; 
-  onValueChange: (value: string) => void; 
+  value: string;
+  onValueChange: (value: string) => void;
   options: { value: string; label: string }[];
 }) {
   return (

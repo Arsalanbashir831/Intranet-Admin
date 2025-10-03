@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { login, logout, refreshToken } from "@/services/auth";
+import { login, logout, refreshToken, getMe } from "@/services/auth";
 import type { LoginRequest } from "@/services/auth";
 import { ROUTES } from "@/constants/routes";
 import { setAuthCookies, clearAuthCookies } from "@/lib/cookies";
@@ -9,7 +9,7 @@ export function useLogin() {
   
   return useMutation({
     mutationFn: (credentials: LoginRequest) => login(credentials),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Store tokens via cookies only
       if (typeof window !== "undefined") {
         setAuthCookies(data.access, data.refresh);
@@ -21,12 +21,56 @@ export function useLogin() {
       // Invalidate all queries to refetch with new auth state
       qc.invalidateQueries();
       
-      // Force a page reload to update the auth context
-      // This ensures the AuthProvider picks up the new tokens
-      window.location.href = ROUTES.ADMIN.DASHBOARD;
+      // Navigate to dashboard
+      if (typeof window !== "undefined") {
+        // Try to use Next.js router first
+        try {
+          const router = require("next/navigation").useRouter();
+          if (router && typeof router.push === 'function') {
+            router.push(ROUTES.ADMIN.DASHBOARD);
+            return;
+          }
+        } catch (e) {
+          // If router is not available, fall back to window.location
+          window.location.assign(ROUTES.ADMIN.DASHBOARD);
+        }
+        // Fallback
+        window.location.assign(ROUTES.ADMIN.DASHBOARD);
+      }
     },
     onError: (error) => {
       console.error("Login failed:", error);
+      // Handle different types of errors
+      if (error instanceof Error) {
+        // Network or other errors
+        throw new Error("Unable to connect to the server. Please check your connection and try again.");
+      } else {
+        // API errors
+        const err = error as { 
+          response?: { 
+            status?: number;
+            data?: { 
+              detail?: string;
+            } 
+          } 
+        };
+        
+        // Handle specific HTTP status codes
+        switch (err.response?.status) {
+          case 400:
+            throw new Error("Invalid request. Please check your credentials and try again.");
+          case 401:
+            throw new Error("Invalid username or password.");
+          case 403:
+            throw new Error("Account access denied. Please contact your administrator.");
+          case 500:
+            throw new Error("Server error. Please try again later.");
+          case 503:
+            throw new Error("Service temporarily unavailable. Please try again later.");
+          default:
+            throw new Error(err.response?.data?.detail || "Login failed. Please try again.");
+        }
+      }
     },
   });
 }

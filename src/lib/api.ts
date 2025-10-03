@@ -95,11 +95,52 @@ export class ApiClient {
     };
 
     // ** ADD THIS CHECK HERE **
-    // If the failed request was the login attempt itself or token verification,
+    // If the failed request was the login attempt itself, token verification, or me endpoint,
     // do not try to refresh the token. Just pass the error along.
-    if (originalReq.url === API_ROUTES.AUTH.OBTAIN_TOKEN || originalReq.url === API_ROUTES.AUTH.VERIFY_TOKEN) {
-      console.log("ApiClient: Login/verify attempt failed. Bypassing token refresh.");
+    if (originalReq.url === API_ROUTES.AUTH.OBTAIN_TOKEN || 
+        originalReq.url === API_ROUTES.AUTH.VERIFY_TOKEN ||
+        originalReq.url === API_ROUTES.AUTH.ME) {
+      console.log("ApiClient: Login/verify/me attempt failed. Bypassing token refresh.");
       return Promise.reject(error);
+    }
+
+    // Handle network errors (no response from server)
+    if (!error.response) {
+      console.error("ApiClient: Network error or no response from server", error);
+      return Promise.reject(new Error("Network error. Please check your connection and try again."));
+    }
+
+    // Handle specific HTTP status codes
+    switch (error.response.status) {
+      case 401:
+        // Unauthorized - token might be expired
+        break; // Continue with token refresh logic
+      case 403:
+        // Forbidden - user doesn't have permission
+        console.error("ApiClient: Forbidden access", error);
+        return Promise.reject(new Error("Access denied. You don't have permission to perform this action."));
+      case 404:
+        // Not found
+        console.error("ApiClient: Resource not found", error);
+        return Promise.reject(new Error("Requested resource not found."));
+      case 429:
+        // Too many requests
+        console.error("ApiClient: Rate limit exceeded", error);
+        return Promise.reject(new Error("Too many requests. Please try again later."));
+      case 500:
+        // Internal server error
+        console.error("ApiClient: Internal server error", error);
+        return Promise.reject(new Error("Server error. Please try again later."));
+      case 502:
+      case 503:
+      case 504:
+        // Service unavailable
+        console.error("ApiClient: Service unavailable", error);
+        return Promise.reject(new Error("Service temporarily unavailable. Please try again later."));
+      default:
+        // Other errors
+        console.error("ApiClient: Unexpected error", error);
+        return Promise.reject(new Error("An unexpected error occurred. Please try again."));
     }
 
     if (error.response?.status === 401 && !originalReq._retry) {
@@ -133,7 +174,7 @@ export class ApiClient {
             window.location.href = ROUTES.AUTH.LOGIN;
           }
         }
-        return Promise.reject(refreshError);
+        return Promise.reject(new Error("Session expired. Please log in again."));
       } finally {
         this.isRefreshing = false;
       }

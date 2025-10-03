@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { ROUTES } from "@/constants/routes";
@@ -16,23 +16,40 @@ export function AuthGuard({
   requireAuth = true, 
   redirectTo = ROUTES.AUTH.LOGIN 
 }: AuthGuardProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, refreshAuth } = useAuth();
   const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     if (isLoading) return; // Wait for auth check to complete
 
+    // If we've already checked auth and the user is authenticated, we're done
+    if (authChecked) {
+      return;
+    }
+
     if (requireAuth && !isAuthenticated) {
       // User needs to be authenticated but isn't
-      router.push(redirectTo);
+      // Try to refresh auth first before redirecting
+      refreshAuth().then(() => {
+        setAuthChecked(true);
+        if (!isAuthenticated) {
+          router.push(redirectTo);
+        }
+      }).catch(() => {
+        router.push(redirectTo);
+      });
     } else if (!requireAuth && isAuthenticated) {
       // User is authenticated but shouldn't be on auth pages
       router.push(ROUTES.ADMIN.DASHBOARD);
+    } else {
+      // Auth state is consistent with requirements
+      setAuthChecked(true);
     }
-  }, [isAuthenticated, isLoading, requireAuth, redirectTo, router]);
+  }, [isAuthenticated, isLoading, requireAuth, redirectTo, router, refreshAuth, authChecked]);
 
   // Show loading while checking auth
-  if (isLoading) {
+  if (isLoading || !authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

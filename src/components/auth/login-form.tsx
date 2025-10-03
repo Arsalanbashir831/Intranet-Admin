@@ -23,24 +23,82 @@ export function LoginForm() {
   const router = useRouter();
   const loginMutation = useLogin();
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null); // Add state for API errors
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    clearErrors, // Add clearErrors function
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
+    setApiError(null); // Clear previous API errors
+    clearErrors(); // Clear form validation errors
+    
     try {
       await loginMutation.mutateAsync(data);
       toast.success("Login successful!");
       router.push(ROUTES.ADMIN.DASHBOARD);
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { detail?: string } } };
-      toast.error(err.response?.data?.detail || "Login failed. Please try again.");
+      // Handle different types of errors
+      if (error instanceof Error) {
+        // Network or other errors
+        setApiError("Unable to connect to the server. Please check your connection and try again.");
+        toast.error("Connection error. Please try again.");
+      } else {
+        // API errors
+        const err = error as { 
+          response?: { 
+            status?: number;
+            data?: { 
+              detail?: string;
+              username?: string[];
+              password?: string[];
+            } 
+          } 
+        };
+        
+        // Handle specific HTTP status codes
+        switch (err.response?.status) {
+          case 400:
+            // Bad request - likely validation errors
+            if (err.response.data?.username) {
+              setApiError(err.response.data.username[0]);
+            } else if (err.response.data?.password) {
+              setApiError(err.response.data.password[0]);
+            } else {
+              setApiError("Invalid username or password.");
+            }
+            break;
+          case 401:
+            // Unauthorized - incorrect credentials
+            setApiError("Invalid username or password.");
+            break;
+          case 403:
+            // Forbidden - account may be locked or deactivated
+            setApiError("Account access denied. Please contact your administrator.");
+            break;
+          case 500:
+            // Server error
+            setApiError("Server error. Please try again later.");
+            toast.error("Server error. Please try again later.");
+            break;
+          case 503:
+            // Service unavailable
+            setApiError("Service temporarily unavailable. Please try again later.");
+            toast.error("Service temporarily unavailable.");
+            break;
+          default:
+            // Other errors
+            const errorMessage = err.response?.data?.detail || "Login failed. Please try again.";
+            setApiError(errorMessage);
+            toast.error(errorMessage);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -73,6 +131,13 @@ export function LoginForm() {
             onSubmit={handleSubmit(onSubmit)}
             className="flex w-full max-w-md flex-col items-stretch space-y-6 text-center"
           >
+            {/* Display API error message */}
+            {apiError && (
+              <div className="rounded-md bg-red-50 p-4 text-sm text-red-800">
+                {apiError}
+              </div>
+            )}
+
             <div className="w-full space-y-2">
               <Label htmlFor="username" className="text-sm text-[#2b2b2b]">
                 Username <span className="text-[#27ae60]">*</span>
@@ -85,7 +150,7 @@ export function LoginForm() {
                 className={[
                   "h-11 rounded-md border border-[#E5E7EB] bg-white text-[15px] shadow-none",
                   "focus-visible:ring-0 focus-visible:border-[#c62d64]",
-                  errors.username ? "border-red-500" : "",
+                  errors.username || apiError ? "border-red-500" : "",
                 ].join(" ")}
               />
               {errors.username && (
@@ -105,7 +170,7 @@ export function LoginForm() {
                 className={[
                   "h-11 rounded-md border border-[#E5E7EB] bg-white text-[15px] shadow-none",
                   "focus-visible:ring-0 focus-visible:border-[#c62d64]",
-                  errors.password ? "border-red-500" : "",
+                  errors.password || apiError ? "border-red-500" : "",
                 ].join(" ")}
               />
               {errors.password && (
@@ -118,7 +183,14 @@ export function LoginForm() {
               disabled={isLoading || loginMutation.isPending}
               className="h-11 w-full rounded-full bg-secondary text-white disabled:opacity-70"
             >
-              {isLoading || loginMutation.isPending ? "Signing in..." : "Sign in"}
+              {isLoading || loginMutation.isPending ? (
+                <div className="flex items-center justify-center">
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  Signing in...
+                </div>
+              ) : (
+                "Sign in"
+              )}
             </Button>
           </form>
         </div>

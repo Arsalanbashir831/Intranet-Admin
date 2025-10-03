@@ -16,7 +16,6 @@ import { Loader2 } from "lucide-react";
 
 export default function NewHirePlanCreatePage() {
   const router = useRouter();
-  
   const [formData, setFormData] = React.useState<NewHirePlanFormData | null>(null);
   const [isSaving, setIsSaving] = React.useState(false); // For draft saving
   const [isPublishing, setIsPublishing] = React.useState(false); // For publishing

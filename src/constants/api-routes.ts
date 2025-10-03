@@ -3,6 +3,7 @@ export const API_ROUTES = {
         OBTAIN_TOKEN: "/token/",
         REFRESH_TOKEN: "/token/refresh/",
         VERIFY_TOKEN: "/token/verify/",
+        ME: "/me/",
     },
     STATS: '/stats/',
     BRANCHES: {

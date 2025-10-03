@@ -3,6 +3,44 @@ import { API_ROUTES } from "@/constants/api-routes";
 import { setAuthCookies } from "@/lib/cookies";
 import type { components } from "@/types/api";
 
+// Define types for the me API response
+export type User = {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_active: boolean;
+  is_staff: boolean;
+  is_superuser: boolean;
+};
+
+export type Executive = {
+  id: number;
+  name: string;
+  address: string;
+  city: string;
+  phone: string;
+  email: string;
+  role: string;
+  education: string;
+  bio: string;
+  profile_picture: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Employee = {
+  id: number;
+  // Add employee fields as needed
+};
+
+export type MeResponse = {
+  user: User;
+  employee: Employee | null;
+  executive: Executive | null;
+};
+
 // Align with backend: obtain token expects username and password and returns access/refresh
 export type LoginRequest = { username: string; password: string };
 export type LoginResponse = { access: string; refresh: string };
@@ -38,6 +76,12 @@ export async function verifyToken(token?: string) {
   }
   
   await apiCaller<void>(API_ROUTES.AUTH.VERIFY_TOKEN, "POST", { token: tokenToVerify } as VerifyRequest, {}, "json");
+}
+
+// New function to get user profile information
+export async function getMe(): Promise<MeResponse> {
+  const res = await apiCaller<MeResponse>(API_ROUTES.AUTH.ME, "GET");
+  return res.data;
 }
 
 export async function logout() {

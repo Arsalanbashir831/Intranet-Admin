@@ -3,13 +3,23 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ROUTES } from "@/constants/routes";
 import { getAuthTokens, clearAuthCookies } from "@/lib/cookies";
-import { verifyToken } from "@/services/auth";
+import { getMe } from "@/services/auth";
 
+// Define types for the user based on the me API response
 interface User {
-  id: string;
+  id: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isActive: boolean;
+  isStaff: boolean;
+  isSuperuser: boolean;
+  executiveId: number | null;
+  employeeId: number | null;
   name: string;
+  profilePicture?: string;
   role?: string;
-  avatar?: string;
 }
 
 interface AuthContextType {
@@ -17,40 +27,72 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   logout: () => void;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user,  setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Check for existing tokens on mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        setAuthError(null);
         // Cookies-only
         const { accessToken, refreshToken: refreshTokenValue } = getAuthTokens();
 
         if (accessToken && refreshTokenValue) {
-          // Verify current access token. If invalid, try to refresh manually
+          // Use the me API to get user details
           try {
-            await verifyToken();
-            setUser({ id: "self", name: "Admin", role: "ADMIN" });
+            const meData = await getMe();
+            setUser({
+              id: meData.user.id,
+              username: meData.user.username,
+              email: meData.user.email,
+              firstName: meData.user.first_name,
+              lastName: meData.user.last_name,
+              isActive: meData.user.is_active,
+              isStaff: meData.user.is_staff,
+              isSuperuser: meData.user.is_superuser,
+              executiveId: meData.executive?.id || null,
+              employeeId: meData.employee?.id || null,
+              name: meData.executive?.name || meData.user.username,
+              profilePicture: meData.executive?.profile_picture,
+              role: meData.executive?.role,
+            });
           } catch {
-            // Token verification failed, try to refresh manually
+            // If me API fails, try to refresh token and try again
             try {
               const { refreshToken } = await import("@/services/auth");
               const result = await refreshToken(refreshTokenValue);
               const { setAuthCookies } = await import("@/lib/cookies");
               setAuthCookies(result.access, result.refresh || refreshTokenValue);
               
-              // Try to verify again with new token
-              await verifyToken();
-              setUser({ id: "self", name: "Admin", role: "ADMIN" });
+              // Try to get user details again with new token
+              const meData = await getMe();
+              setUser({
+                id: meData.user.id,
+                username: meData.user.username,
+                email: meData.user.email,
+                firstName: meData.user.first_name,
+                lastName: meData.user.last_name,
+                isActive: meData.user.is_active,
+                isStaff: meData.user.is_staff,
+                isSuperuser: meData.user.is_superuser,
+                executiveId: meData.executive?.id || null,
+                employeeId: meData.employee?.id || null,
+                name: meData.executive?.name || meData.user.username,
+                profilePicture: meData.executive?.profile_picture,
+                role: meData.executive?.role,
+              });
             } catch (refreshError) {
               // Refresh failed, user is not authenticated
               console.error("Token refresh failed:", refreshError);
+              setAuthError("Session expired. Please log in again.");
               setUser(null);
             }
           }
@@ -60,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error("Auth check failed:", error);
+        setAuthError("Authentication check failed. Please try again.");
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -72,20 +115,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setIsLoading(false);
     }
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
-  // Profile fetching removed – verification-based auth only
+  // Add refreshAuth function
+  const refreshAuth = async () => {
+    setIsLoading(true);
+    try {
+      const { accessToken, refreshToken: refreshTokenValue } = getAuthTokens();
+      
+      if (accessToken && refreshTokenValue) {
+        try {
+          const meData = await getMe();
+          setUser({
+            id: meData.user.id,
+            username: meData.user.username,
+            email: meData.user.email,
+            firstName: meData.user.first_name,
+            lastName: meData.user.last_name,
+            isActive: meData.user.is_active,
+            isStaff: meData.user.is_staff,
+            isSuperuser: meData.user.is_superuser,
+            executiveId: meData.executive?.id || null,
+            employeeId: meData.employee?.id || null,
+            name: meData.executive?.name || meData.user.username,
+            profilePicture: meData.executive?.profile_picture,
+            role: meData.executive?.role,
+          });
+        } catch {
+          // Token verification failed, try to refresh
+          try {
+            const { refreshToken } = await import("@/services/auth");
+            const result = await refreshToken(refreshTokenValue);
+            const { setAuthCookies } = await import("@/lib/cookies");
+            setAuthCookies(result.access, result.refresh || refreshTokenValue);
+            
+            // Get user details with new token
+            const meData = await getMe();
+            setUser({
+              id: meData.user.id,
+              username: meData.user.username,
+              email: meData.user.email,
+              firstName: meData.user.first_name,
+              lastName: meData.user.last_name,
+              isActive: meData.user.is_active,
+              isStaff: meData.user.is_staff,
+              isSuperuser: meData.user.is_superuser,
+              executiveId: meData.executive?.id || null,
+              employeeId: meData.employee?.id || null,
+              name: meData.executive?.name || meData.user.username,
+              profilePicture: meData.executive?.profile_picture,
+              role: meData.executive?.role,
+            });
+          } catch (refreshError) {
+            console.error("Token refresh failed:", refreshError);
+            setAuthError("Session expired. Please log in again.");
+            setUser(null);
+            clearAuthCookies();
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Auth refresh failed:", error);
+      setAuthError("Failed to refresh authentication. Please log in again.");
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Listen for token updates from API client
   useEffect(() => {
     const handleTokenUpdate = () => {
       const { accessToken, refreshToken: refreshTokenValue } = getAuthTokens();
       if (accessToken && refreshTokenValue) {
-        setUser({
-          id: "1",
-          name: "User",
-          role: "EMPLOYEE",
-        });
+        // Refresh auth when tokens are updated
+        refreshAuth();
       } else {
         setUser(null);
       }
@@ -107,9 +211,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
+    setAuthError(null);
     clearAuthCookies();
     
-    window.location.href = ROUTES.AUTH.LOGIN;
+    // Use window.location for navigation since we're in a context outside of React components
+    if (typeof window !== "undefined") {
+      window.location.href = ROUTES.AUTH.LOGIN;
+    }
   };
 
   const value: AuthContextType = {
@@ -117,6 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated: !!user,
     isLoading,
     logout,
+    refreshAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
