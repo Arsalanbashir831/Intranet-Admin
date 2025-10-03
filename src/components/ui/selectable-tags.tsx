@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ReactNode } from "react";
+import { ReactNode, useMemo, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import {
   Tags,
@@ -35,21 +35,32 @@ export interface SelectableTagsProps {
   allowCreate?: boolean;
   onCreateTag?: (label: string) => void;
   icon?: ReactNode;
+
   // Optional custom renderer to display selected items inside the trigger
   renderSelected?: (id: string) => ReactNode;
   // Optional custom renderer to display items in the dropdown list
   renderItem?: (id: string) => ReactNode;
-  // Optional hooks for async search
-  useSearch?: (query: string) => {
-    data?: { results?: SelectableItem[] } | SelectableItem[];
-    isLoading: boolean;
-  };
-  useAllItems?: () => {
-    data?: { results?: SelectableItem[] } | SelectableItem[];
-    isLoading: boolean;
-  };
+
+  /**
+   * Async providers (expected to return SelectableItem[])
+   * Treat these like hooks: for a given instance, either pass both (async mode)
+   * or omit both (static mode). Do not toggle their presence across renders.
+   */
+  useSearch?: (query: string) => { data?: SelectableItem[]; isLoading: boolean };
+  useAllItems?: () => { data?: SelectableItem[]; isLoading: boolean };
+
   // Debounce search in milliseconds
   searchDebounce?: number;
+
+  // Hide already-selected rows from the dropdown (default true)
+  hideSelectedFromList?: boolean;
+
+  // Keep prior results visible while loading fresh search results (default true)
+  keepPreviousWhileLoading?: boolean;
+
+  // External control (optional)
+  onSearchValueChange?: (value: string) => void;
+  initialSearchValue?: string;
 }
 
 export function SelectableTags({
@@ -69,129 +80,141 @@ export function SelectableTags({
   renderItem,
   useSearch,
   useAllItems,
-  searchDebounce = 300,
+  searchDebounce = 500,
+  hideSelectedFromList = true,
+  keepPreviousWhileLoading = true,
+  onSearchValueChange,
+  initialSearchValue = "",
 }: SelectableTagsProps) {
-  const [searchValue, setSearchValue] = React.useState("");
+  // ----- search state -----
+  const [searchValue, setSearchValue] = React.useState(initialSearchValue);
   const debouncedSearchValue = useDebounce(searchValue, searchDebounce);
-  
-  // Store previous search results to avoid flashing
-  const previousSearchResults = React.useRef<SelectableItem[]>([]);
+  const trimmed = debouncedSearchValue.trim();
 
-  // Use async search hooks if provided
-  const searchResult = useSearch?.(debouncedSearchValue);
-  const allItemsResult = useAllItems?.();
-  
-  // Debug logging
-  React.useEffect(() => {
-    if (useSearch && useAllItems) {
-      console.log('=== SelectableTags Debug ===');
-      console.log('Search value:', searchValue);
-      console.log('Debounced search value:', debouncedSearchValue);
-      console.log('Search result:', searchResult);
-      console.log('All items result:', allItemsResult);
-    }
-  }, [searchValue, debouncedSearchValue, searchResult, allItemsResult, useSearch, useAllItems]);
-  
-  // Determine which items to use (async or static)
-  const currentItems = React.useMemo(() => {
-    if (useSearch && useAllItems) {
-      // Using async search
-      if (debouncedSearchValue && debouncedSearchValue.trim()) {
-        const searchData = searchResult?.data;
-        console.log('Using search data:', searchData, 'isLoading:', searchResult?.isLoading); // Debug
-        
-        // If loading and we have previous results, keep showing them
-        if (searchResult?.isLoading && previousSearchResults.current.length > 0) {
-          return previousSearchResults.current;
+  const handleSearchChange = useCallback(
+    (val: string) => {
+      setSearchValue(val);
+      onSearchValueChange?.(val);
+    },
+    [onSearchValueChange]
+  );
+
+  // Keep previous results to avoid flashing while new results load
+  const previousSearchResults = useRef<SelectableItem[]>([]);
+
+  // ----- async data (if provided) -----
+  // Call hooks UNCONDITIONALLY when provided to keep hook order stable
+  const searchResult = useSearch ? useSearch(debouncedSearchValue) : undefined;
+  const allItemsResult = useAllItems ? useAllItems() : undefined;
+
+  const inAsyncMode = Boolean(useSearch && useAllItems);
+
+  // ----- current items (async vs static) -----
+  const currentItems: SelectableItem[] = useMemo(() => {
+    if (inAsyncMode) {
+      // Searching
+      if (trimmed) {
+        if (searchResult?.isLoading) {
+          return keepPreviousWhileLoading ? previousSearchResults.current : [];
         }
-        
-        if (Array.isArray(searchData)) {
-          previousSearchResults.current = searchData;
-          return searchData;
-        } else if (searchData?.results) {
-          previousSearchResults.current = searchData.results;
-          return searchData.results;
-        }
-        return previousSearchResults.current;
+        const data = (searchResult?.data ?? []) as SelectableItem[];
+        previousSearchResults.current = data;
+        return data;
+        // No search term -> show all items
       } else {
-        const allData = allItemsResult?.data;
-        console.log('Using all data:', allData, 'isLoading:', allItemsResult?.isLoading); // Debug
-        
-        if (allItemsResult?.isLoading) {
-          return []; // Return empty while loading initial data
-        }
-        
-        if (Array.isArray(allData)) {
-          return allData;
-        } else if (allData?.results) {
-          return allData.results;
-        }
-        return [];
+        if (allItemsResult?.isLoading) return [];
+        return (allItemsResult?.data ?? []) as SelectableItem[];
       }
-    } else {
-      // Using static items with local filtering
-      if (!searchValue) return items;
-      return items.filter((item) =>
-        item.label.toLowerCase().includes(searchValue.toLowerCase())
-      );
     }
-  }, [useSearch, useAllItems, debouncedSearchValue, searchValue, searchResult, allItemsResult, items]);
 
-  const isLoading = React.useMemo(() => {
-    if (useSearch && useAllItems) {
-      return debouncedSearchValue && debouncedSearchValue.trim() 
-        ? (searchResult?.isLoading ?? false) 
-        : (allItemsResult?.isLoading ?? false);
-    }
-    return false;
-  }, [useSearch, useAllItems, debouncedSearchValue, searchResult, allItemsResult]);
+    // Static mode: local filter on provided items
+    if (!trimmed) return items;
+    const term = trimmed.toLowerCase();
+    return items.filter((i) => i.label.toLowerCase().includes(term));
+  }, [
+    inAsyncMode,
+    trimmed,
+    searchResult?.isLoading,
+    searchResult?.data,
+    allItemsResult?.isLoading,
+    allItemsResult?.data,
+    items,
+    keepPreviousWhileLoading,
+  ]);
 
-  // Get available items (not selected)
-  const availableItems = React.useMemo(() => {
-    const filtered = currentItems.filter((item: SelectableItem) => !selectedItems.includes(item.id));
-    return filtered;
-  }, [currentItems, selectedItems]);
+  // Loading state
+  const isLoading = useMemo(() => {
+    if (!inAsyncMode) return false;
+    return trimmed ? Boolean(searchResult?.isLoading) : Boolean(allItemsResult?.isLoading);
+  }, [inAsyncMode, trimmed, searchResult?.isLoading, allItemsResult?.isLoading]);
 
-  const handleRemove = (value: string) => {
-    if (!selectedItems.includes(value)) {
-      return;
-    }
-    onSelectionChange(selectedItems.filter((v) => v !== value));
-  };
+  // Selected set for O(1) lookups
+  const selectedSet = useMemo(() => new Set(selectedItems), [selectedItems]);
 
-  const handleSelect = (value: string) => {
-    if (selectedItems.includes(value)) {
-      handleRemove(value);
-      return;
-    }
-    onSelectionChange([...selectedItems, value]);
-  };
+  // Stable label map (prevents chip flicker to raw ids)
+  const labelMap = useMemo(() => {
+    const m = new Map<string, string>();
+    items.forEach((i) => m.set(i.id, i.label));
+    currentItems.forEach((i) => m.set(i.id, i.label));
+    return m;
+  }, [items, currentItems]);
 
-  const handleCreateTag = () => {
-    if (searchValue.trim() && allowCreate && onCreateTag) {
+  // Available options in the dropdown
+  const availableItems = useMemo(() => {
+    if (!hideSelectedFromList) return currentItems;
+    return currentItems.filter((item) => !selectedSet.has(item.id));
+  }, [currentItems, selectedSet, hideSelectedFromList]);
+
+  // ----- handlers -----
+  const handleRemove = useCallback(
+    (value: string) => {
+      if (!selectedSet.has(value)) return;
+      onSelectionChange(selectedItems.filter((v) => v !== value));
+    },
+    [onSelectionChange, selectedItems, selectedSet]
+  );
+
+  const handleSelect = useCallback(
+    (value: string) => {
+      if (selectedSet.has(value)) {
+        onSelectionChange(selectedItems.filter((v) => v !== value));
+      } else {
+        onSelectionChange([...selectedItems, value]);
+      }
+    },
+    [onSelectionChange, selectedItems, selectedSet]
+  );
+
+  const handleCreateTag = useCallback(() => {
+    if (allowCreate && onCreateTag && searchValue.trim()) {
       onCreateTag(searchValue.trim());
-      setSearchValue("");
+      handleSearchChange("");
     }
-  };
+  }, [allowCreate, onCreateTag, searchValue, handleSearchChange]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && searchValue.trim() && allowCreate) {
-      e.preventDefault();
-      handleCreateTag();
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && allowCreate && searchValue.trim()) {
+        e.preventDefault();
+        handleCreateTag();
+      }
+    },
+    [allowCreate, searchValue, handleCreateTag]
+  );
 
+  // ----- render -----
   return (
     <div className={cn("w-full", className)}>
       <Tags>
-        <TagsTrigger 
-          className="w-full min-h-10 h-auto border-[#E2E8F0] rounded-[8px]" 
+        <TagsTrigger
+          className="w-full min-h-10 h-auto border-[#E2E8F0] rounded-[8px]"
           disabled={disabled}
           placeholder={placeholder}
           icon={icon}
         >
           {selectedItems.map((itemId) => {
-            const item = currentItems.find((i: SelectableItem) => i.id === itemId) || items.find((i: SelectableItem) => i.id === itemId);
+            const label = labelMap.get(itemId) ?? itemId;
+
             if (renderSelected) {
               return (
                 <TagsValue
@@ -207,6 +230,7 @@ export function SelectableTags({
                 </TagsValue>
               );
             }
+
             return (
               <TagsValue
                 key={itemId}
@@ -216,41 +240,57 @@ export function SelectableTags({
                 icon={<CircleX size={12} />}
                 iconContainerClassName="text-muted-foreground group-hover:text-muted-foreground/80 hover:text-muted-foreground/80"
               >
-                {item?.label || itemId}
+                {label}
               </TagsValue>
             );
           })}
         </TagsTrigger>
-        <TagsContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+
+        <TagsContent
+          className="w-[var(--radix-popover-trigger-width)] p-0"
+          align="start"
+        >
           <TagsInput
             placeholder={searchPlaceholder}
             value={searchValue}
-            onValueChange={setSearchValue}
+            onValueChange={handleSearchChange}
             onKeyDown={handleKeyDown}
           />
-          <TagsList style={{ maxHeight }} className="p-1">
-            <TagsEmpty>{isLoading ? "Loading..." : emptyMessage}</TagsEmpty>
-            <TagsGroup>
-              {availableItems.map((item: SelectableItem) => (
-                <TagsItem
-                  key={item.id}
-                  onSelect={() => handleSelect(item.id)}
-                  value={item.id}
-                  className="cursor-pointer"
-                >
-                  {renderItem ? renderItem(item.id) : item.label}
-                </TagsItem>
-              ))}
-              {allowCreate && searchValue.trim() && !currentItems.some((item: SelectableItem) => item.label.toLowerCase() === searchValue.toLowerCase()) && (
-                <TagsItem
-                  onSelect={handleCreateTag}
-                  value={`create-${searchValue}`}
-                  className="cursor-pointer text-primary"
-                >
-                  Create &ldquo;{searchValue}&rdquo;
-                </TagsItem>
-              )}
-            </TagsGroup>
+
+          <TagsList style={{ maxHeight }} className="p-1 overflow-auto">
+            {isLoading ? (
+              <TagsEmpty>Loading...</TagsEmpty>
+            ) : availableItems.length === 0 ? (
+              <TagsEmpty>{emptyMessage}</TagsEmpty>
+            ) : (
+              <TagsGroup>
+                {availableItems.map((item) => (
+                  <TagsItem
+                    key={item.id}
+                    onSelect={() => handleSelect(item.id)}
+                    value={item.id}
+                    className="cursor-pointer"
+                  >
+                    {renderItem ? renderItem(item.id) : item.label}
+                  </TagsItem>
+                ))}
+
+                {allowCreate &&
+                  searchValue.trim() &&
+                  !currentItems.some(
+                    (it) =>
+                      it.label.toLowerCase() === searchValue.trim().toLowerCase()
+                  ) && (
+                    <TagsItem
+                      onSelect={handleCreateTag}
+                      value={`create-${searchValue}`}
+                      className="cursor-pointer text-primary"
+                    >
+                      Create &ldquo;{searchValue}&rdquo;
+                    </TagsItem>
+                  )}
+              </TagsGroup>
+            )}
           </TagsList>
         </TagsContent>
       </Tags>
@@ -258,17 +298,14 @@ export function SelectableTags({
   );
 }
 
-// Helper function to create SelectableItem from simple data
+// Helper: normalize from {id,name}
 export function createSelectableItems<T extends { id: string; name: string }>(
   data: T[]
 ): SelectableItem[] {
-  return data.map((item) => ({
-    id: item.id,
-    label: item.name,
-  }));
+  return data.map((item) => ({ id: String(item.id), label: String(item.name) }));
 }
 
-// Helper function to create SelectableItem from custom data
+// Helper: normalize from custom keys
 export function createCustomSelectableItems<T>(
   data: T[],
   idKey: keyof T,

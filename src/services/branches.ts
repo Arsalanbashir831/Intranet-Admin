@@ -85,6 +85,15 @@ export async function listBranches(
   return res.data;
 }
 
+// Add search branches function
+export async function searchBranches(
+  searchQuery: string,
+  pagination?: { page?: number; pageSize?: number }
+) {
+  const params = searchQuery ? { search: searchQuery } : undefined;
+  return listBranches(params, pagination);
+}
+
 // Function to fetch all branches across all pages
 export async function listAllBranches(
   params?: Record<string, string | number | boolean>

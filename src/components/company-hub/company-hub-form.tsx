@@ -3,11 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dropzone } from "@/components/ui/dropzone";
-import { SelectableTags, createSelectableItems } from "@/components/ui/selectable-tags";
+import { SelectableTags, createSelectableItems, createCustomSelectableItems } from "@/components/ui/selectable-tags";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { ChevronDownIcon } from "lucide-react";
-import { useDepartments } from "@/hooks/queries/use-departments";
-import { useAllBranches } from "@/hooks/queries/use-branches";
+import { useDepartments, useSearchDepartments } from "@/hooks/queries/use-departments";
+import { useAllBranches, useSearchBranches } from "@/hooks/queries/use-branches";
 
 export type CompanyHubInitialData = {
   id?: string;
@@ -42,92 +42,124 @@ export type CompanyHubFormData = {
   attachedFiles: File[];
 };
 
-// Add a new type for the form submission data
+// Kept for compatibility (even though fields already exist on CompanyHubFormData)
 export type CompanyHubFormSubmitData = CompanyHubFormData & {
-  // Ensure these fields are always present even when empty
   selectedBranches: string[];
   selectedDepartments: string[];
 };
 
-export function CompanyHubForm({ 
+export function CompanyHubForm({
   initialData,
   onFormDataChange,
   onSubmit,
   existingAttachments = [],
-  onAttachmentDelete
+  onAttachmentDelete,
 }: CompanyHubFormProps) {
-  // Get departments and branches from API
+  // Load base datasets
   const { data: departmentsData } = useDepartments();
   const { data: branchesData } = useAllBranches();
-  
-  // Create department options (unique departments only) with "All" option
-  const departments = React.useMemo(() => {
-    if (!departmentsData?.departments?.results) return [];
-    
-    const uniqueDepartments = new Map();
-    departmentsData.departments.results.forEach((dept: { id: number; dept_name: string }) => {
-      if (!uniqueDepartments.has(dept.id)) {
-        uniqueDepartments.set(dept.id, {
-          id: String(dept.id),
-          name: dept.dept_name
-        });
+
+  /**
+   * Adapters (async search) — normalize to SelectableItem[] only.
+   * These match SelectableTags’ updated expectation.
+   */
+  const useSearchDepartmentsAdapter = (query: string) => {
+    const searchResult = useSearchDepartments(query, { page: 1, pageSize: 50 });
+
+    const selectableItems = React.useMemo(() => {
+      const raw = searchResult.data;
+      if (!raw) return [];
+      // Accept { departments: { results: [...] } } | { results: [...] } | array
+      if (Array.isArray(raw)) {
+        return createCustomSelectableItems(raw, "id", "dept_name");
       }
+      const asAny = raw as any;
+      if (asAny?.departments?.results) {
+        return createCustomSelectableItems(asAny.departments.results ?? [], "id", "dept_name");
+      }
+      if (asAny?.results) {
+        return createCustomSelectableItems(asAny.results ?? [], "id", "dept_name");
+      }
+      return [];
+    }, [searchResult.data]);
+
+    return {
+      data: selectableItems,
+      isLoading: !!searchResult.isLoading,
+    };
+  };
+
+  const useSearchBranchesAdapter = (query: string) => {
+    const searchResult = useSearchBranches(query, { page: 1, pageSize: 50 });
+
+    const selectableItems = React.useMemo(() => {
+      const raw = searchResult.data;
+      if (!raw) return [];
+      // Accept { branches: { results: [...] } | { results: [...] } | array
+      if (Array.isArray(raw)) {
+        return createCustomSelectableItems(raw, "id", "branch_name");
+      }
+      const asAny = raw as any;
+      if (asAny?.branches?.results) {
+        return createCustomSelectableItems(asAny.branches.results ?? [], "id", "branch_name");
+      }
+      if (asAny?.results) {
+        return createCustomSelectableItems(asAny.results ?? [], "id", "branch_name");
+      }
+      return [];
+    }, [searchResult.data]);
+
+    return {
+      data: selectableItems,
+      isLoading: !!searchResult.isLoading,
+    };
+  };
+
+  // Build base lists with "All" item, ids coerced to string for consistency
+  const departments = React.useMemo(() => {
+    const results = departmentsData?.departments?.results ?? [];
+    if (!Array.isArray(results)) return [];
+    const uniq = new Map<number, { id: string; name: string }>();
+    results.forEach((d: { id: number; dept_name: string }) => {
+      if (!uniq.has(d.id)) uniq.set(d.id, { id: String(d.id), name: d.dept_name });
     });
-    
-    // Convert to array and add "All" option at the beginning
-    const departmentArray = Array.from(uniqueDepartments.values());
-    return [
-      { id: "all", name: "All Departments" },
-      ...departmentArray
-    ];
+    return [{ id: "all", name: "All Departments" }, ...Array.from(uniq.values())];
   }, [departmentsData]);
 
-  // Create branch options with "All" option
   const branches = React.useMemo(() => {
-    if (!branchesData?.branches?.results) return [];
-    
-    const branchArray = branchesData.branches.results.map((branch: { id: number; branch_name: string }) => ({
-      id: String(branch.id),
-      name: branch.branch_name
+    const results = branchesData?.branches?.results ?? [];
+    if (!Array.isArray(results)) return [];
+    const mapped = results.map((b: { id: number; branch_name: string }) => ({
+      id: String(b.id),
+      name: b.branch_name,
     }));
-    
-    // Add "All" option at the beginning
-    return [
-      { id: "all", name: "All Branches" },
-      ...branchArray
-    ];
+    return [{ id: "all", name: "All Branches" }, ...mapped];
   }, [branchesData]);
 
-  // Combine existing attachment URLs for dropzone preview
+  // Attachments → special preview urls
   const initialPreviewUrls = React.useMemo(() => {
-    // Create special URLs that include both the file URL and the original file name
-    return existingAttachments.map(attachment => {
-      // Create a data URL that contains both the file URL and original name
+    return existingAttachments.map((attachment) => {
       const fileInfo = {
         url: attachment.file_url,
         name: attachment.name,
-        id: attachment.id
+        id: attachment.id,
       };
       return `attachment://${encodeURIComponent(JSON.stringify(fileInfo))}`;
     });
   }, [existingAttachments]);
-  
-  // Helper to find attachment ID by URL
+
   const getAttachmentIdByUrl = (url: string) => {
-    // Check if this is our special attachment URL
-    if (url.startsWith('attachment://')) {
+    if (url.startsWith("attachment://")) {
       try {
-        const decodedData = decodeURIComponent(url.replace('attachment://', ''));
-        const fileInfo = JSON.parse(decodedData);
-        return fileInfo.id;
+        const decoded = decodeURIComponent(url.replace("attachment://", ""));
+        const fileInfo = JSON.parse(decoded);
+        return fileInfo.id ?? null;
       } catch {
         return null;
       }
     }
-    
-    // Fallback to original method for direct URLs
-    const attachment = existingAttachments.find(att => att.file_url === url);
-    return attachment?.id;
+    const match = existingAttachments.find((a) => a.file_url === url);
+    return match?.id;
   };
 
   // Form state
@@ -139,7 +171,7 @@ export function CompanyHubForm({
   const [description, setDescription] = React.useState<string>(initialData?.description ?? "");
   const [attachedFiles, setAttachedFiles] = React.useState<File[]>([]);
 
-  // Update form when initialData changes
+  // Sync when initialData changes
   React.useEffect(() => {
     if (!initialData) return;
     if (initialData.type) setTypeValue(initialData.type);
@@ -150,235 +182,199 @@ export function CompanyHubForm({
     if (typeof initialData.description === "string") setDescription(initialData.description);
   }, [initialData]);
 
-  // Notify parent component of form data changes with proper memoization
-  const currentFormData = React.useMemo<CompanyHubFormData>(() => ({
-    type: typeValue,
-    title,
-    tags,
-    selectedBranches,
-    selectedDepartments,
-    description,
-    attachedFiles,
-  }), [typeValue, title, tags, selectedBranches, selectedDepartments, description, attachedFiles]);
+  // Notify parent of changes
+  const currentFormData = React.useMemo<CompanyHubFormData>(
+    () => ({
+      type: typeValue,
+      title,
+      tags,
+      selectedBranches,
+      selectedDepartments,
+      description,
+      attachedFiles,
+    }),
+    [typeValue, title, tags, selectedBranches, selectedDepartments, description, attachedFiles]
+  );
 
   React.useEffect(() => {
     onFormDataChange?.(currentFormData);
   }, [currentFormData, onFormDataChange]);
 
-  // Handle special case for "All" selection in departments
-  const handleDepartmentSelectionChange = React.useCallback((newSelection: string[]) => {
-    const allDepartmentIds = departments
-      .filter(dept => dept.id !== "all")
-      .map(dept => dept.id);
-    
-    // Check if "all" was just added to the selection
-    const allOptionSelected = newSelection.includes("all");
-    
-    if (allOptionSelected) {
-      // User clicked "all", select all departments
-      setSelectedDepartments(allDepartmentIds);
-    } else {
-      // Filter out "all" from the selection and only work with actual departments
-      const filteredSelection = newSelection.filter(id => id !== "all" && allDepartmentIds.includes(id));
-      setSelectedDepartments(filteredSelection);
-    }
-  }, [departments]);
+  // Helper sets for faster lookup
+  const departmentIdsSet = React.useMemo(
+    () => new Set(departments.filter((d) => d.id !== "all").map((d) => d.id)),
+    [departments]
+  );
+  const branchIdsSet = React.useMemo(
+    () => new Set(branches.filter((b) => b.id !== "all").map((b) => b.id)),
+    [branches]
+  );
 
-  // Handle special case for "All" selection in branches
-  const handleBranchSelectionChange = React.useCallback((newSelection: string[]) => {
-    const allBranchIds = branches
-      .filter(branch => branch.id !== "all")
-      .map(branch => branch.id);
-    
-    // Check if "all" was just added to the selection
-    const allOptionSelected = newSelection.includes("all");
-    
-    if (allOptionSelected) {
-      // User clicked "all", select all branches
-      setSelectedBranches(allBranchIds);
-    } else {
-      // Filter out "all" from the selection and only work with actual branches
-      const filteredSelection = newSelection.filter(id => id !== "all" && allBranchIds.includes(id));
-      setSelectedBranches(filteredSelection);
-    }
-  }, [branches]);
+  // "All" selection helpers
+  const allDepartmentIds = React.useMemo(() => Array.from(departmentIdsSet), [departmentIdsSet]);
+  const allBranchIds = React.useMemo(() => Array.from(branchIdsSet), [branchIdsSet]);
 
-  // Determine if all departments/branches are selected for UI purposes
+  // FIX: Do not drop ids coming from async search; only strip "all". If "all" selected, expand to full ids.
+  const handleDepartmentSelectionChange = React.useCallback(
+    (newSelection: string[]) => {
+      if (newSelection.includes("all")) {
+        setSelectedDepartments(allDepartmentIds);
+        return;
+      }
+      // keep what user chose; just strip the synthetic "all"
+      setSelectedDepartments(newSelection.filter((id) => id !== "all"));
+    },
+    [allDepartmentIds]
+  );
+
+  const handleBranchSelectionChange = React.useCallback(
+    (newSelection: string[]) => {
+      if (newSelection.includes("all")) {
+        setSelectedBranches(allBranchIds);
+        return;
+      }
+      setSelectedBranches(newSelection.filter((id) => id !== "all"));
+    },
+    [allBranchIds]
+  );
+
+  // All-selected flags (for hiding the "all" option)
   const areAllDepartmentsSelected = React.useMemo(() => {
-    const allDepartmentIds = departments
-      .filter(dept => dept.id !== "all")
-      .map(dept => dept.id);
-    return allDepartmentIds.length > 0 && 
-           selectedDepartments.length === allDepartmentIds.length &&
-           selectedDepartments.every(id => allDepartmentIds.includes(id));
-  }, [departments, selectedDepartments]);
+    return departmentIdsSet.size > 0 && selectedDepartments.length === departmentIdsSet.size && selectedDepartments.every((id) => departmentIdsSet.has(id));
+  }, [departmentIdsSet, selectedDepartments]);
 
   const areAllBranchesSelected = React.useMemo(() => {
-    const allBranchIds = branches
-      .filter(branch => branch.id !== "all")
-      .map(branch => branch.id);
-    return allBranchIds.length > 0 && 
-           selectedBranches.length === allBranchIds.length &&
-           selectedBranches.every(id => allBranchIds.includes(id));
-  }, [branches, selectedBranches]);
+    return branchIdsSet.size > 0 && selectedBranches.length === branchIdsSet.size && selectedBranches.every((id) => branchIdsSet.has(id));
+  }, [branchIdsSet, selectedBranches]);
 
-  // Create items for the selectable tags, conditionally hiding "all" option
+  // Hide "all" when everything is selected
   const departmentItems = React.useMemo(() => {
-    if (areAllDepartmentsSelected) {
-      // Hide "all" option when all departments are selected
-      return departments.filter(dept => dept.id !== "all");
-    }
-    return departments;
+    return areAllDepartmentsSelected ? departments.filter((d) => d.id !== "all") : departments;
   }, [departments, areAllDepartmentsSelected]);
 
   const branchItems = React.useMemo(() => {
-    if (areAllBranchesSelected) {
-      // Hide "all" option when all branches are selected
-      return branches.filter(branch => branch.id !== "all");
-    }
-    return branches;
+    return areAllBranchesSelected ? branches.filter((b) => b.id !== "all") : branches;
   }, [branches, areAllBranchesSelected]);
 
-  // For display, we never show "all" as selected since we're managing it through visibility
+  // Displayed selections (we never store "all" in state)
   const displayedSelectedDepartments = selectedDepartments;
   const displayedSelectedBranches = selectedBranches;
 
   return (
-      <div className="grid gap-6">
-        <div className="grid grid-cols-12 items-start gap-4 border-b border-[#E9EAEB] pb-4">
-          <Label className="col-span-12 md:col-span-2 text-sm">Type:</Label>
-          <div className="col-span-12 md:col-span-10">
-            <RadioGroup value={typeValue} onValueChange={(v) => setTypeValue(v as "announcement" | "policy")} className="flex gap-6">
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="announcement" id="type-ann"/>
-                <Label htmlFor="type-ann" className="cursor-pointer text-[#535862]">Announcement</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="policy" id="type-pol" />
-                <Label htmlFor="type-pol" className="cursor-pointer text-[#535862]">Policy</Label>
-              </div>
-            </RadioGroup>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
-          <Label className="col-span-12 md:col-span-2 text-sm">Title:</Label>
-          <div className="col-span-12 md:col-span-10">
-            <Input
-              placeholder="e.g. Announcement 1/Policy"
-              className="border-[#E2E8F0]"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 items-start gap-4 border-b border-[#E9EAEB] pb-4">
-          <Label className="col-span-12 md:col-span-2 text-sm">Attachments:</Label>
-          <div className="col-span-12 md:col-span-10">
-            <Dropzone 
-              onFileSelect={(files) => {
-                if (files) {
-                  setAttachedFiles(Array.from(files));
-                  console.log("Files selected:", files);
-                }
-              }}
-              onClear={() => {
-                setAttachedFiles([]);
-                // Mark all existing attachments for deletion when clearing all
-                if (existingAttachments.length > 0 && onAttachmentDelete) {
-                  existingAttachments.forEach(attachment => {
-                    onAttachmentDelete(attachment.id);
-                  });
-                }
-              }}
-              onImageRemove={(url) => {
-                // Check if this is our special attachment URL
-                if (url.startsWith('attachment://')) {
-                  try {
-                    const decodedData = decodeURIComponent(url.replace('attachment://', ''));
-                    const fileInfo = JSON.parse(decodedData);
-                    const attachmentId = fileInfo.id;
-                    if (attachmentId && onAttachmentDelete) {
-                      onAttachmentDelete(attachmentId);
-                    }
-                  } catch (e) {
-                    console.error("Error parsing attachment URL:", e);
-                  }
-                }
-                // Check if this is an existing attachment (not blob URL)
-                else if (!url.startsWith('blob:') && !url.startsWith('file://')) {
-                  const attachmentId = getAttachmentIdByUrl(url);
-                  if (attachmentId && onAttachmentDelete) {
-                    onAttachmentDelete(attachmentId);
-                  }
-                }
-              }}
-              accept="image/*,.pdf,.doc,.docx"
-              maxSize={10 * 1024 * 1024} // 10MB
-              multiple
-              showPreview={true}
-              initialPreviewUrls={initialPreviewUrls}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
-          <Label className="col-span-12 md:col-span-2 text-sm">Hashtags/tags:</Label>
-          <div className="col-span-12 md:col-span-10">
-            <Input
-              placeholder="#importantNotice"
-              className="border-[#E2E8F0]"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 items-center gap-4">
-          <Label className="col-span-12 md:col-span-2 text-sm">Branch Access:</Label>
-          <div className="col-span-12 md:col-span-10">
-            <SelectableTags
-              items={createSelectableItems(branchItems)}
-              selectedItems={displayedSelectedBranches}
-              onSelectionChange={handleBranchSelectionChange}
-              placeholder="Select branches (empty = public access)"
-              searchPlaceholder="Search branches..."
-              emptyMessage="No branches found."
-              icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
-          <Label className="col-span-12 md:col-span-2 text-sm">Department Access:</Label>
-          <div className="col-span-12 md:col-span-10">
-            <SelectableTags
-              items={createSelectableItems(departmentItems)}
-              selectedItems={displayedSelectedDepartments}
-              onSelectionChange={handleDepartmentSelectionChange}
-              placeholder="Select departments (empty = public access)"
-              searchPlaceholder="Search departments..."
-              emptyMessage="No departments found."
-              icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-12 items-start gap-4">
-          <Label className="col-span-12 md:col-span-2 text-sm">Description:</Label>
-          <div className="col-span-12 md:col-span-10">
-            <RichTextEditor
-              content={description}
-              onChange={setDescription}
-              placeholder="Write Description for the Announcement/Policy"
-              minHeight="200px"
-              maxHeight="400px"
-            />
-          </div>
+    <div className="grid gap-6">
+      <div className="grid grid-cols-12 items-start gap-4 border-b border-[#E9EAEB] pb-4">
+        <Label className="col-span-12 md:col-span-2 text-sm">Type:</Label>
+        <div className="col-span-12 md:col-span-10">
+          <RadioGroup value={typeValue} onValueChange={(v) => setTypeValue(v as "announcement" | "policy")} className="flex gap-6">
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="announcement" id="type-ann" />
+              <Label htmlFor="type-ann" className="cursor-pointer text-[#535862]">
+                Announcement
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <RadioGroupItem value="policy" id="type-pol" />
+              <Label htmlFor="type-pol" className="cursor-pointer text-[#535862]">
+                Policy
+              </Label>
+            </div>
+          </RadioGroup>
         </div>
       </div>
+
+      <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
+        <Label className="col-span-12 md:col-span-2 text-sm">Title:</Label>
+        <div className="col-span-12 md:col-span-10">
+          <Input placeholder="e.g. Announcement 1/Policy" className="border-[#E2E8F0]" value={title} onChange={(e) => setTitle(e.target.value)} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 items-start gap-4 border-b border-[#E9EAEB] pb-4">
+        <Label className="col-span-12 md:col-span-2 text-sm">Attachments:</Label>
+        <div className="col-span-12 md:col-span-10">
+          <Dropzone
+            onFileSelect={(files) => {
+              if (files) {
+                setAttachedFiles(Array.from(files));
+              }
+            }}
+            onClear={() => {
+              setAttachedFiles([]);
+              if (existingAttachments.length > 0 && onAttachmentDelete) {
+                existingAttachments.forEach((attachment) => onAttachmentDelete(attachment.id));
+              }
+            }}
+            onImageRemove={(url) => {
+              if (url.startsWith("attachment://")) {
+                try {
+                  const decodedData = decodeURIComponent(url.replace("attachment://", ""));
+                  const fileInfo = JSON.parse(decodedData);
+                  const attachmentId = fileInfo.id;
+                  if (attachmentId && onAttachmentDelete) onAttachmentDelete(attachmentId);
+                } catch (e) {
+                  console.error("Error parsing attachment URL:", e);
+                }
+              } else if (!url.startsWith("blob:") && !url.startsWith("file://")) {
+                const attachmentId = getAttachmentIdByUrl(url);
+                if (attachmentId && onAttachmentDelete) onAttachmentDelete(attachmentId);
+              }
+            }}
+            accept="image/*,.pdf,.doc,.docx"
+            maxSize={10 * 1024 * 1024} // 10MB
+            multiple
+            showPreview={true}
+            initialPreviewUrls={initialPreviewUrls}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
+        <Label className="col-span-12 md:col-span-2 text-sm">Hashtags/tags:</Label>
+        <div className="col-span-12 md:col-span-10">
+          <Input placeholder="#importantNotice" className="border-[#E2E8F0]" value={tags} onChange={(e) => setTags(e.target.value)} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 items-center gap-4">
+        <Label className="col-span-12 md:col-span-2 text-sm">Branch Access:</Label>
+        <div className="col-span-12 md:col-span-10">
+          <SelectableTags
+            items={createSelectableItems(branchItems)}
+            selectedItems={displayedSelectedBranches}
+            onSelectionChange={handleBranchSelectionChange}
+            placeholder="Select branches (empty = public access)"
+            searchPlaceholder="Search branches..."
+            emptyMessage="No branches found."
+            icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
+            useSearch={useSearchBranchesAdapter}
+            useAllItems={() => ({ data: createSelectableItems(branchItems), isLoading: false })}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
+        <Label className="col-span-12 md:col-span-2 text-sm">Department Access:</Label>
+        <div className="col-span-12 md:col-span-10">
+          <SelectableTags
+            items={createSelectableItems(departmentItems)}
+            selectedItems={displayedSelectedDepartments}
+            onSelectionChange={handleDepartmentSelectionChange}
+            placeholder="Select departments (empty = public access)"
+            searchPlaceholder="Search departments..."
+            emptyMessage="No departments found."
+            icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
+            useSearch={useSearchDepartmentsAdapter}
+            useAllItems={() => ({ data: createSelectableItems(departmentItems), isLoading: false })}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 items-start gap-4">
+        <Label className="col-span-12 md:col-span-2 text-sm">Description:</Label>
+        <div className="col-span-12 md:col-span-10">
+          <RichTextEditor content={description} onChange={setDescription} placeholder="Write Description for the Announcement/Policy" minHeight="200px" maxHeight="400px" />
+        </div>
+      </div>
+    </div>
   );
 }
-
-
