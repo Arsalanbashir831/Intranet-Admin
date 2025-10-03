@@ -24,7 +24,7 @@ export type OrgChartInitialValues = {
   city?: string | null;
 };
 
-export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, employeeId }: { initialValues?: OrgChartInitialValues; onRegisterSubmit?: (submit: () => void) => void; isEdit?: boolean; employeeId?: string; }) {
+export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, employeeId, onSubmitComplete }: { initialValues?: OrgChartInitialValues; onRegisterSubmit?: (submit: () => void) => void; isEdit?: boolean; employeeId?: string; onSubmitComplete?: (success: boolean) => void; }) {
   // Create adapter functions for async search
   const useAllDepartments = () => {
     const result = useDepartments(undefined, { pageSize: 100 }); // Get more departments
@@ -138,6 +138,7 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
 
     if (!empName || !selectedBranchDeptId) {
       toast.error("Name and Branch/Department are required");
+      onSubmitComplete?.(false); // Notify parent that submission failed
       return;
     }
 
@@ -162,6 +163,7 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
         await createEmployee.mutateAsync(payload);
         toast.success("Employee created successfully");
       }
+      onSubmitComplete?.(true); // Notify parent that submission succeeded
       router.push(ROUTES.ADMIN.ORG_CHART);
     } catch (error: unknown) {
       const err = error as { response?: { data?: Record<string, unknown> } };
@@ -182,6 +184,7 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
       } else {
         toast.error("Failed to save. Please try again.");
       }
+      onSubmitComplete?.(false); // Notify parent that submission failed
     }
   };
 

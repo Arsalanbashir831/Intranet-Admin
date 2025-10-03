@@ -20,6 +20,15 @@ export default function NewOrgChartPage() {
     // when submission is complete to reset this state.
   };
 
+  const handleSubmitComplete = (success: boolean) => {
+    // Reset the submitting state when form submission is complete
+    if (!success) {
+      setIsSubmitting(false);
+    }
+    // If success is true, the form will navigate to another page,
+    // so we don't need to reset the state
+  };
+
   return (
     <>
       <PageHeader
@@ -34,7 +43,7 @@ export default function NewOrgChartPage() {
         }
       />
       <div className="px-4 md:px-12 py-4">
-        <OrgChartForm onRegisterSubmit={(fn) => { submitFn = fn; }} />
+        <OrgChartForm onRegisterSubmit={(fn) => { submitFn = fn; }} onSubmitComplete={handleSubmitComplete} />
       </div>
     </>
   );

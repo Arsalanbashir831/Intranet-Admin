@@ -16,6 +16,15 @@ export default function NewExecutiveMemberPage() {
     submitFn?.();
   };
 
+  const handleSubmitComplete = (success: boolean) => {
+    // Reset the submitting state when form submission is complete
+    if (!success) {
+      setIsSubmitting(false);
+    }
+    // If success is true, the form will navigate to another page,
+    // so we don't need to reset the state
+  };
+
   return (
     <>
       <PageHeader
@@ -37,7 +46,10 @@ export default function NewExecutiveMemberPage() {
         }
       />
       <div className="px-4 md:px-12 py-4">
-        <ExecutiveMemberForm onRegisterSubmit={(fn) => { submitFn = fn; }} />
+        <ExecutiveMemberForm 
+          onRegisterSubmit={(fn) => { submitFn = fn; }} 
+          onSubmitComplete={handleSubmitComplete} // Added this new prop
+        />
       </div>
     </>
   );

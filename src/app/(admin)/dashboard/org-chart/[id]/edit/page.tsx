@@ -47,6 +47,15 @@ export default function EditOrgChartPage() {
     submitFn?.();
   };
 
+  const handleSubmitComplete = (success: boolean) => {
+    // Reset the submitting state when form submission is complete
+    if (!success) {
+      setIsSubmitting(false);
+    }
+    // If success is true, the form will navigate to another page,
+    // so we don't need to reset the state
+  };
+
   return (
     <>
       <PageHeader
@@ -65,6 +74,7 @@ export default function EditOrgChartPage() {
             isEdit
             employeeId={String(id)}
             onRegisterSubmit={(fn) => { submitFn = fn; }}
+            onSubmitComplete={handleSubmitComplete}
           />
         )}
       </div>

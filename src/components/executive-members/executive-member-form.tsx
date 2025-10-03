@@ -27,12 +27,14 @@ export function ExecutiveMemberForm({
   initialValues, 
   onRegisterSubmit, 
   isEdit = false, 
-  executiveId 
+  executiveId,
+  onSubmitComplete
 }: { 
   initialValues?: ExecutiveMemberInitialValues; 
   onRegisterSubmit?: (submit: () => void) => void; 
   isEdit?: boolean; 
   executiveId?: string; 
+  onSubmitComplete?: (success: boolean) => void; // Added this new prop
 }) {
   // Form state
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
@@ -84,6 +86,7 @@ export function ExecutiveMemberForm({
 
     if (!name || !email || !role || !address || !city || !phone || !education) {
       toast.error("All fields are required");
+      onSubmitComplete?.(false); // Notify parent that submission failed
       return;
     }
 
@@ -106,6 +109,7 @@ export function ExecutiveMemberForm({
         await createExecutive.mutateAsync(payload);
         toast.success("Executive member created successfully");
       }
+      onSubmitComplete?.(true); // Notify parent that submission succeeded
       router.push(ROUTES.ADMIN.EXECUTIVE_MEMBERS);
     } catch (error: unknown) {
       const err = error as { response?: { data?: Record<string, unknown> } };
@@ -126,6 +130,7 @@ export function ExecutiveMemberForm({
       } else {
         toast.error("Failed to save. Please try again.");
       }
+      onSubmitComplete?.(false); // Notify parent that submission failed
     }
   };
 
