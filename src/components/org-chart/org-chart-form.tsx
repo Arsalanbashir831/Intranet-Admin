@@ -6,6 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Dropzone } from "@/components/ui/dropzone";
 import { SelectableTags } from "@/components/ui/selectable-tags";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCreateEmployee, useUpdateEmployee } from "@/hooks/queries/use-employees";
 import { useDepartments, useSearchDepartments } from "@/hooks/queries/use-departments";
 
@@ -105,6 +112,9 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
   // Single-select department, location, and manager
   const [selectedBranchDeptId, setSelectedBranchDeptId] = React.useState<string | undefined>(initialValues?.branch_department);
 
+  // Role selection state
+  const [selectedRole, setSelectedRole] = React.useState<string>(initialValues?.role || "Staff");
+
   // Rich text content state for education is plain string
   const [educationHtml, setEducationHtml] = React.useState<string | undefined>(initialValues?.education ?? undefined);
  
@@ -119,10 +129,11 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
       setSelectedBranchDeptId(initialValues.branch_department);
     }
     setEducationHtml(initialValues?.education ?? undefined);
+    setSelectedRole(initialValues?.role || "Staff");
     // Clear selected files when initialValues change
     setSelectedFiles([]);
     setIsRemovingPicture(false);
-  }, [initialValues?.branch_department, initialValues?.education]);
+  }, [initialValues?.branch_department, initialValues?.education, initialValues?.role]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -131,7 +142,6 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
 
     const empName = String(data.get("emp_name") || "").trim();
     const email = String(data.get("email") || "").trim();
-    const role = String(data.get("role") || "").trim();
     const phone = String(data.get("phone") || "").trim();
     const address = String(data.get("address") || "").trim();
     const city = String(data.get("city") || "").trim();
@@ -147,7 +157,7 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
       branch_department_id: Number(selectedBranchDeptId),
       email: email || undefined,
       phone: phone || undefined,
-      role: role || undefined,
+      role: selectedRole || undefined, // Use selected role from dropdown
       education: educationHtml || undefined,
       address: address || undefined,
       city: city || undefined,
@@ -243,7 +253,16 @@ export function OrgChartForm({ initialValues, onRegisterSubmit, isEdit = false, 
         <div className="grid grid-cols-12 items-center gap-4">
           <Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">Role:</Label>
           <div className="col-span-12 md:col-span-10">
-            <Input name="role" defaultValue={initialValues?.role || undefined} placeholder="Role" className="border-[#E2E8F0]"/>
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger className="border-[#E2E8F0]">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Staff">Staff</SelectItem>
+                <SelectItem value="Mid Senior Staff">Mid Senior Staff</SelectItem>
+                <SelectItem value="Senior Staff">Senior Staff</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

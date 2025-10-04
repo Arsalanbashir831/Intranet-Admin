@@ -44,59 +44,77 @@ export function LoginForm() {
       toast.success("Login successful!");
       router.push(ROUTES.ADMIN.DASHBOARD);
     } catch (error: unknown) {
-      // Handle different types of errors
-      if (error instanceof Error) {
-        // Network or other errors
-        setApiError("Unable to connect to the server. Please check your connection and try again.");
-        toast.error("Connection error. Please try again.");
-      } else {
-        // API errors
-        const err = error as { 
-          response?: { 
-            status?: number;
-            data?: { 
-              detail?: string;
-              username?: string[];
-              password?: string[];
-            } 
+      // Type the error object to check for axios-like response structure
+      const err = error as { 
+        response?: { 
+          status?: number;
+          data?: { 
+            detail?: string;
+            username?: string[];
+            password?: string[];
           } 
         };
-        
+        message?: string;
+      };
+      
+      // Check if this is an API error with a response (axios error structure)
+      const statusCode = err.response?.status;
+      
+      if (statusCode) {
         // Handle specific HTTP status codes
-        switch (err.response?.status) {
-          case 400:
-            // Bad request - likely validation errors
-            if (err.response.data?.username) {
-              setApiError(err.response.data.username[0]);
-            } else if (err.response.data?.password) {
-              setApiError(err.response.data.password[0]);
-            } else {
-              setApiError("Invalid username or password.");
-            }
-            break;
-          case 401:
-            // Unauthorized - incorrect credentials
-            setApiError("Invalid username or password.");
-            break;
-          case 403:
-            // Forbidden - account may be locked or deactivated
+        if (statusCode === 403) {
+          // Forbidden - user is not authorized as admin or account locked
+          const detail = err.response?.data?.detail;
+          
+          // Check for specific backend messages
+          if (detail === "Not authorized as admin.") {
+            setApiError("Not authorized as admin. Please use an admin account to login.");
+            toast.error("Not authorized as admin.");
+          } else if (detail) {
+            // Show any other detail message from backend
+            setApiError(detail);
+            toast.error(detail);
+          } else {
+            // Generic 403 message
             setApiError("Account access denied. Please contact your administrator.");
-            break;
-          case 500:
-            // Server error
-            setApiError("Server error. Please try again later.");
-            toast.error("Server error. Please try again later.");
-            break;
-          case 503:
-            // Service unavailable
-            setApiError("Service temporarily unavailable. Please try again later.");
-            toast.error("Service temporarily unavailable.");
-            break;
-          default:
-            // Other errors
-            const errorMessage = err.response?.data?.detail || "Login failed. Please try again.";
-            setApiError(errorMessage);
-            toast.error(errorMessage);
+            toast.error("Access denied.");
+          }
+        } else if (statusCode === 401) {
+          // Unauthorized - incorrect credentials
+          setApiError("Invalid username or password.");
+          toast.error("Invalid credentials.");
+        } else if (statusCode === 400) {
+          // Bad request - likely validation errors
+          if (err.response?.data?.username) {
+            setApiError(err.response.data.username[0]);
+          } else if (err.response?.data?.password) {
+            setApiError(err.response.data.password[0]);
+          } else {
+            setApiError("Invalid username or password.");
+          }
+        } else if (statusCode === 500) {
+          // Server error
+          setApiError("Server error. Please try again later.");
+          toast.error("Server error. Please try again later.");
+        } else if (statusCode === 503) {
+          // Service unavailable
+          setApiError("Service temporarily unavailable. Please try again later.");
+          toast.error("Service temporarily unavailable.");
+        } else {
+          // Other errors - try to get detail from backend
+          const errorMessage = err.response?.data?.detail || "Login failed. Please try again.";
+          setApiError(errorMessage);
+          toast.error(errorMessage);
+        }
+      } else {
+        // No status code - could be network error or error thrown from mutation hook
+        // Check if error has a message that we can display
+        if (error instanceof Error && error.message) {
+          setApiError(error.message);
+          toast.error(error.message);
+        } else {
+          setApiError("Unable to connect to the server. Please check your connection and try again.");
+          toast.error("Connection error. Please try again.");
         }
       }
     } finally {

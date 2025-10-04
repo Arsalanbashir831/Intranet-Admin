@@ -1,6 +1,6 @@
 export const API_ROUTES = {
     AUTH: {
-        OBTAIN_TOKEN: "/token/",
+        OBTAIN_TOKEN: "/login/admin/",
         REFRESH_TOKEN: "/token/refresh/",
         VERIFY_TOKEN: "/token/verify/",
         ME: "/me/",
