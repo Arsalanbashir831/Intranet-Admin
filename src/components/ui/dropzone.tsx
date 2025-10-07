@@ -27,7 +27,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     onClear,
     onImageRemove,
     accept = "image/*",
-    // maxSize = 800 * 400, // 800x400px default
+    maxSize,
     className,
     disabled = false,
     multiple = false,

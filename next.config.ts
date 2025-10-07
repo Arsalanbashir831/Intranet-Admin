@@ -12,6 +12,16 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "127.0.0.1",
       },
+      // Allow loading images from the backend server IP used in your environment
+      {
+        protocol: "http",
+        hostname: "168.231.79.28",
+      },
+      // Optional: allow any numeric IP on http (use with caution)
+      {
+        protocol: "http",
+        hostname: "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+",
+      },
     ],
   },
 };
