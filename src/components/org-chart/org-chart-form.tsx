@@ -31,6 +31,7 @@ export type OrgChartInitialValues = {
 	phone?: string | null;
 	role?: string | null;
 	education?: string | null;
+	bio?: string | null;
 	branch_department?: string; // id as string for UI select
 	profileImageUrl?: string;
 	address?: string | null;
@@ -161,6 +162,11 @@ export function OrgChartForm({
 		initialValues?.education ?? undefined
 	);
 
+	// Rich text content state for bio
+	const [bioHtml, setBioHtml] = React.useState<string | undefined>(
+		initialValues?.bio ?? undefined
+	);
+
 	// React Query mutation for create
 	const createEmployee = useCreateEmployee();
 	const updateEmployee = useUpdateEmployee(employeeId || "");
@@ -172,6 +178,7 @@ export function OrgChartForm({
 			setSelectedBranchDeptId(initialValues.branch_department);
 		}
 		setEducationHtml(initialValues?.education ?? undefined);
+		setBioHtml(initialValues?.bio ?? undefined);
 		setSelectedRole(initialValues?.role || "Staff");
 		// Clear selected files when initialValues change
 		setSelectedFiles([]);
@@ -179,6 +186,7 @@ export function OrgChartForm({
 	}, [
 		initialValues?.branch_department,
 		initialValues?.education,
+		initialValues?.bio,
 		initialValues?.role,
 	]);
 
@@ -206,6 +214,7 @@ export function OrgChartForm({
 			phone: phone || undefined,
 			role: selectedRole || undefined, // Use selected role from dropdown
 			education: educationHtml || undefined,
+			bio: bioHtml || undefined,
 			address: address || undefined,
 			city: city || undefined,
 			// Handle profile picture logic
@@ -420,6 +429,21 @@ export function OrgChartForm({
 						minHeight="200px"
 						maxHeight="400px"
 						onChange={(html) => setEducationHtml(html)}
+					/>
+				</div>
+			</div>
+
+			<div className="grid grid-cols-12 items-start gap-4">
+				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
+					Bio
+				</Label>
+				<div className="col-span-12 md:col-span-10">
+					<RichTextEditor
+						content={bioHtml}
+						placeholder="Write Bio"
+						minHeight="200px"
+						maxHeight="400px"
+						onChange={(html) => setBioHtml(html)}
 					/>
 				</div>
 			</div>
