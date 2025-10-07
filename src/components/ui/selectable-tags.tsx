@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ReactNode, useMemo, useRef, useCallback } from "react";
+import { ReactNode, useMemo, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import {
 	Tags,
@@ -85,7 +85,6 @@ export function SelectableTags({
 	useAllItems,
 	searchDebounce = 500,
 	hideSelectedFromList = true,
-	keepPreviousWhileLoading = true,
 	onSearchValueChange,
 	initialSearchValue = "",
 }: SelectableTagsProps) {
@@ -109,8 +108,6 @@ export function SelectableTags({
 	const searchResult = useSearch?.(debouncedSearchValue);
 	const allItemsResult = useAllItems?.();
 
-	const inAsyncMode = Boolean(useSearch && useAllItems);
-
 	// ----- current items (async vs static) -----
 	// Determine which items to use (async or static)
 	const currentItems = React.useMemo(() => {
@@ -126,7 +123,7 @@ export function SelectableTags({
 				}
 
 				// Process search data
-				const searchData: any = searchResult?.data;
+				const searchData: unknown = searchResult?.data;
 				let itemsToReturn: SelectableItem[] = [];
 
 				// Handle different data structures
@@ -135,18 +132,52 @@ export function SelectableTags({
 					Array.isArray(searchData) &&
 					searchData.length > 0 &&
 					typeof searchData[0] === "object" &&
+					searchData[0] !== null &&
 					"id" in searchData[0] &&
 					"label" in searchData[0]
 				) {
-					itemsToReturn = searchData;
+					itemsToReturn = searchData as SelectableItem[];
 				} else if (Array.isArray(searchData)) {
-					itemsToReturn = searchData;
-				} else if (searchData?.results) {
-					itemsToReturn = searchData.results;
-				} else if (searchData?.branches?.results) {
-					itemsToReturn = searchData.branches.results;
-				} else if (searchData?.departments?.results) {
-					itemsToReturn = searchData.departments.results;
+					itemsToReturn = searchData as SelectableItem[];
+				} else if (
+					searchData &&
+					typeof searchData === "object" &&
+					"results" in searchData &&
+					Array.isArray((searchData as { results: unknown }).results)
+				) {
+					itemsToReturn = (searchData as { results: SelectableItem[] }).results;
+				} else if (
+					searchData &&
+					typeof searchData === "object" &&
+					"branches" in searchData &&
+					(searchData as { branches: unknown }).branches &&
+					typeof (searchData as { branches: unknown }).branches === "object" &&
+					"results" in
+						(searchData as { branches: { results: unknown } }).branches &&
+					Array.isArray(
+						(searchData as { branches: { results: unknown } }).branches.results
+					)
+				) {
+					itemsToReturn = (
+						searchData as { branches: { results: SelectableItem[] } }
+					).branches.results;
+				} else if (
+					searchData &&
+					typeof searchData === "object" &&
+					"departments" in searchData &&
+					(searchData as { departments: unknown }).departments &&
+					typeof (searchData as { departments: unknown }).departments ===
+						"object" &&
+					"results" in
+						(searchData as { departments: { results: unknown } }).departments &&
+					Array.isArray(
+						(searchData as { departments: { results: unknown } }).departments
+							.results
+					)
+				) {
+					itemsToReturn = (
+						searchData as { departments: { results: SelectableItem[] } }
+					).departments.results;
 				}
 
 				// Update previous results and return
@@ -158,7 +189,7 @@ export function SelectableTags({
 					return [];
 				}
 
-				const allData: any = allItemsResult?.data;
+				const allData: unknown = allItemsResult?.data;
 				let itemsToReturn: SelectableItem[] = [];
 
 				// Handle different data structures for all items
@@ -167,18 +198,52 @@ export function SelectableTags({
 					Array.isArray(allData) &&
 					allData.length > 0 &&
 					typeof allData[0] === "object" &&
+					allData[0] !== null &&
 					"id" in allData[0] &&
 					"label" in allData[0]
 				) {
-					itemsToReturn = allData;
+					itemsToReturn = allData as SelectableItem[];
 				} else if (Array.isArray(allData)) {
-					itemsToReturn = allData;
-				} else if (allData?.results) {
-					itemsToReturn = allData.results;
-				} else if (allData?.branches?.results) {
-					itemsToReturn = allData.branches.results;
-				} else if (allData?.departments?.results) {
-					itemsToReturn = allData.departments.results;
+					itemsToReturn = allData as SelectableItem[];
+				} else if (
+					allData &&
+					typeof allData === "object" &&
+					"results" in allData &&
+					Array.isArray((allData as { results: unknown }).results)
+				) {
+					itemsToReturn = (allData as { results: SelectableItem[] }).results;
+				} else if (
+					allData &&
+					typeof allData === "object" &&
+					"branches" in allData &&
+					(allData as { branches: unknown }).branches &&
+					typeof (allData as { branches: unknown }).branches === "object" &&
+					"results" in
+						(allData as { branches: { results: unknown } }).branches &&
+					Array.isArray(
+						(allData as { branches: { results: unknown } }).branches.results
+					)
+				) {
+					itemsToReturn = (
+						allData as { branches: { results: SelectableItem[] } }
+					).branches.results;
+				} else if (
+					allData &&
+					typeof allData === "object" &&
+					"departments" in allData &&
+					(allData as { departments: unknown }).departments &&
+					typeof (allData as { departments: unknown }).departments ===
+						"object" &&
+					"results" in
+						(allData as { departments: { results: unknown } }).departments &&
+					Array.isArray(
+						(allData as { departments: { results: unknown } }).departments
+							.results
+					)
+				) {
+					itemsToReturn = (
+						allData as { departments: { results: SelectableItem[] } }
+					).departments.results;
 				}
 
 				// Clear previous search results when showing all items
@@ -203,7 +268,9 @@ export function SelectableTags({
 	]);
 
 	// Make sure currentItems is always an array
-	const safeCurrentItems = Array.isArray(currentItems) ? currentItems : [];
+	const safeCurrentItems = useMemo(() => {
+		return Array.isArray(currentItems) ? currentItems : [];
+	}, [currentItems]);
 
 	// Loading state
 	const isLoading = React.useMemo(() => {
