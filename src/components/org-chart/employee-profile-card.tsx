@@ -35,18 +35,24 @@ type ApiEmployee = components["schemas"]["Employee"];
 
 // Small helper types for fields not captured in OpenAPI schema
 interface BranchRef {
+	id: number;
 	branch_name?: string;
 }
 interface DepartmentRef {
+	id: number;
 	dept_name?: string;
 }
 interface EmployeeRef {
+	id: number;
 	emp_name?: string;
+	profile_picture?: string;
 }
 interface ManagerRef {
+	id: number;
 	employee?: EmployeeRef;
 }
 interface BranchDepartmentRef {
+	id: number;
 	branch?: BranchRef;
 	department?: DepartmentRef;
 	manager?: ManagerRef | null;
@@ -74,15 +80,25 @@ export function EmployeeProfileCard({
 		? data.employee
 		: (data as ApiEmployee | undefined);
 
-	// Extract nested fields safely without using any
-	const branchDepartment: BranchDepartmentRef | undefined = (
+	// Extract nested fields safely - now handling array of branch_departments
+	const branchDepartments: BranchDepartmentRef[] | undefined = (
 		apiEmployee as unknown as
-			| { branch_department?: BranchDepartmentRef }
+			| { branch_departments?: BranchDepartmentRef[] }
 			| undefined
-	)?.branch_department;
+	)?.branch_departments;
+	
 	const hireDate: string | undefined =
 		(apiEmployee as unknown as { hire_date?: string } | undefined)?.hire_date ??
 		(apiEmployee as unknown as { join_date?: string } | undefined)?.join_date;
+
+	// Extract unique branches and departments
+	const branches = branchDepartments?.map(bd => bd.branch?.branch_name).filter(Boolean) || [];
+	const departments = branchDepartments?.map(bd => bd.department?.dept_name).filter(Boolean) || [];
+	const uniqueBranches = [...new Set(branches)];
+	const uniqueDepartments = [...new Set(departments)];
+	
+	// Get the first manager found (if any)
+	const firstManager = branchDepartments?.find(bd => bd.manager)?.manager;
 
 	const resolved: Employee | null = apiEmployee
 		? {
@@ -110,15 +126,15 @@ export function EmployeeProfileCard({
 							timeZone: "UTC",
 					  }).format(new Date(hireDate))
 					: "",
-				department: String(branchDepartment?.department?.dept_name ?? ""),
+				department: uniqueDepartments.join(", ") || "--",
 				reportingTo: String(
-					branchDepartment?.manager?.employee?.emp_name ?? "--"
+					firstManager?.employee?.emp_name ?? "--"
 				),
 				address: String(
 					(apiEmployee as unknown as { address?: string }).address ?? ""
 				),
 				city: String((apiEmployee as unknown as { city?: string }).city ?? ""),
-				branch: String(branchDepartment?.branch?.branch_name ?? ""),
+				branch: uniqueBranches.join(", ") || "--",
 				status: "ACTIVE",
 				education: String(
 					(apiEmployee as unknown as { education?: string }).education ?? ""

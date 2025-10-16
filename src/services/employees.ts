@@ -16,10 +16,11 @@ export type EmployeeListResponse = {
 export type EmployeeDetailResponse = Employee;
 export type EmployeeCreateRequest = {
   emp_name: string;
-  branch_department_id: number;
+  branch_department_id?: number; // For regular employees (role 1, 2, 3)
+  manager_branch_departments?: number[]; // For managers (role 4)
   email?: string | null;
   phone?: string | null;
-  role?: string | null;
+  role?: number | null;
   education?: string | null;
   bio?: string | null;
   address?: string | null;
@@ -32,10 +33,16 @@ export type EmployeeUpdateResponse = Employee;
 
 export async function listEmployees(
   params?: Record<string, string | number | boolean>,
-  pagination?: { page?: number; pageSize?: number }
+  pagination?: { page?: number; pageSize?: number },
+  managerScope?: boolean
 ) {
   const url = API_ROUTES.EMPLOYEES.LIST;
   const queryParams: Record<string, string> = {};
+  
+  // Add manager scope parameter
+  if (managerScope) {
+    queryParams.manager_scope = 'true';
+  }
   
   // Add pagination parameters
   if (pagination) {
@@ -109,12 +116,15 @@ export async function searchEmployees(
   };
 }
 
-export async function getEmployee(id: number | string) {
-  const res = await apiCaller<EmployeeDetailResponse>(API_ROUTES.EMPLOYEES.DETAIL(id), "GET");
+export async function getEmployee(id: number | string, managerScope?: boolean) {
+  const url = managerScope 
+    ? `${API_ROUTES.EMPLOYEES.DETAIL(id)}?manager_scope=true`
+    : API_ROUTES.EMPLOYEES.DETAIL(id);
+  const res = await apiCaller<EmployeeDetailResponse>(url, "GET");
   return res.data;
 }
 
-export async function createEmployee(payload: EmployeeCreateRequest) {
+export async function createEmployee(payload: EmployeeCreateRequest, managerScope?: boolean) {
   // Check if we have a file to upload
   const hasFile = payload.profile_picture instanceof File;
   
@@ -122,11 +132,21 @@ export async function createEmployee(payload: EmployeeCreateRequest) {
     // Create FormData for file upload (CREATE endpoint supports FormData)
     const formData = new FormData();
     formData.append('emp_name', payload.emp_name);
-    formData.append('branch_department_id', String(payload.branch_department_id));
+    
+    // Handle branch department based on role
+    if (payload.manager_branch_departments && payload.manager_branch_departments.length > 0) {
+      // Manager: append array of branch departments
+      payload.manager_branch_departments.forEach((id) => {
+        formData.append('manager_branch_departments', String(id));
+      });
+    } else if (payload.branch_department_id) {
+      // Regular employee: append single branch department
+      formData.append('branch_department_id', String(payload.branch_department_id));
+    }
     
     if (payload.email) formData.append('email', payload.email);
     if (payload.phone) formData.append('phone', payload.phone);
-    if (payload.role) formData.append('role', payload.role);
+    if (payload.role) formData.append('role', String(payload.role));
     if (payload.education) formData.append('education', payload.education);
     if (payload.bio) formData.append('bio', payload.bio);
     if (payload.address) formData.append('address', payload.address);
@@ -136,16 +156,28 @@ export async function createEmployee(payload: EmployeeCreateRequest) {
       formData.append('profile_picture', payload.profile_picture);
     }
     
-    const res = await apiCaller<EmployeeCreateResponse>(API_ROUTES.EMPLOYEES.CREATE, "POST", formData, {}, "formdata");
+    const url = managerScope 
+      ? `${API_ROUTES.EMPLOYEES.CREATE}?manager_scope=true`
+      : API_ROUTES.EMPLOYEES.CREATE;
+    const res = await apiCaller<EmployeeCreateResponse>(url, "POST", formData, {}, "formdata");
     return res.data;
   } else {
     // Use JSON for requests without files
-    const res = await apiCaller<EmployeeCreateResponse>(API_ROUTES.EMPLOYEES.CREATE, "POST", payload, {}, "json");
+    // Convert number arrays to string arrays for API compatibility
+    const apiPayload = {
+      ...payload,
+      manager_branch_departments: payload.manager_branch_departments?.map(String),
+    };
+    
+    const url = managerScope 
+      ? `${API_ROUTES.EMPLOYEES.CREATE}?manager_scope=true`
+      : API_ROUTES.EMPLOYEES.CREATE;
+    const res = await apiCaller<EmployeeCreateResponse>(url, "POST", apiPayload, {}, "json");
     return res.data;
   }
 }
 
-export async function updateEmployee(id: number | string, payload: EmployeeUpdateRequest) {
+export async function updateEmployee(id: number | string, payload: EmployeeUpdateRequest, managerScope?: boolean) {
   // Check if we have a file to upload
   const hasFile = payload.profile_picture instanceof File;
   const isRemovingPicture = payload.hasOwnProperty('profile_picture') && payload.profile_picture === null;
@@ -157,7 +189,16 @@ export async function updateEmployee(id: number | string, payload: EmployeeUpdat
     const { profile_picture, ...employeeData } = payload;
     
     // First update the employee data (JSON only)
-    const res = await apiCaller<EmployeeUpdateResponse>(API_ROUTES.EMPLOYEES.UPDATE(id), "PATCH", employeeData, {}, "json");
+    // Convert number arrays to string arrays for API compatibility
+    const apiEmployeeData = {
+      ...employeeData,
+      manager_branch_departments: employeeData.manager_branch_departments?.map(String),
+    };
+    
+    const url = managerScope 
+      ? `${API_ROUTES.EMPLOYEES.UPDATE(id)}?manager_scope=true`
+      : API_ROUTES.EMPLOYEES.UPDATE(id);
+    const res = await apiCaller<EmployeeUpdateResponse>(url, "PATCH", apiEmployeeData, {}, "json");
     
     // Then upload the profile picture using dedicated endpoint
     if (profile_picture instanceof File) {
@@ -170,7 +211,16 @@ export async function updateEmployee(id: number | string, payload: EmployeeUpdat
     const { profile_picture: _profile_picture, ...employeeData } = payload;
     
     // First update the employee data (JSON only)
-    const res = await apiCaller<EmployeeUpdateResponse>(API_ROUTES.EMPLOYEES.UPDATE(id), "PATCH", employeeData, {}, "json");
+    // Convert number arrays to string arrays for API compatibility
+    const apiEmployeeData = {
+      ...employeeData,
+      manager_branch_departments: employeeData.manager_branch_departments?.map(String),
+    };
+    
+    const url = managerScope 
+      ? `${API_ROUTES.EMPLOYEES.UPDATE(id)}?manager_scope=true`
+      : API_ROUTES.EMPLOYEES.UPDATE(id);
+    const res = await apiCaller<EmployeeUpdateResponse>(url, "PATCH", apiEmployeeData, {}, "json");
     
     // Then delete the profile picture using dedicated endpoint
     try {
@@ -183,13 +233,25 @@ export async function updateEmployee(id: number | string, payload: EmployeeUpdat
     return res.data;
   } else {
     // Use JSON for requests without files (regular update)
-    const res = await apiCaller<EmployeeUpdateResponse>(API_ROUTES.EMPLOYEES.UPDATE(id), "PATCH", payload, {}, "json");
+    // Convert number arrays to string arrays for API compatibility
+    const apiPayload = {
+      ...payload,
+      manager_branch_departments: payload.manager_branch_departments?.map(String),
+    };
+    
+    const url = managerScope 
+      ? `${API_ROUTES.EMPLOYEES.UPDATE(id)}?manager_scope=true`
+      : API_ROUTES.EMPLOYEES.UPDATE(id);
+    const res = await apiCaller<EmployeeUpdateResponse>(url, "PATCH", apiPayload, {}, "json");
     return res.data;
   }
 }
 
-export async function deleteEmployee(id: number | string) {
-  await apiCaller<void>(API_ROUTES.EMPLOYEES.DELETE(id), "DELETE");
+export async function deleteEmployee(id: number | string, managerScope?: boolean) {
+  const url = managerScope 
+    ? `${API_ROUTES.EMPLOYEES.DELETE(id)}?manager_scope=true`
+    : API_ROUTES.EMPLOYEES.DELETE(id);
+  await apiCaller<void>(url, "DELETE");
 }
 
 // Profile picture upload function

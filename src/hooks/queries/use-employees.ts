@@ -26,11 +26,14 @@ const employeeDetailKey = (id: number | string) => ["employees", String(id)] as 
    Queries
    ========================= */
 
-export function useEmployees(params?: Record<string, string | number | boolean>) {
+export function useEmployees(
+  params?: Record<string, string | number | boolean>,
+  managerScope?: boolean
+) {
   const keyParams = normalizeParams(params);
   return useQuery({
-    queryKey: ["employees", keyParams],
-    queryFn: () => listEmployees(keyParams),
+    queryKey: ["employees", keyParams, managerScope],
+    queryFn: () => listEmployees(keyParams, undefined, managerScope),
     staleTime: 60_000,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData, // keep prior page while fetching
@@ -65,11 +68,11 @@ export function useSearchEmployees(
   });
 }
 
-export function useEmployee(id: number | string) {
+export function useEmployee(id: number | string, managerScope?: boolean) {
   const key = employeeDetailKey(id);
   return useQuery({
-    queryKey: key,
-    queryFn: () => getEmployee(id),
+    queryKey: [...key, managerScope],
+    queryFn: () => getEmployee(id, managerScope),
     enabled: !!id,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
@@ -81,10 +84,10 @@ export function useEmployee(id: number | string) {
    Mutations
    ========================= */
 
-export function useCreateEmployee() {
+export function useCreateEmployee(managerScope?: boolean) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: EmployeeCreateRequest) => createEmployee(payload),
+    mutationFn: (payload: EmployeeCreateRequest) => createEmployee(payload, managerScope),
     onSuccess: () => {
       // broad invalidations for any list/search variants
       qc.invalidateQueries({ queryKey: ["employees"], exact: false });
@@ -94,10 +97,10 @@ export function useCreateEmployee() {
   });
 }
 
-export function useUpdateEmployee(id: number | string) {
+export function useUpdateEmployee(id: number | string, managerScope?: boolean) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: EmployeeUpdateRequest) => updateEmployee(id, payload),
+    mutationFn: (payload: EmployeeUpdateRequest) => updateEmployee(id, payload, managerScope),
     onSuccess: () => {
       // keep lists + searches fresh, and the detail page for this id
       qc.invalidateQueries({ queryKey: ["employees"], exact: false });
@@ -108,10 +111,10 @@ export function useUpdateEmployee(id: number | string) {
   });
 }
 
-export function useDeleteEmployee() {
+export function useDeleteEmployee(managerScope?: boolean) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number | string) => deleteEmployee(id),
+    mutationFn: (id: number | string) => deleteEmployee(id, managerScope),
     onSuccess: (_, id) => {
       qc.invalidateQueries({ queryKey: ["employees"], exact: false });
       qc.invalidateQueries({ queryKey: ["all-employees"], exact: false });
