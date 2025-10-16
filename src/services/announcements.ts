@@ -87,10 +87,16 @@ export type AnnouncementAttachmentUpdateResponse = AnnouncementAttachment;
 // Announcement CRUD operations
 export async function listAnnouncements(
   params?: Record<string, string | number | boolean>,
-  pagination?: { page?: number; pageSize?: number }
+  pagination?: { page?: number; pageSize?: number },
+  managerScope?: boolean
 ) {
   const url = API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.LIST;
   const queryParams: Record<string, string> = {};
+  
+  // Add manager scope parameter
+  if (managerScope) {
+    queryParams.manager_scope = 'true';
+  }
   
   // Add pagination parameters
   if (pagination) {
@@ -116,15 +122,15 @@ export async function listAnnouncements(
   return res.data;
 }
 
-export async function getAnnouncement(id: number | string) {
-  const res = await apiCaller<AnnouncementDetailResponse>(
-    `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DETAIL(id)}?include_inactive=true`, 
-    "GET"
-  );
+export async function getAnnouncement(id: number | string, managerScope?: boolean) {
+  const url = managerScope 
+    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DETAIL(id)}?include_inactive=true&manager_scope=true`
+    : `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DETAIL(id)}?include_inactive=true`;
+  const res = await apiCaller<AnnouncementDetailResponse>(url, "GET");
   return res.data;
 }
 
-export async function createAnnouncement(payload: AnnouncementCreateRequest) {
+export async function createAnnouncement(payload: AnnouncementCreateRequest, managerScope?: boolean) {
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
@@ -133,17 +139,14 @@ export async function createAnnouncement(payload: AnnouncementCreateRequest) {
     permitted_employees: payload.permitted_employees?.map(String),
   };
   
-  const res = await apiCaller<AnnouncementCreateResponse>(
-    API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.CREATE, 
-    "POST", 
-    apiPayload, 
-    {}, 
-    "json"
-  );
+  const url = managerScope 
+    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.CREATE}?manager_scope=true`
+    : API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.CREATE;
+  const res = await apiCaller<AnnouncementCreateResponse>(url, "POST", apiPayload, {}, "json");
   return res.data;
 }
 
-export async function updateAnnouncement(id: number | string, payload: AnnouncementUpdateRequest) {
+export async function updateAnnouncement(id: number | string, payload: AnnouncementUpdateRequest, managerScope?: boolean) {
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
@@ -152,18 +155,18 @@ export async function updateAnnouncement(id: number | string, payload: Announcem
     permitted_employees: payload.permitted_employees?.map(String),
   };
   
-  const res = await apiCaller<AnnouncementUpdateResponse>(
-    API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)+'?include_inactive=true', 
-    "PATCH", 
-    apiPayload, 
-    {}, 
-    "json"
-  );
+  const url = managerScope 
+    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)}?include_inactive=true&manager_scope=true`
+    : `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)}?include_inactive=true`;
+  const res = await apiCaller<AnnouncementUpdateResponse>(url, "PATCH", apiPayload, {}, "json");
   return res.data;
 }
 
-export async function deleteAnnouncement(id: number | string) {
-  await apiCaller<void>(`${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}?include_inactive=true`, "DELETE");
+export async function deleteAnnouncement(id: number | string, managerScope?: boolean) {
+  const url = managerScope 
+    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}?include_inactive=true&manager_scope=true`
+    : `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}?include_inactive=true`;
+  await apiCaller<void>(url, "DELETE");
 }
 
 // Announcement Attachment operations

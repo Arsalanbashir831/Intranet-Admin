@@ -11,6 +11,7 @@ import { AdminTopbar } from "@/components/admin/layout/admin-topbar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthProvider } from "@/contexts/auth-context";
+import { ManagerScopeProvider } from "@/contexts/manager-scope-context";
 import { AuthGuard } from "@/components/auth/auth-guard";
 
 type AdminLayoutProps = {
@@ -27,20 +28,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AuthGuard requireAuth={true}>
-          <SidebarProvider>
-            <AdminSidebar />
-            <SidebarInset className="flex flex-col">
-              <AdminTopbar />
-              <div>
-                <UploadQueueProvider>
-                  {children}
-                  <QueueMount />
-                </UploadQueueProvider>
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </AuthGuard>
+        <ManagerScopeProvider>
+          <AuthGuard requireAuth={true}>
+            <SidebarProvider>
+              <AdminSidebar />
+              <SidebarInset className="flex flex-col">
+                <AdminTopbar />
+                <div>
+                  <UploadQueueProvider>
+                    {children}
+                    <QueueMount />
+                  </UploadQueueProvider>
+                </div>
+              </SidebarInset>
+            </SidebarProvider>
+          </AuthGuard>
+        </ManagerScopeProvider>
         {process.env.NODE_ENV !== "production" ? (
           <ReactQueryDevtools initialIsOpen={false} />
         ) : null}

@@ -22,6 +22,8 @@ interface User {
 	profilePicture?: string;
 	avatar?: string; // Alias for profilePicture for backward compatibility
 	role?: string;
+	isManager?: boolean;
+	managedDepartments?: number[];
 }
 
 interface AuthContextType {

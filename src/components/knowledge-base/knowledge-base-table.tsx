@@ -14,12 +14,36 @@ import { FolderIcon, Trash2, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useGetFolderTree, useDeleteFolder } from "@/hooks/queries/use-knowledge-folders"; // Added useDeleteFolder
+import { useManagerScope } from "@/contexts/manager-scope-context";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 import { format } from "date-fns";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
 
 // Types for folder tree data
+type BranchDepartmentDetail = {
+  id: number;
+  branch: {
+    id: number;
+    branch_name: string;
+    location: string;
+  };
+  department: {
+    id: number;
+    dept_name: string;
+  };
+};
+
+type CreatedByDetail = {
+  id: number;
+  emp_name: string;
+  email: string;
+  phone: string;
+  role: string;
+  profile_picture: string;
+  branch_department_ids: number[];
+};
+
 type FolderTreeFile = {
   id: number;
   folder: number;
@@ -48,14 +72,16 @@ type FolderTreeItem = {
   description: string;
   parent: number | null;
   inherits_parent_permissions: boolean;
-  effective_permissions: {
-    branches: number[];
-    departments: number[];
-    employees: number[];
+  created_at: string;
+  created_by: CreatedByDetail;
+  access_level: {
+    branches: unknown[];
+    departments: unknown[];
+    branch_departments: BranchDepartmentDetail[];
+    employees: unknown[];
   };
   files: FolderTreeFile[];
   folders: FolderTreeItem[];
-  created_at?: string;
 };
 
 export type KnowledgeBaseRow = {
@@ -63,23 +89,27 @@ export type KnowledgeBaseRow = {
   folder: string;
   createdByName: string;
   createdByAvatar?: string;
-  accessLevel: "Specific Departments" | "Specific Branches" | "Specific Employees" | "All Employees";
+  accessLevel: "Specific Branch Departments" | "Specific Departments" | "Specific Branches" | "Specific Employees" | "All Employees";
   dateCreated: string; // YYYY-MM-DD
-  originalData: FolderTreeItem; // Changed to FolderTreeItem
+  originalData: FolderTreeItem;
 };
 
-// Helper function to determine access level from permissions
-const getAccessLevel = (folder: FolderTreeItem): "Specific Departments" | "Specific Branches" | "Specific Employees" | "All Employees" => {
-  // Check branches first
-  if (folder.effective_permissions.branches && folder.effective_permissions.branches.length > 0) {
+// Helper function to determine access level from access_level field
+const getAccessLevel = (folder: FolderTreeItem): "Specific Branch Departments" | "Specific Departments" | "Specific Branches" | "Specific Employees" | "All Employees" => {
+  // Check branch_departments first (new field)
+  if (folder.access_level.branch_departments && folder.access_level.branch_departments.length > 0) {
+    return "Specific Branch Departments";
+  }
+  // Check branches
+  if (folder.access_level.branches && folder.access_level.branches.length > 0) {
     return "Specific Branches";
   }
   // Check departments
-  if (folder.effective_permissions.departments && folder.effective_permissions.departments.length > 0) {
+  if (folder.access_level.departments && folder.access_level.departments.length > 0) {
     return "Specific Departments";
   }
   // Check employees
-  if (folder.effective_permissions.employees && folder.effective_permissions.employees.length > 0) {
+  if (folder.access_level.employees && folder.access_level.employees.length > 0) {
     return "Specific Employees";
   }
   // If all are empty, it's accessible to all employees
@@ -91,15 +121,16 @@ const transformFolderToRow = (folder: FolderTreeItem): KnowledgeBaseRow => {
   return {
     id: folder.id.toString(),
     folder: folder.name,
-    createdByName: "Admin", // TODO: Replace with actual creator name when available
-    createdByAvatar: undefined,
+    createdByName: folder.created_by.emp_name,
+    createdByAvatar: folder.created_by.profile_picture,
     accessLevel: getAccessLevel(folder),
-    dateCreated: folder.created_at ? format(new Date(folder.created_at), "yyyy-MM-dd") : "Unknown",
+    dateCreated: format(new Date(folder.created_at), "yyyy-MM-dd"),
     originalData: folder,
   };
 };
 
 export function KnowledgeBaseTable() {
+  const { isManager, canUploadKnowledge } = useManagerScope();
   const [sortedBy, setSortedBy] = React.useState<string>("folder");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
@@ -208,7 +239,13 @@ export function KnowledgeBaseTable() {
       header: ({ column }) => <CardTableColumnHeader column={column} title="Access Level" />,
       cell: ({ row }) => {
         const accessLevel = row.original.accessLevel;
-        if (accessLevel === "Specific Departments") {
+        if (accessLevel === "Specific Branch Departments") {
+          return (
+            <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
+              Specific Branch Departments
+            </Badge>
+          );
+        } else if (accessLevel === "Specific Departments") {
           return (
             <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
               Specific Departments
@@ -290,29 +327,29 @@ export function KnowledgeBaseTable() {
 
   return (
     <Card className="border-[#FFF6F6] p-5 shadow-none">
-      <CardTableToolbar
-        title="Knowledge Base"
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        showFilters={false}
-        showSortOptions={false}
-        className={cn(isFetching && "opacity-70")}
-      />
-      <CardTable<KnowledgeBaseRow, unknown>
-        columns={columns}
-        data={apiData}
-        headerClassName="grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] cursor-pointer"
+        <CardTableToolbar
+          title="Knowledge Base"
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          showFilters={false}
+          showSortOptions={false}
+          className={cn(isFetching && "opacity-70")}
+        />
+        <CardTable<KnowledgeBaseRow, unknown>
+          columns={columns}
+          data={apiData}
+          headerClassName="grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr]"
+          rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_1fr_0.8fr] cursor-pointer"
 }
-        onRowClick={(row) => router.push(ROUTES.ADMIN.KNOWLEDGE_BASE_FOLDER_ID(row.original.id))}
-        footer={(table) => <CardTablePagination table={table} />}
-      />
-      
-      <AddFolderModal 
-        open={editModalOpen} 
-        onOpenChange={setEditModalOpen}
-        folderId={editingFolderId ? parseInt(editingFolderId) : undefined}
-        onComplete={handleEditComplete}
+          onRowClick={(row) => router.push(ROUTES.ADMIN.KNOWLEDGE_BASE_FOLDER_ID(row.original.id))}
+          footer={(table) => <CardTablePagination table={table} />}
+        />
+        
+        <AddFolderModal 
+          open={editModalOpen} 
+          onOpenChange={setEditModalOpen}
+          folderId={editingFolderId ? parseInt(editingFolderId) : undefined}
+          onComplete={handleEditComplete}
         isEditMode={true}
       />
     </Card>

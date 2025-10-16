@@ -16,9 +16,10 @@ export type FolderCreateRequest = {
   description?: string;
   parent?: number | null;
   inherits_parent_permissions?: boolean;
-  permitted_branches?: string[];
-  permitted_departments?: string[];
-  permitted_employees?: string[];
+  permitted_branches?: number[];
+  permitted_departments?: number[];
+  permitted_branch_departments?: number[];
+  permitted_employees?: number[];
 };
 
 export type FolderUpdateRequest = FolderCreateRequest;
@@ -47,6 +48,29 @@ export type FolderUpdateResponse = {
 };
 
 // Add new types for folder tree structure
+export type BranchDepartmentDetail = {
+  id: number;
+  branch: {
+    id: number;
+    branch_name: string;
+    location: string;
+  };
+  department: {
+    id: number;
+    dept_name: string;
+  };
+};
+
+export type CreatedByDetail = {
+  id: number;
+  emp_name: string;
+  email: string;
+  phone: string;
+  role: string;
+  profile_picture: string;
+  branch_department_ids: number[];
+};
+
 export type FolderTreeFile = {
   id: number;
   folder: number;
@@ -75,10 +99,13 @@ export type FolderTreeItem = {
   description: string;
   parent: number | null;
   inherits_parent_permissions: boolean;
-  effective_permissions: {
-    branches: number[];
-    departments: number[];
-    employees: number[];
+  created_at: string;
+  created_by: CreatedByDetail;
+  access_level: {
+    branches: unknown[];
+    departments: unknown[];
+    branch_departments: BranchDepartmentDetail[];
+    employees: unknown[];
   };
   files: FolderTreeFile[];
   folders: FolderTreeItem[]; // Recursive type for nested folders
@@ -178,18 +205,10 @@ export async function getFolderTree(employeeId?: number | string) {
 }
 
 export async function createFolder(payload: FolderCreateRequest): Promise<FolderCreateResponse> {
-  // Convert arrays to string arrays for API compatibility
-  const apiPayload = {
-    ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
-  };
-  
   const res = await apiCaller<KnowledgeFolder>(
     API_ROUTES.KNOWLEDGE_BASE.FOLDERS.CREATE, 
     "POST", 
-    apiPayload, 
+    payload, 
     {}, 
     "json"
   );
@@ -199,18 +218,10 @@ export async function createFolder(payload: FolderCreateRequest): Promise<Folder
 }
 
 export async function updateFolder(id: number | string, payload: FolderUpdateRequest): Promise<FolderUpdateResponse> {
-  // Convert arrays to string arrays for API compatibility
-  const apiPayload = {
-    ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
-  };
-  
   const res = await apiCaller<KnowledgeFolder>(
     API_ROUTES.KNOWLEDGE_BASE.FOLDERS.UPDATE(id), 
     "PUT", 
-    apiPayload, 
+    payload, 
     {}, 
     "json"
   );

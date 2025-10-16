@@ -13,6 +13,7 @@ import { CardTablePagination } from "@/components/card-table/card-table-paginati
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useAnnouncements, useDeleteAnnouncement } from "@/hooks/queries/use-announcements";
+import { useManagerScope } from "@/contexts/manager-scope-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
@@ -37,6 +38,7 @@ export type AnnouncementRow = {
 };
 
 export function RecentAnnouncementsTable() {
+  const { isManager, canCreateAnnouncements } = useManagerScope();
   const [sortedBy, setSortedBy] = React.useState<string>("title");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
@@ -91,10 +93,11 @@ export function RecentAnnouncementsTable() {
     undefined,
     {
       placeholderData: (previousData) => previousData,
+      managerScope: isManager, // Pass manager scope if user is a manager
     }
   );
       
-  const deleteAnnouncement = useDeleteAnnouncement();
+  const deleteAnnouncement = useDeleteAnnouncement(isManager);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const router = useRouter();
 
@@ -219,68 +222,68 @@ export function RecentAnnouncementsTable() {
 
   return (
     <Card className="border-[#FFF6F6] p-5 shadow-none">
-      <CardTableToolbar
-        title="Recent Announcements"
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        sortOptions={[
-          { label: "Title", value: "title" },
-          { label: "Access Level", value: "access" },
-          { label: "Date Posted", value: "date" },
-          { label: "Type", value: "type" },
-          { label: "Status", value: "status" },
-        ]}
-        activeSort={sortedBy}
-        onSortChange={(v) => setSortedBy(v)}
-        onFilterClick={() => setIsFilterOpen(true)}
-        className={cn(isFetching && "opacity-70")}
-      />
-      <CardTable<AnnouncementRow, unknown>
-        columns={columns}
-        data={data}
-        headerClassName="grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr] cursor-pointer"}
-        onRowClick={(row) => handleRowClick(row.original)}
-        footer={(table) => <CardTablePagination table={table} />}
-      />
-      
-      <FilterDrawer
-        open={isFilterOpen}
-        onOpenChange={setIsFilterOpen}
-        onReset={handleResetFilters}
-        showFilterButton={false}
-        title="Filter Announcements"
-        description="Filter announcements by various criteria"
-      >
-        <div className="space-y-6 py-4">
-          <SelectFilter 
-            label="Status"
-            value={(filters.includeInactive as string) || "__all__"} 
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, includeInactive: value }))}
-            options={[
-              { value: "__all__", label: "All Statuses" },
-              { value: "true", label: "Include Drafts" },
-              { value: "false", label: "Published Only" }
-            ]}
-          />
-          <SelectFilter 
-            label="Type"
-            value={(filters.type as string) || "__all__"} 
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, type: value }))}
-            options={[
-              { value: "__all__", label: "All Types" },
-              { value: "announcement", label: "Announcement" },
-              { value: "policy", label: "Policy" }
-            ]}
-          />
-          <BranchFilter 
-            value={(filters.branch as string) || "__all__"} 
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, branch: value }))}
-          />
-          <DepartmentFilter 
-            value={(filters.department as string) || "__all__"} 
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
-          />
+        <CardTableToolbar
+          title="Recent Announcements"
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortOptions={[
+            { label: "Title", value: "title" },
+            { label: "Access Level", value: "access" },
+            { label: "Date Posted", value: "date" },
+            { label: "Type", value: "type" },
+            { label: "Status", value: "status" },
+          ]}
+          activeSort={sortedBy}
+          onSortChange={(v) => setSortedBy(v)}
+          onFilterClick={() => setIsFilterOpen(true)}
+          className={cn(isFetching && "opacity-70")}
+        />
+        <CardTable<AnnouncementRow, unknown>
+          columns={columns}
+          data={data}
+          headerClassName="grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr]"
+          rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr] cursor-pointer"}
+          onRowClick={(row) => handleRowClick(row.original)}
+          footer={(table) => <CardTablePagination table={table} />}
+        />
+        
+        <FilterDrawer
+          open={isFilterOpen}
+          onOpenChange={setIsFilterOpen}
+          onReset={handleResetFilters}
+          showFilterButton={false}
+          title="Filter Announcements"
+          description="Filter announcements by various criteria"
+        >
+          <div className="space-y-6 py-4">
+            <SelectFilter 
+              label="Status"
+              value={(filters.includeInactive as string) || "__all__"} 
+              onValueChange={(value: string) => setFilters(prev => ({ ...prev, includeInactive: value }))}
+              options={[
+                { value: "__all__", label: "All Statuses" },
+                { value: "true", label: "Include Drafts" },
+                { value: "false", label: "Published Only" }
+              ]}
+            />
+            <SelectFilter 
+              label="Type"
+              value={(filters.type as string) || "__all__"} 
+              onValueChange={(value: string) => setFilters(prev => ({ ...prev, type: value }))}
+              options={[
+                { value: "__all__", label: "All Types" },
+                { value: "announcement", label: "Announcement" },
+                { value: "policy", label: "Policy" }
+              ]}
+            />
+            <BranchFilter 
+              value={(filters.branch as string) || "__all__"} 
+              onValueChange={(value: string) => setFilters(prev => ({ ...prev, branch: value }))}
+            />
+            <DepartmentFilter 
+              value={(filters.department as string) || "__all__"} 
+              onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
+            />
         </div>
       </FilterDrawer>
     </Card>

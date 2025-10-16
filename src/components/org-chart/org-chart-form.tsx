@@ -21,6 +21,7 @@ import {
 	useDepartments,
 	useSearchDepartments,
 } from "@/hooks/queries/use-departments";
+import { useManagerScope } from "@/contexts/manager-scope-context";
 
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -51,6 +52,9 @@ export function OrgChartForm({
 	employeeId?: string;
 	onSubmitComplete?: (success: boolean) => void;
 }) {
+	// Get manager scope to filter departments
+	const { isManager, managedDepartments } = useManagerScope();
+	
 	// Create adapter functions for async search
 	const useAllDepartments = () => {
 		const result = useDepartments(undefined, { pageSize: 100 }); // Get more departments
@@ -85,6 +89,12 @@ export function OrgChartForm({
 						const branchName = String(
 							bd?.branch?.branch_name ?? bd?.branch_name ?? ""
 						);
+						
+						// Filter: If manager, only show their managed departments
+						if (isManager && !managedDepartments.includes(bd.id)) {
+							continue; // Skip this department
+						}
+						
 						items.push({ id: bdId, label: `${deptName} - ${branchName}` });
 					}
 				}
@@ -130,6 +140,12 @@ export function OrgChartForm({
 						const branchName = String(
 							bd?.branch?.branch_name ?? bd?.branch_name ?? ""
 						);
+						
+						// Filter: If manager, only show their managed departments
+						if (isManager && !managedDepartments.includes(bd.id)) {
+							continue; // Skip this department
+						}
+						
 						items.push({ id: bdId, label: `${deptName} - ${branchName}` });
 					}
 				}
@@ -147,14 +163,14 @@ export function OrgChartForm({
 	const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
 	const [isRemovingPicture, setIsRemovingPicture] = React.useState(false);
 
-	// Single-select department, location, and manager
-	const [selectedBranchDeptId, setSelectedBranchDeptId] = React.useState<
-		string | undefined
-	>(initialValues?.branch_department);
+	// Branch department selection - single or multiple depending on role
+	const [selectedBranchDeptIds, setSelectedBranchDeptIds] = React.useState<
+		string[]
+	>(initialValues?.branch_department ? [initialValues.branch_department] : []);
 
-	// Role selection state
+	// Role selection state - store as string for Select component, convert to number for API
 	const [selectedRole, setSelectedRole] = React.useState<string>(
-		initialValues?.role || "Staff"
+		initialValues?.role ? String(initialValues.role) : "1"
 	);
 
 	// Rich text content state for education is plain string
@@ -167,19 +183,21 @@ export function OrgChartForm({
 		initialValues?.bio ?? undefined
 	);
 
-	// React Query mutation for create
-	const createEmployee = useCreateEmployee();
-	const updateEmployee = useUpdateEmployee(employeeId || "");
+	// React Query mutation for create/update with manager scope
+	const createEmployee = useCreateEmployee(isManager);
+	const updateEmployee = useUpdateEmployee(employeeId || "", isManager);
 	const router = useRouter();
 
 	// Reinitialize if initialValues change
 	React.useEffect(() => {
 		if (initialValues?.branch_department) {
-			setSelectedBranchDeptId(initialValues.branch_department);
+			setSelectedBranchDeptIds([initialValues.branch_department]);
+		} else {
+			setSelectedBranchDeptIds([]);
 		}
 		setEducationHtml(initialValues?.education ?? undefined);
 		setBioHtml(initialValues?.bio ?? undefined);
-		setSelectedRole(initialValues?.role || "Staff");
+		setSelectedRole(initialValues?.role ? String(initialValues.role) : "1");
 		// Clear selected files when initialValues change
 		setSelectedFiles([]);
 		setIsRemovingPicture(false);
@@ -189,6 +207,15 @@ export function OrgChartForm({
 		initialValues?.bio,
 		initialValues?.role,
 	]);
+
+	// When role changes, ensure only one department is selected if not Manager
+	React.useEffect(() => {
+		if (selectedRole !== "4" && selectedBranchDeptIds.length > 1) {
+			// If role is not Manager and multiple departments selected, keep only the first one
+			setSelectedBranchDeptIds([selectedBranchDeptIds[0]]);
+			toast.info("Only managers can be assigned to multiple departments. Keeping only one department.");
+		}
+	}, [selectedRole, selectedBranchDeptIds]);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -201,18 +228,21 @@ export function OrgChartForm({
 		const address = String(data.get("address") || "").trim();
 		const city = String(data.get("city") || "").trim();
 
-		if (!empName || !selectedBranchDeptId) {
-			toast.error("Name and Branch/Department are required");
+		if (!empName || selectedBranchDeptIds.length === 0) {
+			toast.error("Name and at least one Branch/Department are required");
 			onSubmitComplete?.(false); // Notify parent that submission failed
 			return;
 		}
 
-		const payload = {
+		// Convert selected branch department IDs to numbers
+		const branchDepartmentIds = selectedBranchDeptIds.map((id) => Number(id));
+
+		// Build payload based on role
+		const payload: import("@/services/employees").EmployeeCreateRequest = {
 			emp_name: empName,
-			branch_department_id: Number(selectedBranchDeptId),
 			email: email || undefined,
 			phone: phone || undefined,
-			role: selectedRole || undefined, // Use selected role from dropdown
+			role: selectedRole ? Number(selectedRole) : undefined, // Convert to integer for API
 			education: educationHtml || undefined,
 			bio: bioHtml || undefined,
 			address: address || undefined,
@@ -220,7 +250,16 @@ export function OrgChartForm({
 			// Handle profile picture logic
 			profile_picture:
 				selectedFiles[0] || (isRemovingPicture ? null : undefined),
-		} as import("@/services/employees").EmployeeCreateRequest;
+		};
+
+		// Add branch department fields based on role
+		if (selectedRole === "4") {
+			// Manager: use manager_branch_departments array
+			payload.manager_branch_departments = branchDepartmentIds;
+		} else {
+			// Regular employee: use single branch_department_id
+			payload.branch_department_id = branchDepartmentIds[0];
+		}
 
 		try {
 			if (isEdit && employeeId) {
@@ -355,11 +394,18 @@ export function OrgChartForm({
 							<SelectValue placeholder="Select role" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="Staff">Staff</SelectItem>
-							<SelectItem value="Mid Senior Staff">Mid Senior Staff</SelectItem>
-							<SelectItem value="Senior Staff">Senior Staff</SelectItem>
+							<SelectItem value="1">Junior Staff</SelectItem>
+							<SelectItem value="2">Mid Senior Staff</SelectItem>
+							<SelectItem value="3">Senior Staff</SelectItem>
+							{/* Only admins can add managers */}
+							{!isManager && <SelectItem value="4">Manager</SelectItem>}
 						</SelectContent>
 					</Select>
+					{isManager && (
+						<p className="mt-1 text-xs text-muted-foreground">
+							Only administrators can create manager roles.
+						</p>
+					)}
 				</div>
 			</div>
 
@@ -369,15 +415,21 @@ export function OrgChartForm({
 
 			<div className="grid grid-cols-12 items-center gap-4 border-t border-[#E9EAEB] pt-4">
 				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
-					Branch Department:
+					Branch Department{selectedRole === "4" ? "s" : ""}:
 				</Label>
 				<div className="col-span-12 md:col-span-10">
 					<SelectableTags
 						items={[]} // Empty since we're using async hooks
-						selectedItems={selectedBranchDeptId ? [selectedBranchDeptId] : []}
+						selectedItems={selectedBranchDeptIds}
 						onSelectionChange={(ids) => {
-							const last = ids[ids.length - 1];
-							setSelectedBranchDeptId(last);
+							// If role is not Manager (4), allow only one selection
+							if (selectedRole !== "4") {
+								const lastSelected = ids[ids.length - 1];
+								setSelectedBranchDeptIds(lastSelected ? [lastSelected] : []);
+							} else {
+								// Manager can select multiple
+								setSelectedBranchDeptIds(ids);
+							}
 						}}
 						searchPlaceholder="Search branch departments..."
 						emptyMessage="No branch departments found."
@@ -385,6 +437,16 @@ export function OrgChartForm({
 						useSearch={useSearchDepartmentsAdapter}
 						searchDebounce={300}
 					/>
+					{selectedRole !== "4" && (
+						<p className="mt-1 text-xs text-muted-foreground">
+							Only one department can be selected for this role. Select Manager role to manage multiple departments.
+						</p>
+					)}
+					{selectedRole === "4" && (
+						<p className="mt-1 text-xs text-muted-foreground">
+							Managers can be assigned to multiple departments. The first department will be used as their employee record location.
+						</p>
+					)}
 				</div>
 			</div>
 
