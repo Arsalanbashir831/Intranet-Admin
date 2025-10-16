@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SelectableTags, SelectableItem } from "@/components/ui/selectable-tags";
 import { useCreateFolder, useUpdateFolder, useGetFolder } from "@/hooks/queries/use-knowledge-folders";
 import { useAllEmployees } from "@/hooks/queries/use-employees";
-import { useDepartments, useBranchDepartments } from "@/hooks/queries/use-departments";
+import { useDepartments } from "@/hooks/queries/use-departments";
 import { useManagerScope } from "@/contexts/manager-scope-context";
 import { FolderCreateRequest } from "@/services/knowledge-folders";
 import type { components } from "@/types/api";
@@ -55,7 +55,9 @@ export function AddFolderModal({
   // Load folder data when in edit mode
   React.useEffect(() => {
     if (isEditMode && folderData?.folder) {
-      const folder = folderData.folder as any; // Type cast to access permitted_branch_departments
+      const folder = folderData.folder as components["schemas"]["KnowledgeFolder"] & {
+        permitted_branch_departments?: number[];
+      };
       setFolderName(folder.name);
       
       // Determine access type based on permissions

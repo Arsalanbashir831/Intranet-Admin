@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Table } from "@tanstack/react-table";
 import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
@@ -92,7 +92,7 @@ export function PollsTable({ className }: { className?: string }) {
   const [pollTypeFilter, setPollTypeFilter] = React.useState<string>("");
   const [statusFilter, setStatusFilter] = React.useState<string>("");
   const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
+  const [pageSize] = React.useState(10);
   
   // Build query parameters
   const queryParams = React.useMemo(() => {
@@ -128,7 +128,7 @@ export function PollsTable({ className }: { className?: string }) {
     return pollsData.polls?.results || [];
   }, [pollsData]);
   
-  const { pinnedIds, togglePin, isPinned, ordered } = usePinnedRows(polls.map(poll => ({ id: poll.id.toString() })));
+  const { togglePin, isPinned } = usePinnedRows(polls.map(poll => ({ id: poll.id.toString() })));
   
   const handleDelete = async (id: number) => {
     try {
@@ -266,7 +266,7 @@ export function PollsTable({ className }: { className?: string }) {
         },
       },
     ],
-    [router, handleDelete]
+    [handleDelete]
   );
   
   const [filterOpen, setFilterOpen] = React.useState(false);
@@ -281,7 +281,7 @@ export function PollsTable({ className }: { className?: string }) {
     />
   );
   
-  const footer = (table: any) => (
+  const footer = (table: Table<Poll>) => (
     <CardTablePagination
       table={table}
       onPageChange={setPage}

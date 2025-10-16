@@ -8,8 +8,9 @@ import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/a
 import { AddFileModal } from "@/components/knowledge-base/add-file-modal";
 import { useRouter } from "next/navigation";
 import { useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";
+import type { FolderTreeItem } from "@/services/knowledge-folders";
 
-// Define the folder tree item type locally since it's not exported
+// Define the folder tree file type locally since it's not exported
 type FolderTreeFile = {
   id: number;
   folder: number;
@@ -32,21 +33,6 @@ type FolderTreeFile = {
   };
 };
 
-type FolderTreeItem = {
-  id: number;
-  name: string;
-  description: string;
-  parent: number | null;
-  inherits_parent_permissions: boolean;
-  effective_permissions: {
-    branches: number[];
-    departments: number[];
-    employees: number[];
-  };
-  files: FolderTreeFile[];
-  folders: FolderTreeItem[];
-  created_at?: string;
-};
 
 export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promise<{ slug?: string[] }> }) {
   const router = useRouter();

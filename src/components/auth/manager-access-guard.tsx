@@ -49,7 +49,7 @@ export function ManagerAccessGuard({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            You don't have manager permissions to access this resource.
+            You don&apos;t have manager permissions to access this resource.
           </AlertDescription>
         </Alert>
       </Card>
@@ -85,7 +85,7 @@ export function ManagerAccessGuard({
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              You don't have permission to {requiredPermission.replace('_', ' ')}.
+              You don&apos;t have permission to {requiredPermission.replace('_', ' ')}.
             </AlertDescription>
           </Alert>
         </Card>
@@ -101,7 +101,7 @@ export function ManagerAccessGuard({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            You don't have access to this department.
+            You don&apos;t have access to this department.
           </AlertDescription>
         </Alert>
       </Card>

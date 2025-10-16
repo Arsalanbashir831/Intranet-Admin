@@ -205,10 +205,19 @@ export async function getFolderTree(employeeId?: number | string) {
 }
 
 export async function createFolder(payload: FolderCreateRequest): Promise<FolderCreateResponse> {
+  // Convert number arrays to string arrays for API compatibility
+  const apiPayload = {
+    ...payload,
+    permitted_branches: payload.permitted_branches?.map(String),
+    permitted_departments: payload.permitted_departments?.map(String),
+    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
+    permitted_employees: payload.permitted_employees?.map(String),
+  };
+
   const res = await apiCaller<KnowledgeFolder>(
     API_ROUTES.KNOWLEDGE_BASE.FOLDERS.CREATE, 
     "POST", 
-    payload, 
+    apiPayload, 
     {}, 
     "json"
   );
@@ -218,10 +227,19 @@ export async function createFolder(payload: FolderCreateRequest): Promise<Folder
 }
 
 export async function updateFolder(id: number | string, payload: FolderUpdateRequest): Promise<FolderUpdateResponse> {
+  // Convert number arrays to string arrays for API compatibility
+  const apiPayload = {
+    ...payload,
+    permitted_branches: payload.permitted_branches?.map(String),
+    permitted_departments: payload.permitted_departments?.map(String),
+    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
+    permitted_employees: payload.permitted_employees?.map(String),
+  };
+
   const res = await apiCaller<KnowledgeFolder>(
     API_ROUTES.KNOWLEDGE_BASE.FOLDERS.UPDATE(id), 
     "PUT", 
-    payload, 
+    apiPayload, 
     {}, 
     "json"
   );

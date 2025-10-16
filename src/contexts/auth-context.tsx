@@ -39,13 +39,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
-	const [authError, setAuthError] = useState<string | null>(null);
 
 	// Check for existing tokens on mount
 	useEffect(() => {
 		const checkAuth = async () => {
 			try {
-				setAuthError(null);
 				// Cookies-only
 				const { accessToken, refreshToken: refreshTokenValue } =
 					getAuthTokens();
@@ -110,7 +108,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 						} catch (refreshError) {
 							// Refresh failed, user is not authenticated
 							console.error("Token refresh failed:", refreshError);
-							setAuthError("Session expired. Please log in again.");
 							setUser(null);
 						}
 					}
@@ -120,7 +117,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				}
 			} catch (error) {
 				console.error("Auth check failed:", error);
-				setAuthError("Authentication check failed. Please try again.");
 				setUser(null);
 			} finally {
 				setIsLoading(false);
@@ -196,7 +192,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 						});
 					} catch (refreshError) {
 						console.error("Token refresh failed:", refreshError);
-						setAuthError("Session expired. Please log in again.");
 						setUser(null);
 						clearAuthCookies();
 					}
@@ -204,7 +199,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			}
 		} catch (error) {
 			console.error("Auth refresh failed:", error);
-			setAuthError("Failed to refresh authentication. Please log in again.");
 			setUser(null);
 		} finally {
 			setIsLoading(false);
@@ -239,7 +233,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	const logout = () => {
 		setUser(null);
-		setAuthError(null);
 		clearAuthCookies();
 
 		// Use window.location for navigation since we're in a context outside of React components

@@ -8,8 +8,28 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, Calendar, TrendingUp, Shield, Clock, BarChart3 } from "lucide-react";
-import type { Poll } from "@/types/polls";
+import { Users, Calendar, Shield, Clock, BarChart3 } from "lucide-react";
+import type { Poll, PollOption, BranchDetail, DepartmentDetail, BranchDepartmentDetail, EmployeeDetail } from "@/types/polls";
+
+type Voter = {
+  id: number;
+  name: string;
+  email: string;
+  profile_picture: string | null;
+  voted_at: string;
+  branch_department: {
+    id: number;
+    branch: {
+      id: number;
+      name: string;
+      location: string;
+    };
+    department: {
+      id: number;
+      name: string;
+    };
+  };
+};
 
 export type PollDetailViewProps = {
   poll: Poll;
@@ -173,7 +193,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
               <div className="space-y-4">
                 <h3 className="font-semibold">Detailed Results</h3>
                 <div className="space-y-3">
-                  {poll.options.map((option, index) => {
+                  {poll.options.map((option) => {
                     const percentage = poll.total_votes > 0 ? (option.vote_count / poll.total_votes) * 100 : 0;
                     
                     return (
@@ -200,10 +220,10 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
                               Voters ({option.voters.length})
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                              {option.voters.map((voter: any, voterIndex: number) => (
+                              {option.voters.map((voter: Voter, voterIndex: number) => (
                                 <div key={voterIndex} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
                                   <Avatar className="h-6 w-6">
-                                    <AvatarImage src={voter.profile_picture} />
+                                    <AvatarImage src={voter.profile_picture || undefined} />
                                     <AvatarFallback className="text-xs">
                                       {voter.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                                     </AvatarFallback>
@@ -254,7 +274,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground mb-2">Branches</h4>
                 <div className="flex flex-wrap gap-2">
-                  {poll.permitted_branches_details.map((branch: any) => (
+                  {poll.permitted_branches_details.map((branch: BranchDetail) => (
                     <Badge key={branch.id} variant="outline">
                       {branch.branch_name}
                     </Badge>
@@ -267,7 +287,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground mb-2">Departments</h4>
                 <div className="flex flex-wrap gap-2">
-                  {poll.permitted_departments_details.map((dept: any) => (
+                  {poll.permitted_departments_details.map((dept: DepartmentDetail) => (
                     <Badge key={dept.id} variant="outline">
                       {dept.dept_name}
                     </Badge>
@@ -280,7 +300,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground mb-2">Branch Departments</h4>
                 <div className="flex flex-wrap gap-2">
-                  {poll.permitted_branch_departments_details.map((bd: any) => (
+                  {poll.permitted_branch_departments_details.map((bd: BranchDepartmentDetail) => (
                     <Badge key={bd.id} variant="outline">
                       {bd.branch.branch_name} - {bd.department.dept_name}
                     </Badge>
@@ -293,7 +313,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground mb-2">Employees</h4>
                 <div className="flex flex-wrap gap-2">
-                  {poll.permitted_employees_details.map((emp: any) => (
+                  {poll.permitted_employees_details.map((emp: EmployeeDetail) => (
                     <Badge key={emp.id} variant="outline">
                       {emp.full_name}
                     </Badge>

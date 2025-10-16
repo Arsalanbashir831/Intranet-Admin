@@ -23,6 +23,36 @@ export type PollOption = {
   }[];
 };
 
+export type BranchDetail = {
+  id: number;
+  branch_name: string;
+  location: string;
+};
+
+export type DepartmentDetail = {
+  id: number;
+  dept_name: string;
+};
+
+export type BranchDepartmentDetail = {
+  id: number;
+  branch: {
+    id: number;
+    branch_name: string;
+    location: string;
+  };
+  department: {
+    id: number;
+    dept_name: string;
+  };
+};
+
+export type EmployeeDetail = {
+  id: number;
+  full_name: string;
+  email: string;
+};
+
 export type PollType = "public" | "private";
 
 export type Poll = {
@@ -51,10 +81,10 @@ export type Poll = {
     branch_departments: number[];
     employees: number[];
   };
-  permitted_branches_details: any[];
-  permitted_departments_details: any[];
-  permitted_branch_departments_details: any[];
-  permitted_employees_details: any[];
+  permitted_branches_details: BranchDetail[];
+  permitted_departments_details: DepartmentDetail[];
+  permitted_branch_departments_details: BranchDepartmentDetail[];
+  permitted_employees_details: EmployeeDetail[];
   is_expired: boolean;
   can_vote: boolean;
   show_results: boolean;

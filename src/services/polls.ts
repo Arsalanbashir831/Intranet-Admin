@@ -52,6 +52,8 @@ export async function createPoll(payload: PollCreateRequest) {
     permitted_branches: payload.permitted_branches?.map(String),
     permitted_departments: payload.permitted_departments?.map(String),
     permitted_branch_departments: payload.permitted_branch_departments?.map(String),
+    // Convert options array to the format expected by the API
+    options: payload.options.map(option => option.option_text),
  };
   
   const res = await apiCaller<Poll>(

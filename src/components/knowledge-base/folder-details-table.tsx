@@ -14,6 +14,7 @@ import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { useDeleteFolder, useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";
 import { useDeleteFile } from "@/hooks/queries/use-knowledge-files";
+import type { FolderTreeItem } from "@/services/knowledge-folders";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -41,20 +42,6 @@ type FolderTreeFile = {
   };
 };
 
-type FolderTreeItem = {
-  id: number;
-  name: string;
-  description: string;
-  parent: number | null;
-  inherits_parent_permissions: boolean;
-  effective_permissions: {
-    branches: number[];
-    departments: number[];
-    employees: number[];
-  };
-  files: FolderTreeFile[];
-  folders: FolderTreeItem[];
-};
 
 export type FolderItemRow = {
   id: string;
