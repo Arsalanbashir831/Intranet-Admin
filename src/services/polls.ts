@@ -10,6 +10,9 @@ export async function listPolls(
   const url = API_ROUTES.POLLS.LIST;
   const queryParams: Record<string, string> = {};
   
+  // Always include expired polls
+  queryParams.include_expired = "true";
+  
   // Add pagination parameters
   if (pagination) {
     const paginationParams = generatePaginationParams(
@@ -49,8 +52,7 @@ export async function createPoll(payload: PollCreateRequest) {
     permitted_branches: payload.permitted_branches?.map(String),
     permitted_departments: payload.permitted_departments?.map(String),
     permitted_branch_departments: payload.permitted_branch_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
-  };
+ };
   
   const res = await apiCaller<Poll>(
     API_ROUTES.POLLS.CREATE, 
