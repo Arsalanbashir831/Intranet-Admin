@@ -101,5 +101,13 @@ export const API_ROUTES = {
         DELETE: (id: number | string) => `/executives/executives/${id}/`,
         UPLOAD_PICTURE: (id: number | string) => `/executives/executives/${id}/upload-profile-picture/`,
         DELETE_PICTURE: (id: number | string) => `/executives/executives/${id}/delete-profile-picture/`,
+    },
+    POLLS: {
+        LIST: "/knowledge/polls/",
+        DETAIL: (id: number | string) => `/knowledge/polls/${id}/`,
+        CREATE: "/knowledge/polls/",
+        UPDATE: (id: number | string) => `/knowledge/polls/${id}/`,
+        PATCH: (id: number | string) => `/knowledge/polls/${id}/`,
+        DELETE: (id: number | string) => `/knowledge/polls/${id}/`,
     }
 } as const;

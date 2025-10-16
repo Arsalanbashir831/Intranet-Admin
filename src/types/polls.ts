@@ -1,0 +1,75 @@
+export type PollOption = {
+  id: number;
+  option_text: string;
+  vote_count: number;
+};
+
+export type PollType = "public" | "private" | "anonymous";
+
+export type Poll = {
+  id: number;
+  title: string;
+  subtitle: string;
+  question: string;
+  poll_type: PollType;
+  total_votes: number;
+  created_at: string;
+  expires_at: string;
+  created_by: number | null;
+  is_active: boolean;
+  inherits_parent_permissions: boolean;
+  permitted_branches: number[];
+  permitted_departments: number[];
+  permitted_branch_departments: number[];
+  permitted_employees: number[];
+  options: PollOption[];
+  has_voted: boolean;
+  user_vote: number | null;
+  created_by_details: string | null;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    branch_departments: number[];
+    employees: number[];
+  };
+  permitted_branches_details: any[];
+  permitted_departments_details: any[];
+  permitted_branch_departments_details: any[];
+  permitted_employees_details: any[];
+  is_expired: boolean;
+  can_vote: boolean;
+  show_results: boolean;
+};
+
+export type PollListResponse = {
+  polls: {
+    count: number;
+    page: number;
+    page_size: number;
+    results: Poll[];
+  };
+};
+
+export type PollCreateRequest = {
+  title: string;
+  subtitle: string;
+  question: string;
+  poll_type: PollType;
+  expires_at: string;
+  options: { option_text: string }[];
+  permitted_branches?: number[];
+  permitted_departments?: number[];
+  permitted_branch_departments?: number[];
+};
+
+export type PollUpdateRequest = {
+  title?: string;
+  subtitle?: string;
+  question?: string;
+  poll_type?: PollType;
+  expires_at?: string;
+  options?: { option_text: string }[];
+  permitted_branches?: number[];
+  permitted_departments?: number[];
+  permitted_branch_departments?: number[];
+};
