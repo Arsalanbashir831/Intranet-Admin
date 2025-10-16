@@ -2,9 +2,28 @@ export type PollOption = {
   id: number;
   option_text: string;
   vote_count: number;
+  voters?: {
+    id: number;
+    name: string;
+    email: string;
+    profile_picture: string | null;
+    voted_at: string;
+    branch_department: {
+      id: number;
+      branch: {
+        id: number;
+        name: string;
+        location: string;
+      };
+      department: {
+        id: number;
+        name: string;
+      };
+    };
+  }[];
 };
 
-export type PollType = "public" | "private" | "anonymous";
+export type PollType = "public" | "private";
 
 export type Poll = {
   id: number;
@@ -62,14 +81,3 @@ export type PollCreateRequest = {
   permitted_branch_departments?: number[];
 };
 
-export type PollUpdateRequest = {
-  title?: string;
-  subtitle?: string;
-  question?: string;
-  poll_type?: PollType;
-  expires_at?: string;
-  options?: { option_text: string }[];
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_branch_departments?: number[];
-};

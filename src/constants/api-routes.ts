@@ -106,8 +106,6 @@ export const API_ROUTES = {
         LIST: "/knowledge/polls/",
         DETAIL: (id: number | string) => `/knowledge/polls/${id}/`,
         CREATE: "/knowledge/polls/",
-        UPDATE: (id: number | string) => `/knowledge/polls/${id}/`,
-        PATCH: (id: number | string) => `/knowledge/polls/${id}/`,
         DELETE: (id: number | string) => `/knowledge/polls/${id}/`,
     }
 } as const;

@@ -4,11 +4,9 @@ import {
   listPolls,
   getPoll,
   createPoll,
-  updatePoll,
-  patchPoll,
   deletePoll,
 } from "@/services/polls";
-import type { PollCreateRequest, PollUpdateRequest } from "@/types/polls";
+import type { PollCreateRequest } from "@/types/polls";
 
 export function usePolls(
   params?: Record<string, string | number | boolean>,
@@ -48,39 +46,6 @@ export function useCreatePoll() {
   });
 }
 
-export function useUpdatePoll(id: number | string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: PollUpdateRequest) => updatePoll(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["polls"] });
-      queryClient.invalidateQueries({ queryKey: ["polls", id] });
-      toast.success("Poll updated successfully");
-    },
-    onError: (error) => {
-      console.error("Poll update failed:", error);
-      toast.error("Failed to update poll");
-    },
-  });
-}
-
-export function usePatchPoll(id: number | string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: PollUpdateRequest) => patchPoll(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["polls"] });
-      queryClient.invalidateQueries({ queryKey: ["polls", id] });
-      toast.success("Poll updated successfully");
-    },
-    onError: (error) => {
-      console.error("Poll update failed:", error);
-      toast.error("Failed to update poll");
-    },
-  });
-}
 
 export function useDeletePoll() {
   const queryClient = useQueryClient();

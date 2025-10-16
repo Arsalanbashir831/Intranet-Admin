@@ -7,6 +7,8 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Users, Calendar, TrendingUp, Shield, Clock, BarChart3 } from "lucide-react";
 import type { Poll } from "@/types/polls";
 
 export type PollDetailViewProps = {
@@ -41,7 +43,6 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
     const typeColors = {
       public: "bg-blue-100 text-blue-800",
       private: "bg-orange-100 text-orange-800",
-      anonymous: "bg-purple-100 text-purple-800",
     };
     return (
       <Badge className={cn("capitalize", typeColors[poll.poll_type])}>
@@ -53,11 +54,11 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
   return (
     <div className="space-y-6">
       {/* Poll Information */}
-      <Card>
+      <Card className="shadow-none border-[#D0D0D0]">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="space-y-2">
-              <CardTitle className="text-2xl">{poll.title}</CardTitle>
+              <CardTitle className="text-2xl font-semibold">{poll.title}</CardTitle>
               {poll.subtitle && (
                 <p className="text-muted-foreground">{poll.subtitle}</p>
               )}
@@ -74,18 +75,53 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
             <p className="text-lg">{poll.question}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground">Total Votes</h4>
-              <p className="text-2xl font-bold">{poll.total_votes}</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className="rounded-xl border-2 border-secondary bg-[#FFF4F8] px-5 py-4 shadow-none">
+              <div className="flex items-center justify-between">
+                <div className="grid size-10 place-items-center rounded-xl bg-secondary text-white">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-[#6B7280]">Total Votes</div>
+                  <div className="mt-1 text-2xl font-bold text-secondary">{poll.total_votes}</div>
+                </div>
+              </div>
             </div>
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground">Created</h4>
-              <p className="text-sm">{format(new Date(poll.created_at), "PPP")}</p>
+            
+            <div className="rounded-xl border-2 border-secondary bg-[#FFF4F8] px-5 py-4 shadow-none">
+              <div className="flex items-center justify-between">
+                <div className="grid size-10 place-items-center rounded-xl bg-secondary text-white">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-[#6B7280]">Created</div>
+                  <div className="mt-1 text-sm font-medium text-secondary">{format(new Date(poll.created_at), "MMM dd, yyyy")}</div>
+                </div>
+              </div>
             </div>
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground">Expires</h4>
-              <p className="text-sm">{format(expiresAt, "PPP")}</p>
+            
+            <div className="rounded-xl border-2 border-secondary bg-[#FFF4F8] px-5 py-4 shadow-none">
+              <div className="flex items-center justify-between">
+                <div className="grid size-10 place-items-center rounded-xl bg-secondary text-white">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-[#6B7280]">Expires</div>
+                  <div className="mt-1 text-sm font-medium text-secondary">{format(expiresAt, "MMM dd, yyyy")}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border-2 border-secondary bg-[#FFF4F8] px-5 py-4 shadow-none">
+              <div className="flex items-center justify-between">
+                <div className="grid size-10 place-items-center rounded-xl bg-secondary text-white">
+                  <Shield className="h-5 w-5" />
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-[#6B7280]">Type</div>
+                  <div className="mt-1 text-sm font-medium text-secondary capitalize">{poll.poll_type}</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -99,9 +135,12 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
       </Card>
 
       {/* Results Visualization */}
-      <Card>
+      <Card className="shadow-none border-[#D0D0D0]">
         <CardHeader>
-          <CardTitle>Results</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Results
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {poll.total_votes > 0 ? (
@@ -125,33 +164,71 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
                         name
                       ]}
                     />
-                    <Bar dataKey="votes" fill="#8884d8" />
+                    <Bar dataKey="votes" fill="#d64575" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Detailed Results Table */}
-              <div className="space-y-3">
+              {/* Detailed Results with Voters */}
+              <div className="space-y-4">
                 <h3 className="font-semibold">Detailed Results</h3>
-                {poll.options.map((option, index) => {
-                  const percentage = poll.total_votes > 0 ? (option.vote_count / poll.total_votes) * 100 : 0;
-                  return (
-                    <div key={option.id} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{option.option_text}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
-                            {option.vote_count} votes
-                          </span>
-                          <span className="text-sm font-medium">
-                            {percentage.toFixed(1)}%
-                          </span>
+                <div className="space-y-3">
+                  {poll.options.map((option, index) => {
+                    const percentage = poll.total_votes > 0 ? (option.vote_count / poll.total_votes) * 100 : 0;
+                    
+                    return (
+                      <div key={option.id} className="rounded-lg border border-[#E4E4E4] bg-white px-4 py-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-medium">{option.option_text}</span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm text-muted-foreground">
+                              {option.vote_count} votes
+                            </span>
+                            <span className="text-sm font-medium">
+                              {percentage.toFixed(1)}%
+                            </span>
+                          </div>
                         </div>
+                        
+                        <Progress value={percentage} className="h-2 mb-3" />
+                        
+                        {/* Voters List */}
+                        {option.voters && option.voters.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-[#E4E4E4]">
+                            <h4 className="font-medium text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              Voters ({option.voters.length})
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                              {option.voters.map((voter: any, voterIndex: number) => (
+                                <div key={voterIndex} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                                  <Avatar className="h-6 w-6">
+                                    <AvatarImage src={voter.profile_picture} />
+                                    <AvatarFallback className="text-xs">
+                                      {voter.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-xs truncate">{voter.name}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{voter.email}</p>
+                                    {voter.branch_department && (
+                                      <p className="text-xs text-muted-foreground truncate">
+                                        {voter.branch_department.branch.name} - {voter.branch_department.department.name}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {format(new Date(voter.voted_at), "MMM dd")}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <Progress value={percentage} className="h-2" />
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
           ) : (
@@ -164,87 +241,137 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
       </Card>
 
       {/* Permissions Information */}
-      <Card>
+      <Card className="shadow-none border-[#D0D0D0]">
         <CardHeader>
-          <CardTitle>Permissions</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Access Permissions
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <span className="font-medium">Inherits parent permissions:</span>
-            <Badge variant={poll.inherits_parent_permissions ? "default" : "secondary"}>
-              {poll.inherits_parent_permissions ? "Yes" : "No"}
-            </Badge>
+          <div className="space-y-3">
+            {poll.permitted_branches_details && poll.permitted_branches_details.length > 0 && (
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">Branches</h4>
+                <div className="flex flex-wrap gap-2">
+                  {poll.permitted_branches_details.map((branch: any) => (
+                    <Badge key={branch.id} variant="outline">
+                      {branch.branch_name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {poll.permitted_departments_details && poll.permitted_departments_details.length > 0 && (
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">Departments</h4>
+                <div className="flex flex-wrap gap-2">
+                  {poll.permitted_departments_details.map((dept: any) => (
+                    <Badge key={dept.id} variant="outline">
+                      {dept.dept_name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {poll.permitted_branch_departments_details && poll.permitted_branch_departments_details.length > 0 && (
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">Branch Departments</h4>
+                <div className="flex flex-wrap gap-2">
+                  {poll.permitted_branch_departments_details.map((bd: any) => (
+                    <Badge key={bd.id} variant="outline">
+                      {bd.branch.branch_name} - {bd.department.dept_name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {poll.permitted_employees_details && poll.permitted_employees_details.length > 0 && (
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-2">Employees</h4>
+                <div className="flex flex-wrap gap-2">
+                  {poll.permitted_employees_details.map((emp: any) => (
+                    <Badge key={emp.id} variant="outline">
+                      {emp.full_name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Show message if no specific permissions are set */}
+            {(!poll.permitted_branches_details || poll.permitted_branches_details.length === 0) &&
+             (!poll.permitted_departments_details || poll.permitted_departments_details.length === 0) &&
+             (!poll.permitted_branch_departments_details || poll.permitted_branch_departments_details.length === 0) &&
+             (!poll.permitted_employees_details || poll.permitted_employees_details.length === 0) && (
+              <div className="text-center py-4 text-muted-foreground">
+                <p className="text-sm">This poll has public access (no specific permissions set)</p>
+              </div>
+            )}
           </div>
+        </CardContent>
+      </Card>
 
-          {!poll.inherits_parent_permissions && (
+      {/* Poll Summary */}
+      <Card className="shadow-none border-[#D0D0D0]">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Poll Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-3">
-              {poll.permitted_branches_details && poll.permitted_branches_details.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">Branches</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {poll.permitted_branches_details.map((branch: any) => (
-                      <Badge key={branch.id} variant="outline">
-                        {branch.branch_name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {poll.permitted_departments_details && poll.permitted_departments_details.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">Departments</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {poll.permitted_departments_details.map((dept: any) => (
-                      <Badge key={dept.id} variant="outline">
-                        {dept.dept_name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {poll.permitted_branch_departments_details && poll.permitted_branch_departments_details.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">Branch Departments</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {poll.permitted_branch_departments_details.map((bd: any) => (
-                      <Badge key={bd.id} variant="outline">
-                        {bd.branch.branch_name} - {bd.department.dept_name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {poll.permitted_employees_details && poll.permitted_employees_details.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">Employees</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {poll.permitted_employees_details.map((emp: any) => (
-                      <Badge key={emp.id} variant="outline">
-                        {emp.full_name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm text-muted-foreground">Status</span>
+                {getStatusBadge()}
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm text-muted-foreground">Type</span>
+                {getTypeBadge()}
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm text-muted-foreground">Total Options</span>
+                <span className="font-semibold">{poll.options.length}</span>
+              </div>
             </div>
-          )}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm text-muted-foreground">Created</span>
+                <span className="text-sm">{format(new Date(poll.created_at), "MMM dd, yyyy 'at' h:mm a")}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm text-muted-foreground">Expires</span>
+                <span className="text-sm">{format(expiresAt, "MMM dd, yyyy 'at' h:mm a")}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm text-muted-foreground">Participation Rate</span>
+                <span className="font-semibold text-primary">
+                  {poll.total_votes > 0 ? ((poll.total_votes / poll.options.length) * 100).toFixed(1) : 0}%
+                </span>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* Voting Information */}
       {poll.has_voted && poll.user_vote && (
-        <Card>
+        <Card className="shadow-none border-[#D0D0D0]">
           <CardHeader>
-            <CardTitle>Your Vote</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Your Vote
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              You voted for: <span className="font-medium">
-                {poll.options.find(opt => opt.id === poll.user_vote)?.option_text}
-              </span>
+            <p className="text-sm text-muted-foreground mb-2">You voted for:</p>
+            <p className="font-semibold">
+              {poll.options.find(opt => opt.id === poll.user_vote)?.option_text}
             </p>
           </CardContent>
         </Card>

@@ -1,7 +1,7 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
 import { generatePaginationParams } from "@/lib/pagination-utils";
-import type { Poll, PollListResponse, PollCreateRequest, PollUpdateRequest } from "@/types/polls";
+import type { Poll, PollListResponse, PollCreateRequest } from "@/types/polls";
 
 export async function listPolls(
   params?: Record<string, string | number | boolean>,
@@ -62,45 +62,6 @@ export async function createPoll(payload: PollCreateRequest) {
   return res.data;
 }
 
-export async function updatePoll(id: number | string, payload: PollUpdateRequest) {
-  // Convert number arrays to string arrays for API compatibility
-  const apiPayload = {
-    ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
-  };
-  
-  const res = await apiCaller<Poll>(
-    API_ROUTES.POLLS.UPDATE(id), 
-    "PUT", 
-    apiPayload, 
-    {}, 
-    "json"
-  );
-  return res.data;
-}
-
-export async function patchPoll(id: number | string, payload: PollUpdateRequest) {
-  // Convert number arrays to string arrays for API compatibility
-  const apiPayload = {
-    ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
-  };
-  
-  const res = await apiCaller<Poll>(
-    API_ROUTES.POLLS.PATCH(id), 
-    "PATCH", 
-    apiPayload, 
-    {}, 
-    "json"
-  );
-  return res.data;
-}
 
 export async function deletePoll(id: number | string) {
   await apiCaller<void>(API_ROUTES.POLLS.DELETE(id), "DELETE");

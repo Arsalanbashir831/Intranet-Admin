@@ -6,7 +6,7 @@ import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit2, Eye, Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
@@ -49,7 +49,6 @@ function PollTypeFilter({
           <SelectItem value="__all__">All Types</SelectItem>
           <SelectItem value="public">Public</SelectItem>
           <SelectItem value="private">Private</SelectItem>
-          <SelectItem value="anonymous">Anonymous</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -182,7 +181,6 @@ export function PollsTable({ className }: { className?: string }) {
           const typeColors = {
             public: "bg-blue-100 text-blue-800",
             private: "bg-orange-100 text-orange-800",
-            anonymous: "bg-purple-100 text-purple-800",
           };
           return (
             <Badge className={cn("capitalize", typeColors[type as keyof typeof typeColors])}>
@@ -246,22 +244,23 @@ export function PollsTable({ className }: { className?: string }) {
           const poll = row.original;
           return (
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push(ROUTES.ADMIN.POLLS_ID_EDIT(poll.id.toString()))}
-              >
-                <Edit2 className="h-4 w-4" />
-              </Button>
-              <ConfirmPopover
-                onConfirm={() => handleDelete(poll.id)}
-                title="Delete Poll"
-                description="Are you sure you want to delete this poll? This action cannot be undone."
-              >
-                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </ConfirmPopover>
+              <div onClick={(e) => e.stopPropagation()}>
+                <ConfirmPopover
+                  onConfirm={() => {
+                    handleDelete(poll.id);
+                  }}
+                  title="Delete Poll"
+                  description="Are you sure you want to delete this poll? This action cannot be undone."
+                >
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </ConfirmPopover>
+              </div>
             </div>
           );
         },
@@ -311,7 +310,7 @@ export function PollsTable({ className }: { className?: string }) {
         headerClassName="grid-cols-[1.5fr_1.2fr_0.8fr_0.8fr_1fr_0.8fr_0.8fr]"
         toolbar={toolbar}
         footer={footer}
-        onRowClick={(row) => router.push(ROUTES.ADMIN.POLLS_ID(row.id.toString()))}
+        onRowClick={(row) => router.push(ROUTES.ADMIN.POLLS_ID(row.original.id.toString()))}
         rowClassName={(row) => cn(
           "hover:bg-[#FAFAFB] grid-cols-[1.5fr_1.2fr_0.8fr_0.8fr_1fr_0.8fr_0.8fr] cursor-pointer",
           isPinned(row.id.toString()) && "bg-muted"
@@ -325,10 +324,10 @@ export function PollsTable({ className }: { className?: string }) {
               className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={(e) => {
                 e.stopPropagation();
-                togglePin(row.id.toString());
+                togglePin(row.original.id.toString());
               }}
             >
-              {isPinned(row.id.toString()) ? "📌" : "📍"}
+              {isPinned(row.original.id.toString()) ? "📌" : "📍"}
             </Button>
           </div>
         )}

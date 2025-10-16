@@ -28,7 +28,7 @@ import {
   useAllBranches,
   useSearchBranches,
 } from "@/hooks/queries/use-branches";
-import { useEmployees } from "@/hooks/queries/use-employees";
+import { useManagerScope } from "@/contexts/manager-scope-context";
 
 const pollFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -65,10 +65,117 @@ export function PollForm({
 }: PollFormProps) {
   // Use a ref to store form data to prevent infinite re-renders
   const formDataRef = React.useRef<PollFormData | null>(null);
+  
+  // Get manager scope to determine access level
+  const { isManager, managedDepartments } = useManagerScope();
+  
   // Load base datasets
   const { data: departmentsData } = useDepartments();
   const { data: branchesData } = useAllBranches();
-  const { data: employeesData } = useEmployees();
+
+  // Create adapter functions for branch departments (similar to org-chart-form.tsx)
+  const useAllBranchDepartments = () => {
+    const result = useDepartments(undefined, { pageSize: 100 });
+    const branchDeptItems = React.useMemo(() => {
+      const departmentsPayload = (
+        result.data as { departments?: { results?: unknown[] } }
+      )?.departments;
+      const results = Array.isArray(departmentsPayload?.results)
+        ? departmentsPayload.results
+        : Array.isArray(result.data)
+        ? result.data
+        : result.data?.departments?.results ?? [];
+
+      const items: { id: string; label: string }[] = [];
+      for (const dept of results || []) {
+        const deptData = dept as {
+          dept_name?: string;
+          name?: string;
+          branch_departments?: unknown[];
+        };
+        const deptName = String(deptData.dept_name ?? deptData.name ?? "");
+        const branchDepartments = deptData.branch_departments as
+          | Array<{
+              id: number;
+              branch?: { branch_name?: string };
+              branch_name?: string;
+            }>
+          | undefined;
+        if (Array.isArray(branchDepartments)) {
+          for (const bd of branchDepartments) {
+            const bdId = String(bd.id);
+            const branchName = String(
+              bd?.branch?.branch_name ?? bd?.branch_name ?? ""
+            );
+            
+            // Filter: If manager, only show their managed departments
+            if (isManager && !managedDepartments.includes(bd.id)) {
+              continue; // Skip this department
+            }
+            
+            items.push({ id: bdId, label: `${deptName} - ${branchName}` });
+          }
+        }
+      }
+      return items;
+    }, [result.data, isManager, managedDepartments]);
+
+    return {
+      data: branchDeptItems,
+      isLoading: result.isLoading,
+    };
+  };
+
+  const useSearchBranchDepartmentsAdapter = (query: string) => {
+    const result = useSearchDepartments(query, { pageSize: 100 });
+    const branchDeptItems = React.useMemo(() => {
+      const departmentsPayload = (
+        result.data as { departments?: { results?: unknown[] } }
+      )?.departments;
+      const results = Array.isArray(departmentsPayload?.results)
+        ? departmentsPayload.results
+        : Array.isArray(result.data)
+        ? result.data
+        : result.data?.departments?.results ?? [];
+      const items: { id: string; label: string }[] = [];
+      for (const dept of results || []) {
+        const deptData = dept as {
+          dept_name?: string;
+          name?: string;
+          branch_departments?: unknown[];
+        };
+        const deptName = String(deptData.dept_name ?? deptData.name ?? "");
+        const branchDepartments = deptData.branch_departments as
+          | Array<{
+              id: number;
+              branch?: { branch_name?: string };
+              branch_name?: string;
+            }>
+          | undefined;
+        if (Array.isArray(branchDepartments)) {
+          for (const bd of branchDepartments) {
+            const bdId = String(bd.id);
+            const branchName = String(
+              bd?.branch?.branch_name ?? bd?.branch_name ?? ""
+            );
+            
+            // Filter: If manager, only show their managed departments
+            if (isManager && !managedDepartments.includes(bd.id)) {
+              continue; // Skip this department
+            }
+            
+            items.push({ id: bdId, label: `${deptName} - ${branchName}` });
+          }
+        }
+      }
+      return items;
+    }, [result.data, isManager, managedDepartments]);
+
+    return {
+      data: branchDeptItems,
+      isLoading: result.isLoading,
+    };
+  };
 
   // Create adapter hooks for SelectableTags search functionality
   const useSearchDepartmentsAdapter = (query: string) => {
@@ -156,15 +263,36 @@ export function PollForm({
   // Watch form values for controlled inputs
   const watchedValues = watch();
 
+  // Create a stable form data change handler
+  const handleFormDataChange = React.useCallback(() => {
+    if (onFormDataChange) {
+      const currentData = getValues();
+      onFormDataChange(currentData);
+    }
+  }, [onFormDataChange, getValues]);
+
+  // Watch specific fields and call the handler when they change
+  const title = watch("title");
+  const subtitle = watch("subtitle");
+  const question = watch("question");
+  const pollType = watch("poll_type");
+  const expiresAt = watch("expires_at");
+  const options = watch("options");
+  const permittedBranches = watch("permitted_branches");
+  const permittedDepartments = watch("permitted_departments");
+  const permittedBranchDepartments = watch("permitted_branch_departments");
+
+  // Call form data change handler when any watched field changes
+  React.useEffect(() => {
+    handleFormDataChange();
+  }, [title, subtitle, question, pollType, expiresAt, options, permittedBranches, permittedDepartments, permittedBranchDepartments, handleFormDataChange]);
+
   // Memoize the submit function to prevent infinite re-renders
   const submitFunction = React.useCallback(() => {
     const currentData = getValues();
     formDataRef.current = currentData;
-    if (onFormDataChange) {
-      onFormDataChange(currentData);
-    }
     handleSubmit(onSubmit || (() => {}))();
-  }, [handleSubmit, onSubmit, getValues, onFormDataChange]);
+  }, [handleSubmit, onSubmit, getValues]);
 
   // Register submit function with parent
   React.useEffect(() => {
@@ -209,13 +337,8 @@ export function PollForm({
     return createCustomSelectableItems(list as Array<{ id: unknown; branch_name: unknown }>, "id", "branch_name");
   }, [branchesData]);
 
-  const employeeItems = React.useMemo(() => {
-    if (!employeesData) return [];
-    const list = Array.isArray(employeesData) 
-      ? employeesData 
-      : (employeesData as { employees?: { results?: unknown[] } })?.employees?.results || [];
-    return createCustomSelectableItems(list as Array<{ id: unknown; full_name: unknown }>, "id", "full_name");
-  }, [employeesData]);
+  // Determine if user is admin (has full access) or manager (limited access)
+  const isAdmin = !isManager; // If not a manager, then they're an admin
 
   return (
     <form onSubmit={handleSubmit(onSubmit || (() => {}))} className="grid gap-6">
@@ -223,7 +346,7 @@ export function PollForm({
         <Label className="col-span-12 md:col-span-2 text-sm">Type:</Label>
         <div className="col-span-12 md:col-span-10">
           <RadioGroup
-            value={getValues("poll_type")}
+            value={pollType}
             onValueChange={(value) => setValue("poll_type", value as "public" | "private")}
             className="flex gap-6"
           >
@@ -247,7 +370,7 @@ export function PollForm({
         <Label className="col-span-12 md:col-span-2 text-sm">Title:</Label>
         <div className="col-span-12 md:col-span-10">
           <Input
-            value={watchedValues.title || ""}
+            value={title || ""}
             onChange={(e) => setValue("title", e.target.value)}
             placeholder="Enter poll title"
             className="border-[#E2E8F0]"
@@ -262,7 +385,7 @@ export function PollForm({
         <Label className="col-span-12 md:col-span-2 text-sm">Subtitle:</Label>
         <div className="col-span-12 md:col-span-10">
           <Input
-            value={watchedValues.subtitle || ""}
+            value={subtitle || ""}
             onChange={(e) => setValue("subtitle", e.target.value)}
             placeholder="Enter poll subtitle (optional)"
             className="border-[#E2E8F0]"
@@ -274,7 +397,7 @@ export function PollForm({
         <Label className="col-span-12 md:col-span-2 text-sm">Question:</Label>
         <div className="col-span-12 md:col-span-10">
           <Input
-            value={watchedValues.question || ""}
+            value={question || ""}
             onChange={(e) => setValue("question", e.target.value)}
             placeholder="Enter poll question"
             className="border-[#E2E8F0]"
@@ -294,17 +417,17 @@ export function PollForm({
                   variant="outline"
                   className={cn(
                     "w-full justify-start text-left font-normal border-[#E2E8F0]",
-                    !watchedValues.expires_at && "text-muted-foreground"
+                    !expiresAt && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {watchedValues.expires_at ? format(watchedValues.expires_at, "PPP") : "Pick a date"}
+                  {expiresAt ? format(expiresAt, "PPP") : "Pick a date"}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={watchedValues.expires_at}
+                selected={expiresAt}
                 onSelect={(date) => setValue("expires_at", date || new Date())}
                 disabled={(date) => date < new Date()}
                 initialFocus
@@ -321,7 +444,7 @@ export function PollForm({
       <div className="grid grid-cols-12 items-start gap-4 border-b border-[#E9EAEB] pb-4">
         <Label className="col-span-12 md:col-span-2 text-sm">Poll Options:</Label>
         <div className="col-span-12 md:col-span-10 space-y-4">
-          {watchedValues.options?.map((option, index) => (
+          {options?.map((option, index) => (
             <div key={index} className="flex items-center space-x-2">
               <Input
                 value={option.option_text}
@@ -329,7 +452,7 @@ export function PollForm({
                 placeholder={`Option ${index + 1}`}
                 className="flex-1 border-[#E2E8F0]"
               />
-              {watchedValues.options && watchedValues.options.length > 2 && (
+              {options && options.length > 2 && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -357,65 +480,91 @@ export function PollForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-12 items-center gap-4">
-        <Label className="col-span-12 md:col-span-2 text-sm">Branch Access:</Label>
-        <div className="col-span-12 md:col-span-10">
-          <SelectableTags
-            items={branchItems}
-            selectedItems={watchedValues.permitted_branches || []}
-            onSelectionChange={(items) => setValue("permitted_branches", items)}
-            placeholder="Select branches (empty = public access)"
-            searchPlaceholder="Search branches..."
-            emptyMessage="No branches found."
-            icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-            useSearch={useSearchBranchesAdapter}
-            useAllItems={() => ({
-              data: branchItems,
-              isLoading: false,
-            })}
-          />
-        </div>
-      </div>
+      {/* Role-based access controls */}
+      {isAdmin ? (
+        <>
+          {/* Admin sees all access options */}
+          <div className="grid grid-cols-12 items-center gap-4">
+            <Label className="col-span-12 md:col-span-2 text-sm">Branch Access:</Label>
+            <div className="col-span-12 md:col-span-10">
+              <SelectableTags
+                items={branchItems}
+                selectedItems={permittedBranches || []}
+                onSelectionChange={(items) => setValue("permitted_branches", items)}
+                placeholder="Select branches (empty = public access)"
+                searchPlaceholder="Search branches..."
+                emptyMessage="No branches found."
+                icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
+                useSearch={useSearchBranchesAdapter}
+                useAllItems={() => ({
+                  data: branchItems,
+                  isLoading: false,
+                })}
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
-        <Label className="col-span-12 md:col-span-2 text-sm">Department Access:</Label>
-        <div className="col-span-12 md:col-span-10">
-          <SelectableTags
-            items={departmentItems}
-            selectedItems={watchedValues.permitted_departments || []}
-            onSelectionChange={(items) => setValue("permitted_departments", items)}
-            placeholder="Select departments (empty = public access)"
-            searchPlaceholder="Search departments..."
-            emptyMessage="No departments found."
-            icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-            useSearch={useSearchDepartmentsAdapter}
-            useAllItems={() => ({
-              data: departmentItems,
-              isLoading: false,
-            })}
-          />
-        </div>
-      </div>
+          <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
+            <Label className="col-span-12 md:col-span-2 text-sm">Department Access:</Label>
+            <div className="col-span-12 md:col-span-10">
+              <SelectableTags
+                items={departmentItems}
+                selectedItems={permittedDepartments || []}
+                onSelectionChange={(items) => setValue("permitted_departments", items)}
+                placeholder="Select departments (empty = public access)"
+                searchPlaceholder="Search departments..."
+                emptyMessage="No departments found."
+                icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
+                useSearch={useSearchDepartmentsAdapter}
+                useAllItems={() => ({
+                  data: departmentItems,
+                  isLoading: false,
+                })}
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-12 items-center gap-4">
-        <Label className="col-span-12 md:col-span-2 text-sm">Branch Department Access:</Label>
-        <div className="col-span-12 md:col-span-10">
-          <SelectableTags
-            items={[]} // This would need to be implemented based on your API structure
-            selectedItems={watchedValues.permitted_branch_departments || []}
-            onSelectionChange={(items) => setValue("permitted_branch_departments", items)}
-            placeholder="Select branch departments (empty = public access)"
-            searchPlaceholder="Search branch departments..."
-            emptyMessage="No branch departments found."
-            icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-            useSearch={() => ({ data: [], isLoading: false })}
-            useAllItems={() => ({
-              data: [],
-              isLoading: false,
-            })}
-          />
-        </div>
-      </div>
+          <div className="grid grid-cols-12 items-center gap-4">
+            <Label className="col-span-12 md:col-span-2 text-sm">Branch Department Access:</Label>
+            <div className="col-span-12 md:col-span-10">
+              <SelectableTags
+                items={[]} // Empty since we're using async hooks
+                selectedItems={permittedBranchDepartments || []}
+                onSelectionChange={(items) => setValue("permitted_branch_departments", items)}
+                placeholder="Select branch departments (empty = public access)"
+                searchPlaceholder="Search branch departments..."
+                emptyMessage="No branch departments found."
+                icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
+                useSearch={useSearchBranchDepartmentsAdapter}
+                useAllItems={useAllBranchDepartments}
+              />
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Manager only sees branch department access */}
+          <div className="grid grid-cols-12 items-center gap-4">
+            <Label className="col-span-12 md:col-span-2 text-sm">Branch Department Access:</Label>
+            <div className="col-span-12 md:col-span-10">
+              <SelectableTags
+                items={[]} // Empty since we're using async hooks
+                selectedItems={permittedBranchDepartments || []}
+                onSelectionChange={(items) => setValue("permitted_branch_departments", items)}
+                placeholder="Select branch departments (empty = public access)"
+                searchPlaceholder="Search branch departments..."
+                emptyMessage="No branch departments found."
+                icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
+                useSearch={useSearchBranchDepartmentsAdapter}
+                useAllItems={useAllBranchDepartments}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                As a manager, you can only assign polls to your managed departments.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
 
     </form>
   );

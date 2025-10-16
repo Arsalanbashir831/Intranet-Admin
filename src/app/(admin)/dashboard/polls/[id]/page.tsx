@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { PollDetailView } from "@/components/polls/poll-detail-view";
 import { usePoll } from "@/hooks/queries/use-polls";
-import { Edit2, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -67,20 +67,12 @@ export default function PollDetailPage() {
           { label: poll.title, href: ROUTES.ADMIN.POLLS_ID(pollId) }
         ]}
         action={
-          <div className="flex gap-2">
-            <Link href={ROUTES.ADMIN.POLLS}>
-              <Button variant="outline">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Polls
-              </Button>
-            </Link>
-            <Link href={ROUTES.ADMIN.POLLS_ID_EDIT(pollId)}>
-              <Button>
-                <Edit2 className="mr-2 h-4 w-4" />
-                Edit Poll
-              </Button>
-            </Link>
-          </div>
+          <Link href={ROUTES.ADMIN.POLLS}>
+            <Button variant="outline">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Polls
+            </Button>
+          </Link>
         }
       />
       <div className="px-4 md:px-12 py-4">
