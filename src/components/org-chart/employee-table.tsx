@@ -85,8 +85,8 @@ export function EmployeeTable() {
 
   // Use the appropriate hook based on filters
   const employeesQuery = useEmployees(
-    shouldUseDepartmentFilter || shouldUseBranchDepartmentFilter ? undefined : searchParams,
-    isManager // Pass manager scope if user is a manager
+    shouldUseDepartmentFilter || shouldUseBranchDepartmentFilter ? undefined : searchParams
+    // Removed managerScope parameter to prevent unwanted manager_scope=true API calls
   );
   
   const departmentEmployeesQuery = useDepartmentEmployees(
@@ -165,16 +165,28 @@ export function EmployeeTable() {
       // Get the first manager found (if any)
       const firstManager = employee.branch_departments?.find(bd => bd.manager)?.manager;
 
+      // Helper function to convert relative URLs to absolute URLs
+      const getAbsoluteUrl = (url: string | undefined | null): string | undefined => {
+        if (!url) return undefined;
+        if (url.startsWith('http')) return url; // Already absolute
+        if (url.startsWith('/')) {
+          // Relative URL starting with /, prepend API base URL
+          const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://192.168.1.16:8000';
+          return `${baseUrl}${url}`;
+        }
+        return url; // Return as-is if it doesn't start with /
+      };
+
       return {
         id: String(employee.id),
         name: String(employee.emp_name ?? ""),
-        avatar: employee.profile_picture ?? undefined,
+        avatar: getAbsoluteUrl(employee.profile_picture),
         location: uniqueBranches.join(", ") || "--",
         email: String(employee.email ?? ""),
         department: uniqueDepartments.join(", ") || "--",
         role: String(employee.role ?? ""),
         reportingTo: firstManager?.employee?.emp_name ?? null,
-        reportingAvatar: firstManager?.employee?.profile_picture ?? undefined,
+        reportingAvatar: getAbsoluteUrl(firstManager?.employee?.profile_picture),
       };
     });
   }, [apiData, shouldUseDepartmentFilter, shouldUseBranchDepartmentFilter]);
