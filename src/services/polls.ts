@@ -1,7 +1,7 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
 import { generatePaginationParams } from "@/lib/pagination-utils";
-import type { Poll, PollListResponse, PollCreateRequest } from "@/types/polls";
+import type { Poll, PollApiResponse, PollListResponse, PollCreateRequest } from "@/types/polls";
 
 export async function listPolls(
   params?: Record<string, string | number | boolean>,
@@ -37,12 +37,19 @@ export async function listPolls(
   return res.data;
 }
 
-export async function getPoll(id: number | string) {
-  const res = await apiCaller<Poll>(
+export async function getPoll(id: number | string): Promise<Poll> {
+  const res = await apiCaller<PollApiResponse>(
     API_ROUTES.POLLS.DETAIL(id), 
     "GET"
   );
-  return res.data;
+  
+  // Transform API response to frontend format
+  const apiData = res.data!;
+  return {
+    ...apiData,
+    options: apiData.options_details || [],
+    created_by_details: apiData.created_by_details?.emp_name || null,
+  };
 }
 
 export async function createPoll(payload: PollCreateRequest) {

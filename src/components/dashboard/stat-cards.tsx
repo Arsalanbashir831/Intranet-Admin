@@ -35,7 +35,7 @@ export function StatCards({ items, className }: { items: StatCardItem[]; classNa
             <div className="grid size-10 place-items-center rounded-xl bg-secondary text-white">
               <Image src={item.iconPath} alt={item.label} width={20} height={20} />
             </div>
-            <ChevronRight className="text-secondary" size={16} />
+            {/* <ChevronRight className="text-secondary" size={16} /> */}
           </div>
           <div className="mt-4">
             <div className="text-sm text-[#6B7280]">{item.label}</div>
@@ -75,7 +75,7 @@ export function DefaultStatCards() {
               <div className="grid size-10 place-items-center rounded-xl bg-secondary text-white">
                 <Skeleton className="h-5 w-5 rounded-full" />
               </div>
-              <ChevronRight className="text-secondary" size={16} />
+              {/* <ChevronRight className="text-secondary" size={16} /> */}
             </div>
             <div className="mt-4">
               <div className="text-sm text-[#6B7280]"><Skeleton className="h-4 w-24" /></div>
