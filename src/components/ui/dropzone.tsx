@@ -255,7 +255,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
           <div className="flex-1 rounded-md border border-[#E2E8F0] p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-muted-foreground">
-                {previewUrls.length} file{previewUrls.length !== 1 ? 's' : ''} selected
+                {multiple 
+                  ? `${previewUrls.length} file${previewUrls.length !== 1 ? 's' : ''} selected`
+                  : "1 file selected"
+                }
               </span>
               <Button
                 variant="link"
@@ -772,7 +775,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
               onClick={handleClick}
               className="mt-3 p-0 text-sm text-primary hover:text-primary/80 font-medium hover:no-underline h-fit"
             >
-              {multiple ? "Add more files" : "Update file"}
+              {multiple ? "Add more files" : "Replace file"}
             </Button>
           </div>
         ) : (
@@ -792,7 +795,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
               <span className="text-primary font-medium">Click to upload</span>
               <span className="text-muted-foreground"> or drag and drop</span>
               <div className="text-xs text-muted-foreground mt-1">
-                SVG, PNG, JPG, GIF, PDF, DOC, TXT and more
+                {accept === "image/*" ? "PNG, JPG, GIF, WebP and more" : "SVG, PNG, JPG, GIF, PDF, DOC, TXT and more"}
               </div>
             </div>
           </div>

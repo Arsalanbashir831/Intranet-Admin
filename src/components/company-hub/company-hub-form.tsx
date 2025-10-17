@@ -14,19 +14,14 @@ import {
 	useDepartments,
 	useSearchDepartments,
 } from "@/hooks/queries/use-departments";
-import {
-	useAllBranches,
-	useSearchBranches,
-} from "@/hooks/queries/use-branches";
+import { useManagerScope } from "@/contexts/manager-scope-context";
 
 export type CompanyHubInitialData = {
 	id?: string;
 	type?: "announcement" | "policy";
 	title?: string;
-	tags?: string;
-	selectedBranches?: string[];
-	selectedDepartments?: string[];
-	description?: string;
+	selectedBranchDepartments?: string[];
+	body?: string;
 };
 
 export type CompanyHubFormProps = {
@@ -45,17 +40,14 @@ export type CompanyHubFormProps = {
 export type CompanyHubFormData = {
 	type: "announcement" | "policy";
 	title: string;
-	tags: string;
-	selectedBranches: string[];
-	selectedDepartments: string[];
-	description: string;
+	selectedBranchDepartments: string[];
+	body: string;
 	attachedFiles: File[];
 };
 
 // Kept for compatibility (even though fields already exist on CompanyHubFormData)
 export type CompanyHubFormSubmitData = CompanyHubFormData & {
-	selectedBranches: string[];
-	selectedDepartments: string[];
+	selectedBranchDepartments: string[];
 };
 
 export function CompanyHubForm({
@@ -64,148 +56,112 @@ export function CompanyHubForm({
 	existingAttachments = [],
 	onAttachmentDelete,
 }: CompanyHubFormProps) {
+	// Get manager scope to filter departments
+	const { isManager, managedDepartments } = useManagerScope();
+	
 	// Load base datasets
 	const { data: departmentsData } = useDepartments();
-	const { data: branchesData } = useAllBranches();
 
 	/**
 	 * Adapters (async search) — normalize to SelectableItem[] only.
-	 * These match SelectableTags’ updated expectation.
+	 * These match SelectableTags' updated expectation.
 	 */
-	// Create adapter hooks for SelectableTags search functionality
-	const useSearchDepartmentsAdapter = (query: string) => {
-		const searchResult = useSearchDepartments(query, { page: 1, pageSize: 50 });
-		const selectableItems = React.useMemo(() => {
-			// Transform the API response to match what SelectableTags expects
-			if (searchResult.data) {
-				// Handle the structure: { departments: { results: [...] } }
-				if (
-					typeof searchResult.data === "object" &&
-					searchResult.data !== null &&
-					"departments" in searchResult.data
-				) {
-					const departmentsData = searchResult.data as {
-						departments?: {
-							results?: Array<{ id: unknown; dept_name: unknown }>;
-						};
-					};
-					const rawData = departmentsData.departments?.results || [];
-					return createCustomSelectableItems(rawData, "id", "dept_name");
-				}
-				// Handle the structure: { results: [...] }
-				if (
-					typeof searchResult.data === "object" &&
-					searchResult.data !== null &&
-					"results" in searchResult.data
-				) {
-					return createCustomSelectableItems(
-						(
-							searchResult.data as {
-								results: Array<{ id: unknown; dept_name: unknown }>;
-							}
-						).results || [],
-						"id",
-						"dept_name"
-					);
-				}
-				// Handle direct array
-				if (Array.isArray(searchResult.data)) {
-					return createCustomSelectableItems(
-						searchResult.data,
-						"id",
-						"dept_name"
-					);
+	// Create adapter functions for branch departments (similar to org-chart-form.tsx)
+	const useAllBranchDepartments = () => {
+		const result = useDepartments(undefined, { pageSize: 100 });
+		const branchDeptItems = React.useMemo(() => {
+			// Handle both array format (new) and nested object format (old)
+			const results = Array.isArray(result.data) 
+				? result.data 
+				: (result.data as any)?.departments?.results ?? [];
+
+			const items: { id: string; label: string }[] = [];
+			for (const dept of results || []) {
+				const deptData = dept as {
+					dept_name?: string;
+					name?: string;
+					branch_departments?: unknown[];
+				};
+				const deptName = String(deptData.dept_name ?? deptData.name ?? "");
+				const branchDepartments = deptData.branch_departments as
+					| Array<{
+							id: number;
+							branch?: { branch_name?: string };
+							branch_name?: string;
+					  }>
+					| undefined;
+				if (Array.isArray(branchDepartments)) {
+					for (const bd of branchDepartments) {
+						const bdId = String(bd.id);
+						const branchName = String(
+							bd?.branch?.branch_name ?? bd?.branch_name ?? ""
+						);
+						
+						// Filter: If manager, only show their managed departments
+						if (isManager && !managedDepartments.includes(bd.id)) {
+							continue; // Skip this department
+						}
+						
+						items.push({ id: bdId, label: `${deptName} - ${branchName}` });
+					}
 				}
 			}
-			return [];
-		}, [searchResult.data]);
+			return items;
+		}, [result.data, isManager, managedDepartments]);
 
-		// Return in the format that SelectableTags expects
 		return {
-			data: selectableItems,
-			isLoading: searchResult.isLoading,
+			data: branchDeptItems,
+			isLoading: result.isLoading,
 		};
 	};
 
-	const useSearchBranchesAdapter = (query: string) => {
-		const searchResult = useSearchBranches(query, { page: 1, pageSize: 50 });
-		const selectableItems = React.useMemo(() => {
-			// Transform the API response to match what SelectableTags expects
-			if (searchResult.data) {
-				// Handle the structure: { branches: { results: [...] } }
-				if (
-					typeof searchResult.data === "object" &&
-					searchResult.data !== null &&
-					"branches" in searchResult.data
-				) {
-					const branchesData = searchResult.data as {
-						branches?: {
-							results?: Array<{ id: unknown; branch_name: unknown }>;
-						};
-					};
-					const rawData = branchesData.branches?.results || [];
-					return createCustomSelectableItems(rawData, "id", "branch_name");
-				}
-				// Handle the structure: { results: [...] }
-				if (
-					typeof searchResult.data === "object" &&
-					searchResult.data !== null &&
-					"results" in searchResult.data
-				) {
-					return createCustomSelectableItems(
-						(
-							searchResult.data as {
-								results: Array<{ id: unknown; branch_name: unknown }>;
-							}
-						).results || [],
-						"id",
-						"branch_name"
-					);
-				}
-				// Handle direct array
-				if (Array.isArray(searchResult.data)) {
-					return createCustomSelectableItems(
-						searchResult.data,
-						"id",
-						"branch_name"
-					);
+	const useSearchBranchDepartmentsAdapter = (query: string) => {
+		const result = useSearchDepartments(query, { pageSize: 100 });
+		const branchDeptItems = React.useMemo(() => {
+			// Handle both array format (new) and nested object format (old)
+			const results = Array.isArray(result.data) 
+				? result.data 
+				: (result.data as any)?.departments?.results ?? [];
+			const items: { id: string; label: string }[] = [];
+			for (const dept of results || []) {
+				const deptData = dept as {
+					dept_name?: string;
+					name?: string;
+					branch_departments?: unknown[];
+				};
+				const deptName = String(deptData.dept_name ?? deptData.name ?? "");
+				const branchDepartments = deptData.branch_departments as
+					| Array<{
+							id: number;
+							branch?: { branch_name?: string };
+							branch_name?: string;
+					  }>
+					| undefined;
+				if (Array.isArray(branchDepartments)) {
+					for (const bd of branchDepartments) {
+						const bdId = String(bd.id);
+						const branchName = String(
+							bd?.branch?.branch_name ?? bd?.branch_name ?? ""
+						);
+						
+						// Filter: If manager, only show their managed departments
+						if (isManager && !managedDepartments.includes(bd.id)) {
+							continue; // Skip this department
+						}
+						
+						items.push({ id: bdId, label: `${deptName} - ${branchName}` });
+					}
 				}
 			}
-			return [];
-		}, [searchResult.data]);
+			return items;
+		}, [result.data, isManager, managedDepartments]);
 
-		// Return in the format that SelectableTags expects
 		return {
-			data: selectableItems,
-			isLoading: searchResult.isLoading,
+			data: branchDeptItems,
+			isLoading: result.isLoading,
 		};
 	};
 
-	// Build base lists with "All" item, ids coerced to string for consistency
-	const departments = React.useMemo(() => {
-		// departmentsData is now directly an array of departments
-		const results = Array.isArray(departmentsData) ? departmentsData : [];
-		if (!Array.isArray(results)) return [];
-		const uniq = new Map<number, { id: string; name: string }>();
-		results.forEach((d: { id: number; dept_name: string }) => {
-			if (!uniq.has(d.id))
-				uniq.set(d.id, { id: String(d.id), name: d.dept_name });
-		});
-		return [
-			{ id: "all", name: "All Departments" },
-			...Array.from(uniq.values()),
-		];
-	}, [departmentsData]);
-
-	const branches = React.useMemo(() => {
-		const results = branchesData?.branches?.results ?? [];
-		if (!Array.isArray(results)) return [];
-		const mapped = results.map((b: { id: number; branch_name: string }) => ({
-			id: String(b.id),
-			name: b.branch_name,
-		}));
-		return [{ id: "all", name: "All Branches" }, ...mapped];
-	}, [branchesData]);
 
 	// Attachments → special preview urls
 	const initialPreviewUrls = React.useMemo(() => {
@@ -238,15 +194,11 @@ export function CompanyHubForm({
 		initialData?.type ?? "announcement"
 	);
 	const [title, setTitle] = React.useState<string>(initialData?.title ?? "");
-	const [tags, setTags] = React.useState<string>(initialData?.tags ?? "");
-	const [selectedBranches, setSelectedBranches] = React.useState<string[]>(
-		initialData?.selectedBranches ?? []
+	const [selectedBranchDepartments, setSelectedBranchDepartments] = React.useState<string[]>(
+		initialData?.selectedBranchDepartments ?? []
 	);
-	const [selectedDepartments, setSelectedDepartments] = React.useState<
-		string[]
-	>(initialData?.selectedDepartments ?? []);
-	const [description, setDescription] = React.useState<string>(
-		initialData?.description ?? ""
+	const [body, setBody] = React.useState<string>(
+		initialData?.body ?? ""
 	);
 	const [attachedFiles, setAttachedFiles] = React.useState<File[]>([]);
 
@@ -255,13 +207,10 @@ export function CompanyHubForm({
 		if (!initialData) return;
 		if (initialData.type) setTypeValue(initialData.type);
 		if (typeof initialData.title === "string") setTitle(initialData.title);
-		if (typeof initialData.tags === "string") setTags(initialData.tags);
-		if (Array.isArray(initialData.selectedBranches))
-			setSelectedBranches(initialData.selectedBranches);
-		if (Array.isArray(initialData.selectedDepartments))
-			setSelectedDepartments(initialData.selectedDepartments);
-		if (typeof initialData.description === "string")
-			setDescription(initialData.description);
+		if (Array.isArray(initialData.selectedBranchDepartments))
+			setSelectedBranchDepartments(initialData.selectedBranchDepartments);
+		if (typeof initialData.body === "string")
+			setBody(initialData.body);
 	}, [initialData]);
 
 	// Notify parent of changes
@@ -269,19 +218,15 @@ export function CompanyHubForm({
 		() => ({
 			type: typeValue,
 			title,
-			tags,
-			selectedBranches,
-			selectedDepartments,
-			description,
+			selectedBranchDepartments,
+			body,
 			attachedFiles,
 		}),
 		[
 			typeValue,
 			title,
-			tags,
-			selectedBranches,
-			selectedDepartments,
-			description,
+			selectedBranchDepartments,
+			body,
 			attachedFiles,
 		]
 	);
@@ -290,83 +235,6 @@ export function CompanyHubForm({
 		onFormDataChange?.(currentFormData);
 	}, [currentFormData, onFormDataChange]);
 
-	// Helper sets for faster lookup
-	const departmentIdsSet = React.useMemo(
-		() => new Set(departments.filter((d) => d.id !== "all").map((d) => d.id)),
-		[departments]
-	);
-	const branchIdsSet = React.useMemo(
-		() => new Set(branches.filter((b) => b.id !== "all").map((b) => b.id)),
-		[branches]
-	);
-
-	// "All" selection helpers
-	const allDepartmentIds = React.useMemo(
-		() => Array.from(departmentIdsSet),
-		[departmentIdsSet]
-	);
-	const allBranchIds = React.useMemo(
-		() => Array.from(branchIdsSet),
-		[branchIdsSet]
-	);
-
-	// FIX: Do not drop ids coming from async search; only strip "all". If "all" selected, expand to full ids.
-	const handleDepartmentSelectionChange = React.useCallback(
-		(newSelection: string[]) => {
-			if (newSelection.includes("all")) {
-				setSelectedDepartments(allDepartmentIds);
-				return;
-			}
-			// keep what user chose; just strip the synthetic "all"
-			setSelectedDepartments(newSelection.filter((id) => id !== "all"));
-		},
-		[allDepartmentIds]
-	);
-
-	const handleBranchSelectionChange = React.useCallback(
-		(newSelection: string[]) => {
-			if (newSelection.includes("all")) {
-				setSelectedBranches(allBranchIds);
-				return;
-			}
-			setSelectedBranches(newSelection.filter((id) => id !== "all"));
-		},
-		[allBranchIds]
-	);
-
-	// All-selected flags (for hiding the "all" option)
-	const areAllDepartmentsSelected = React.useMemo(() => {
-		return (
-			departmentIdsSet.size > 0 &&
-			selectedDepartments.length === departmentIdsSet.size &&
-			selectedDepartments.every((id) => departmentIdsSet.has(id))
-		);
-	}, [departmentIdsSet, selectedDepartments]);
-
-	const areAllBranchesSelected = React.useMemo(() => {
-		return (
-			branchIdsSet.size > 0 &&
-			selectedBranches.length === branchIdsSet.size &&
-			selectedBranches.every((id) => branchIdsSet.has(id))
-		);
-	}, [branchIdsSet, selectedBranches]);
-
-	// Hide "all" when everything is selected
-	const departmentItems = React.useMemo(() => {
-		return areAllDepartmentsSelected
-			? departments.filter((d) => d.id !== "all")
-			: departments;
-	}, [departments, areAllDepartmentsSelected]);
-
-	const branchItems = React.useMemo(() => {
-		return areAllBranchesSelected
-			? branches.filter((b) => b.id !== "all")
-			: branches;
-	}, [branches, areAllBranchesSelected]);
-
-	// Displayed selections (we never store "all" in state)
-	const displayedSelectedDepartments = selectedDepartments;
-	const displayedSelectedBranches = selectedBranches;
 
 	return (
 		<div className="grid gap-6">
@@ -450,70 +318,37 @@ export function CompanyHubForm({
 									onAttachmentDelete(attachmentId);
 							}
 						}}
-						accept="image/*,.pdf,.doc,.docx"
+						accept="image/*"
 						maxSize={10 * 1024 * 1024} // 10MB
-						multiple
+						multiple={false}
 						showPreview={true}
 						initialPreviewUrls={initialPreviewUrls}
 					/>
 				</div>
 			</div>
 
-			<div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
-				<Label className="col-span-12 md:col-span-2 text-sm">
-					Hashtags/tags:
-				</Label>
-				<div className="col-span-12 md:col-span-10">
-					<Input
-						placeholder="#importantNotice"
-						className="border-[#E2E8F0]"
-						value={tags}
-						onChange={(e) => setTags(e.target.value)}
-					/>
-				</div>
-			</div>
-
-			<div className="grid grid-cols-12 items-center gap-4">
-				<Label className="col-span-12 md:col-span-2 text-sm">
-					Branch Access:
-				</Label>
-				<div className="col-span-12 md:col-span-10">
-					<SelectableTags
-						items={createSelectableItems(branchItems)}
-						selectedItems={displayedSelectedBranches}
-						onSelectionChange={handleBranchSelectionChange}
-						placeholder="Select branches (empty = public access)"
-						searchPlaceholder="Search branches..."
-						emptyMessage="No branches found."
-						icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-						useSearch={useSearchBranchesAdapter}
-						useAllItems={() => ({
-							data: createSelectableItems(branchItems),
-							isLoading: false,
-						})}
-					/>
-				</div>
-			</div>
 
 			<div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
 				<Label className="col-span-12 md:col-span-2 text-sm">
-					Department Access:
+					Branch Department Access:
 				</Label>
 				<div className="col-span-12 md:col-span-10">
 					<SelectableTags
-						items={createSelectableItems(departmentItems)}
-						selectedItems={displayedSelectedDepartments}
-						onSelectionChange={handleDepartmentSelectionChange}
-						placeholder="Select departments (empty = public access)"
-						searchPlaceholder="Search departments..."
-						emptyMessage="No departments found."
+						items={[]} // Empty since we're using async hooks
+						selectedItems={selectedBranchDepartments}
+						onSelectionChange={setSelectedBranchDepartments}
+						placeholder="Select branch departments (empty = public access)"
+						searchPlaceholder="Search branch departments..."
+						emptyMessage="No branch departments found."
 						icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-						useSearch={useSearchDepartmentsAdapter}
-						useAllItems={() => ({
-							data: createSelectableItems(departmentItems),
-							isLoading: false,
-						})}
+						useSearch={useSearchBranchDepartmentsAdapter}
+						useAllItems={useAllBranchDepartments}
 					/>
+					{isManager && (
+						<p className="mt-1 text-xs text-muted-foreground">
+							As a manager, you can only assign announcements to your managed departments.
+						</p>
+					)}
 				</div>
 			</div>
 
@@ -523,9 +358,9 @@ export function CompanyHubForm({
 				</Label>
 				<div className="col-span-12 md:col-span-10">
 					<RichTextEditor
-						content={description}
-						onChange={setDescription}
-						placeholder="Write Description for the Announcement/Policy"
+						content={body}
+						onChange={setBody}
+						placeholder="Write content for the Announcement/Policy"
 						minHeight="200px"
 						maxHeight="400px"
 					/>

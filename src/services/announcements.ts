@@ -23,12 +23,8 @@ export type AnnouncementCreateRequest = {
   title: string;
   body: string;
   type?: AnnouncementTypeEnum;
-  hash_tags?: string | null;
-  is_active?: boolean;
   inherits_parent_permissions?: boolean;
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_employees?: number[];
+  permitted_branch_departments?: number[];
 };
 
 export type AnnouncementCreateResponse = Announcement;
@@ -38,12 +34,8 @@ export type AnnouncementUpdateRequest = {
   title?: string;
   body?: string;
   type?: AnnouncementTypeEnum;
-  hash_tags?: string | null;
-  is_active?: boolean;
   inherits_parent_permissions?: boolean;
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_employees?: number[];
+  permitted_branch_departments?: number[];
 };
 
 export type AnnouncementUpdateResponse = Announcement;
@@ -134,9 +126,7 @@ export async function createAnnouncement(payload: AnnouncementCreateRequest, man
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
+    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
   };
   
   const url = managerScope 
@@ -150,9 +140,7 @@ export async function updateAnnouncement(id: number | string, payload: Announcem
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
+    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
   };
   
   const url = managerScope 
