@@ -205,7 +205,7 @@ export function EmployeeProfileCard({
 
 							<p className="text-sm text-[#667085] mb-4">{resolved.role}</p>
 						</div>
-						<div className="flex flex-col gap-4 max-w-3xl flex-1">
+						<div className="flex flex-col gap-4 flex-1">
 							{/* Bio Section */}
 							{resolved.bio && (
 								<div>

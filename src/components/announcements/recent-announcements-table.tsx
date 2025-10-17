@@ -38,7 +38,7 @@ export type AnnouncementRow = {
 };
 
 export function RecentAnnouncementsTable() {
-  const { isManager, canCreateAnnouncements } = useManagerScope();
+  const { isManager } = useManagerScope();
   const [sortedBy, setSortedBy] = React.useState<string>("title");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
@@ -113,21 +113,46 @@ export function RecentAnnouncementsTable() {
       permitted_employees?: number[];
       permitted_branches?: number[];
       permitted_departments?: number[];
+      permitted_branch_departments?: number[];
+      permitted_branch_departments_details?: Array<{
+        id: number;
+        branch: {
+          id: number;
+          branch_name: string;
+          location: string;
+        };
+        department: {
+          id: number;
+          dept_name: string;
+        };
+      }>;
       created_at: string;
       type: string;
       is_active: boolean;
-    }>).map((announcement) => ({
-      id: String(announcement.id),
-      title: String(announcement.title ?? ""),
-      access: announcement.permitted_employees?.length === 0 && 
-               announcement.permitted_branches?.length === 0 && 
-               announcement.permitted_departments?.length === 0 
-        ? "All Employees" 
-        : "Restricted Access",
-      date: new Date(announcement.created_at).toLocaleDateString(),
-      type: announcement.type === "policy" ? "Policy" : "Announcement",
-      status: announcement.is_active ? "Published" : "Draft",
-    }));
+    }>).map((announcement) => {
+      // Determine access level based on permissions
+      let accessText = "All Employees";
+      
+      if (announcement.permitted_branch_departments && announcement.permitted_branch_departments.length > 0) {
+        // Show generic text for branch departments
+        accessText = "Specific Branch Dept";
+      } else if (announcement.permitted_branches && announcement.permitted_branches.length > 0) {
+        accessText = `${announcement.permitted_branches.length} Branch(es)`;
+      } else if (announcement.permitted_departments && announcement.permitted_departments.length > 0) {
+        accessText = `${announcement.permitted_departments.length} Department(s)`;
+      } else if (announcement.permitted_employees && announcement.permitted_employees.length > 0) {
+        accessText = `${announcement.permitted_employees.length} Employee(s)`;
+      }
+      
+      return {
+        id: String(announcement.id),
+        title: String(announcement.title ?? ""),
+        access: accessText,
+        date: new Date(announcement.created_at).toLocaleDateString(),
+        type: announcement.type === "policy" ? "Policy" : "Announcement",
+        status: announcement.is_active ? "Published" : "Draft",
+      };
+    });
   }, [apiData]);
 
   const handleRowClick = (row: AnnouncementRow) => {
@@ -161,7 +186,7 @@ export function RecentAnnouncementsTable() {
       accessorKey: "access",
       header: ({ column }) => <CardTableColumnHeader column={column} title="Access Level" />,
       cell: ({ row }) => (
-        <Badge variant="secondary" className={row.original.access === "Restricted Access" ? "bg-blue-50 text-blue-700 border-0" : "bg-pink-50 text-pink-700 border-0"}>
+        <Badge variant="secondary" className={row.original.access === "All Employees" ? "bg-pink-50 text-pink-700 border-0" : "bg-blue-50 text-blue-700 border-0"}>
           {row.original.access}
         </Badge>
       ),

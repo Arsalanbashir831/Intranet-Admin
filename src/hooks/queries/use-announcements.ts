@@ -28,10 +28,10 @@ export function useAnnouncements(
   return useQuery({
     queryKey: ["announcements", params, pagination, options?.managerScope],
     queryFn: () => {
-      // Always include inactive announcements (drafts) in the results
+      // Only add include_inactive if not already specified in params
       const queryParams = {
         ...params,
-        include_inactive: true
+        ...(params?.include_inactive === undefined && { include_inactive: true })
       };
       return listAnnouncements(queryParams, pagination, options?.managerScope);
     },

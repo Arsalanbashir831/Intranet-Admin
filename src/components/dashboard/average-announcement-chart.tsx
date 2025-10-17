@@ -271,7 +271,7 @@ export function AverageAnnouncementChart() {
                         dataKey="value"
                         fill="#F4F2F3"
                         radius={6}
-                        className="hover:fill-[#D64575] transition-colors duration-200"
+                        className="fill-[#fff4f8] stroke stroke-secondary hover:fill-[#D64575] transition-colors duration-200"
                     />
                 </BarChart>
             </ChartContainer>
