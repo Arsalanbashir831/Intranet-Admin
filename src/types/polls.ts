@@ -55,6 +55,51 @@ export type EmployeeDetail = {
 
 export type PollType = "public" | "private";
 
+// API Response type (what backend actually returns)
+export type PollApiResponse = {
+  id: number;
+  title: string;
+  subtitle: string;
+  question: string;
+  poll_type: PollType;
+  total_votes: number;
+  created_at: string;
+  expires_at: string;
+  created_by: number | null;
+  is_active: boolean;
+  inherits_parent_permissions: boolean;
+  permitted_branches: number[];
+  permitted_departments: number[];
+  permitted_branch_departments: number[];
+  permitted_employees: number[];
+  options_details: PollOption[]; // Note: API returns options_details
+  has_voted: boolean;
+  user_vote: number | null;
+  created_by_details: {
+    id: number;
+    emp_name: string;
+    email: string;
+    phone: string;
+    role: string;
+    profile_picture: string;
+    branch_department_ids: number[];
+  } | null;
+  effective_permissions: {
+    branches: number[];
+    departments: number[];
+    branch_departments: number[];
+    employees: number[];
+  };
+  permitted_branches_details: BranchDetail[];
+  permitted_departments_details: DepartmentDetail[];
+  permitted_branch_departments_details: BranchDepartmentDetail[];
+  permitted_employees_details: EmployeeDetail[];
+  is_expired: boolean;
+  can_vote: boolean;
+  show_results: boolean;
+};
+
+// Frontend type (transformed for easier use)
 export type Poll = {
   id: number;
   title: string;

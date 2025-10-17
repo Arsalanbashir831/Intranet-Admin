@@ -38,12 +38,13 @@ export type PollDetailViewProps = {
 export function PollDetailView({ poll }: PollDetailViewProps) {
   // Prepare data for the chart
   const chartData = React.useMemo(() => {
+    if (!poll?.options) return [];
     return poll.options.map((option) => ({
       name: option.option_text,
       votes: option.vote_count,
       percentage: poll.total_votes > 0 ? (option.vote_count / poll.total_votes) * 100 : 0,
     }));
-  }, [poll.options, poll.total_votes]);
+  }, [poll?.options, poll?.total_votes]);
 
   const isExpired = poll.is_expired;
   const isActive = poll.is_active;
@@ -193,7 +194,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
               <div className="space-y-4">
                 <h3 className="font-semibold">Detailed Results</h3>
                 <div className="space-y-3">
-                  {poll.options.map((option) => {
+                  {poll.options?.map((option) => {
                     const percentage = poll.total_votes > 0 ? (option.vote_count / poll.total_votes) * 100 : 0;
                     
                     return (
@@ -356,7 +357,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
               </div>
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm text-muted-foreground">Total Options</span>
-                <span className="font-semibold">{poll.options.length}</span>
+                <span className="font-semibold">{poll.options?.length || 0}</span>
               </div>
             </div>
             <div className="space-y-3">
@@ -371,7 +372,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm text-muted-foreground">Participation Rate</span>
                 <span className="font-semibold text-primary">
-                  {poll.total_votes > 0 ? ((poll.total_votes / poll.options.length) * 100).toFixed(1) : 0}%
+                  {poll.total_votes > 0 && poll.options?.length ? ((poll.total_votes / poll.options.length) * 100).toFixed(1) : 0}%
                 </span>
               </div>
             </div>
@@ -391,7 +392,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
           <CardContent>
             <p className="text-sm text-muted-foreground mb-2">You voted for:</p>
             <p className="font-semibold">
-              {poll.options.find(opt => opt.id === poll.user_vote)?.option_text}
+              {poll.options?.find(opt => opt.id === poll.user_vote)?.option_text}
             </p>
           </CardContent>
         </Card>
