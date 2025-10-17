@@ -80,6 +80,8 @@ export const useCreateFolder = () => {
     onSuccess: () => {
       // Invalidate and refetch folder queries
       queryClient.invalidateQueries({ queryKey: folderKeys.all });
+      // Invalidate tree queries (used by knowledge base table)
+      queryClient.invalidateQueries({ queryKey: folderKeys.tree() });
       toast.success("Folder created successfully");
     },
     onError: (error: Error) => {
@@ -100,6 +102,8 @@ export const useUpdateFolder = () => {
       queryClient.setQueryData(folderKeys.detail(variables.id), data);
       // Invalidate list queries
       queryClient.invalidateQueries({ queryKey: folderKeys.lists() });
+      // Invalidate tree queries (used by knowledge base table)
+      queryClient.invalidateQueries({ queryKey: folderKeys.tree() });
       toast.success("Folder updated successfully");
     },
     onError: (error: Error) => {
@@ -120,6 +124,8 @@ export const usePatchFolder = () => {
       queryClient.setQueryData(folderKeys.detail(variables.id), data);
       // Invalidate list queries
       queryClient.invalidateQueries({ queryKey: folderKeys.lists() });
+      // Invalidate tree queries (used by knowledge base table)
+      queryClient.invalidateQueries({ queryKey: folderKeys.tree() });
       toast.success("Folder updated successfully");
     },
     onError: (error: Error) => {
@@ -139,6 +145,8 @@ export const useDeleteFolder = () => {
       queryClient.removeQueries({ queryKey: folderKeys.detail(id) });
       // Invalidate list queries
       queryClient.invalidateQueries({ queryKey: folderKeys.lists() });
+      // Invalidate tree queries (used by knowledge base table)
+      queryClient.invalidateQueries({ queryKey: folderKeys.tree() });
       toast.success("Folder deleted successfully");
     },
     onError: (error: Error) => {

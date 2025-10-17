@@ -13,8 +13,7 @@ import { CardTablePagination } from "@/components/card-table/card-table-paginati
 import { FolderIcon, Trash2, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { useGetFolderTree, useDeleteFolder } from "@/hooks/queries/use-knowledge-folders"; // Added useDeleteFolder
-import { useManagerScope } from "@/contexts/manager-scope-context";
+import { useGetFolderTree, useDeleteFolder } from "@/hooks/queries/use-knowledge-folders";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 import { format } from "date-fns";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
@@ -121,8 +120,8 @@ const transformFolderToRow = (folder: FolderTreeItem): KnowledgeBaseRow => {
   return {
     id: folder.id.toString(),
     folder: folder.name,
-    createdByName: folder.created_by.emp_name,
-    createdByAvatar: folder.created_by.profile_picture,
+    createdByName: folder.created_by?.emp_name || "Unknown",
+    createdByAvatar: folder.created_by?.profile_picture || undefined,
     accessLevel: getAccessLevel(folder),
     dateCreated: format(new Date(folder.created_at), "yyyy-MM-dd"),
     originalData: folder,
@@ -130,7 +129,6 @@ const transformFolderToRow = (folder: FolderTreeItem): KnowledgeBaseRow => {
 };
 
 export function KnowledgeBaseTable() {
-  const { isManager, canUploadKnowledge } = useManagerScope();
   const [sortedBy, setSortedBy] = React.useState<string>("folder");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");

@@ -9,6 +9,14 @@ import { AddFileModal } from "@/components/knowledge-base/add-file-modal";
 import { useRouter } from "next/navigation";
 import { useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";
 import type { FolderTreeItem } from "@/services/knowledge-folders";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, ChevronDown, FolderPlus, FilePlus } from "lucide-react";
 
 // Define the folder tree file type locally since it's not exported
 type FolderTreeFile = {
@@ -135,7 +143,31 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promis
 
   return (
     <>
-      <PageHeader title="Knowledge Base" crumbs={crumbs} />
+      <PageHeader 
+        title="Knowledge Base" 
+        crumbs={crumbs}
+        action={
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="bg-[#FF0F6D] hover:bg-[#e20d60]">
+                <Plus className="mr-2 h-4 w-4" />
+                Add New
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={openNewFolderModal}>
+                <FolderPlus className="mr-2 h-4 w-4" />
+                Add Folder
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOpenNewFile(true)}>
+                <FilePlus className="mr-2 h-4 w-4" />
+                Add File
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
+      />
       {/* <ScrollArea className="h-[calc(100vh-10rem)]"> */}
         <div className="px-4 md:px-12 py-4">
           <FolderDetailsTable

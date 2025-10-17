@@ -8,7 +8,7 @@ import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Pencil, Trash2, Folder as FolderIcon, FileText } from "lucide-react";
+import { Pencil, Trash2, Folder as FolderIcon, FileText, Download } from "lucide-react";
 import { TableContextMenu } from "@/components/knowledge-base/row-context-menus";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
@@ -203,6 +203,39 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
     }
   };
 
+  const handleDownload = (row: FolderItemRow) => {
+    if (row.kind === "file" && row.originalId) {
+      // Find the file data to get the file_url
+      const currentFolderData = currentFolder();
+      if (currentFolderData) {
+        const file = currentFolderData.files.find(f => f.id.toString() === row.originalId);
+        if (file && file.file_url) {
+          try {
+            // Create a temporary link to download the file
+            const link = document.createElement('a');
+            link.href = file.file_url;
+            link.download = file.name;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            
+            // Add to DOM, click, and remove
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } catch (error) {
+            console.error('Download failed:', error);
+            // Fallback: open in new tab
+            window.open(file.file_url, '_blank', 'noopener,noreferrer');
+          }
+        } else {
+          console.error('File not found or no file_url available');
+        }
+      } else {
+        console.error('Current folder data not available');
+      }
+    }
+  };
+
   // Listen to global queue to add finished items to table
   React.useEffect(() => {
     const handler = (e: Event) => {
@@ -279,6 +312,19 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
+          {row.original.kind === "file" && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-[#059669]"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownload(row.original);
+              }}
+            >
+              <Download className="size-4" />
+            </Button>
+          )}
           <span onClick={(e) => e.stopPropagation()}>
             <ConfirmPopover
               title={`Delete ${row.original.kind === "folder" ? "folder" : "file"}?`}
