@@ -113,7 +113,7 @@ F --> I["Role Information Section"]
 
 The page implements breadcrumb navigation through the `PageHeader` component, providing users with clear context and easy navigation back to previous sections. The breadcrumb trail includes:
 - Dashboard
-- Org Chart/Directory
+- Employees
 - Executive Members list
 - Current page: Executive Member Details
 

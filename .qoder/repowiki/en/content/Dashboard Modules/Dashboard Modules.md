@@ -44,7 +44,7 @@ D --> H[Dashboard Page]
 - [admin-sidebar.tsx](file://src/components/admin/layout/admin-sidebar.tsx#L40-L122)
 - [admin-topbar.tsx](file://src/components/admin/layout/admin-topbar.tsx#L5-L20)
 
-The sidebar navigation provides access to all administrative modules with clear visual indicators for the active route. Navigation items include Dashboard, Company Hub, Knowledge Base, New Hire Plan, Departments, Org Chart/Directory, and Executive Members. The topbar includes a collapsible sidebar trigger, search functionality, and user profile controls. Users can navigate between modules through the sidebar, with visual feedback indicating the current location in the application.
+The sidebar navigation provides access to all administrative modules with clear visual indicators for the active route. Navigation items include Dashboard, Company Hub, Knowledge Base, Training Checklists, Departments, Employees, and Executive Members. The topbar includes a collapsible sidebar trigger, search functionality, and user profile controls. Users can navigate between modules through the sidebar, with visual feedback indicating the current location in the application.
 
 **Section sources**
 - [admin-sidebar.tsx](file://src/components/admin/layout/admin-sidebar.tsx#L40-L122)

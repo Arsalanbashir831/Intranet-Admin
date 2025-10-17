@@ -14,7 +14,7 @@
 
 ## Table of Contents
 1. [Introduction](#introduction)
-2. [New Hire Plan Form Overview](#new-hire-plan-form-overview)
+2. [Training Checklists Form Overview](#new-hire-plan-form-overview)
 3. [Employee Data Integration](#employee-data-integration)
 4. [Form State Management](#form-state-management)
 5. [Selectable Tags Implementation](#selectable-tags-implementation)
@@ -23,9 +23,9 @@
 8. [Conclusion](#conclusion)
 
 ## Introduction
-The New Hire Plan creation process enables HR administrators to design structured onboarding workflows by assigning employees and defining task and training checklists. This document details the implementation of the `NewHirePlanForm` component, its integration with employee data, state management patterns, and user interface behaviors. The system supports dynamic employee selection, avatar rendering, department display, and interactive checklist management through reusable UI components and React hooks.
+The Training Checklists creation process enables HR administrators to design structured onboarding workflows by assigning employees and defining task and training checklists. This document details the implementation of the `NewHirePlanForm` component, its integration with employee data, state management patterns, and user interface behaviors. The system supports dynamic employee selection, avatar rendering, department display, and interactive checklist management through reusable UI components and React hooks.
 
-## New Hire Plan Form Overview
+## Training Checklists Form Overview
 
 The `NewHirePlanForm` component serves as the central interface for creating onboarding plans. It allows HR administrators to assign one or more employees to a new hire plan and define both task and training checklists that guide the onboarding process.
 
@@ -157,7 +157,7 @@ SelectableTags --> SelectableItem : "contains"
 
 The form initializes two checklist configurations:
 - **Tasks Checklist**: Left column with predefined task items
-- **Training Checklist**: Right column with predefined training items
+- **Training Checklists**: Right column with predefined training items
 
 Each checklist is managed by the `ChecklistCard` component, which maintains its own internal state for checklist items using `useState`. The initial items are defined as static arrays within `NewHirePlanForm` and passed as the `initial` prop.
 

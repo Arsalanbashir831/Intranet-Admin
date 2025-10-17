@@ -19,10 +19,10 @@ export default function OrgChartPage() {
   return (
     <>
       <PageHeader
-        title="Org Chart/Directory"
+        title="Employees"
         crumbs={[
           { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
-          { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART }
+          { label: "Employees", href: ROUTES.ADMIN.ORG_CHART }
         ]}
         action={
           !isLoading ? (

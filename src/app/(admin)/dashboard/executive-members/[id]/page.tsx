@@ -17,7 +17,7 @@ export default async function ExecutiveMemberDetailsPage({ params }: ExecutiveMe
         title="Executive Members"
         crumbs={[
           { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
-          { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART },
+          { label: "Employees", href: ROUTES.ADMIN.ORG_CHART },
           { label: "Executive Members", href: ROUTES.ADMIN.EXECUTIVE_MEMBERS },
           { label: "Executive Member Details" },
         ]}

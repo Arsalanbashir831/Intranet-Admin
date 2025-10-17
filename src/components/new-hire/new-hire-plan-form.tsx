@@ -44,28 +44,36 @@ export interface NewHirePlanFormProps {
 }
 
 export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFormProps) {
-  // Use initialData directly as the source of truth, with fallbacks
-  const assignees = initialData?.assignees || [];
-  const trainingItems = initialData?.trainingItems || [];
+  // Use local state for immediate UI updates
+  const [localAssignees, setLocalAssignees] = React.useState<string[]>(initialData?.assignees || []);
+  const [localTrainingItems, setLocalTrainingItems] = React.useState<ChecklistItemData[]>(initialData?.trainingItems || []);
   
-  // Create setters that work with the parent's state management
+  // Sync with initialData when it changes
+  React.useEffect(() => {
+    setLocalAssignees(initialData?.assignees || []);
+    setLocalTrainingItems(initialData?.trainingItems || []);
+  }, [initialData]);
+  
+  // Create setters that work with local state and notify parent
   const setAssignees = React.useCallback((newAssignees: string[]) => {
+    setLocalAssignees(newAssignees);
     if (onFormDataChange) {
       onFormDataChange({
         assignees: newAssignees,
-        trainingItems,
+        trainingItems: localTrainingItems,
       });
     }
-  }, [onFormDataChange, trainingItems]);
+  }, [onFormDataChange, localTrainingItems]);
   
   const setTrainingItems = React.useCallback((newTrainingItems: ChecklistItemData[]) => {
+    setLocalTrainingItems(newTrainingItems);
     if (onFormDataChange) {
       onFormDataChange({
-        assignees,
+        assignees: localAssignees,
         trainingItems: newTrainingItems,
       });
     }
-  }, [onFormDataChange, assignees]);
+  }, [onFormDataChange, localAssignees]);
   
   // Load all employees data (no need for departments since we get expanded data)
   const { data: allEmployeesData } = useEmployees();
@@ -137,15 +145,6 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
     return transformedSearchData;
   }, [searchEmployees]);
 
-  // Notify parent component of form data changes on mount
-  React.useEffect(() => {
-    if (onFormDataChange) {
-      onFormDataChange({
-        assignees,
-        trainingItems,
-      });
-    }
-  }, [onFormDataChange]); // Only run on mount, not on every data change
 
   // Helper function to get employee by ID for rendering (no hooks)
   const getEmployeeById = React.useCallback((id: string) => {
@@ -156,11 +155,11 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
     <div className="space-y-4">
       <Card className="space-y-4 border-[#FFF6F6] shadow-none px-5">
         <div >
-          <h3 className="text-xl font-semibold text-foreground">Recent New Hire Plans</h3>
+          <h3 className="text-xl font-semibold text-foreground">Recent Training Checklistss</h3>
           <div className="mt-3">
             <SelectableTags
               items={[]} // Not used when using async search
-              selectedItems={assignees}
+              selectedItems={localAssignees}
               onSelectionChange={setAssignees}
               placeholder="Assigned to"
               searchPlaceholder="Search people..."
@@ -220,8 +219,8 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
             onItemsChange={setTaskItems}
           /> */}
           <ChecklistCard 
-            title="Training Checklist" 
-            initial={trainingItems} 
+            title="Training Checklists" 
+            initial={localTrainingItems} 
             variant="training" 
             onItemsChange={setTrainingItems}
           />

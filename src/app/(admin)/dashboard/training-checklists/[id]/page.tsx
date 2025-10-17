@@ -249,10 +249,10 @@ export default function NewHirePlanEditPage() {
   return (
     <>
       <PageHeader
-        title="New Hire Plan"
+        title="Training Checklists"
         crumbs={[
           { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
-          { label: "New Hire Plan", href: ROUTES.ADMIN.NEW_HIRE_PLAN },
+          { label: "Training Checklists", href: ROUTES.ADMIN.NEW_HIRE_PLAN },
           { label: "Edit" },
         ]}
         action={

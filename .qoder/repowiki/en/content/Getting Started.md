@@ -54,7 +54,7 @@ D --> E[Company Hub]
 D --> F[Departments]
 D --> G[Executive Members]
 D --> H[Knowledge Base]
-D --> I[New Hire Plan]
+D --> I[Training Checklists]
 D --> J[Org Chart]
 D --> K[Profile]
 ```

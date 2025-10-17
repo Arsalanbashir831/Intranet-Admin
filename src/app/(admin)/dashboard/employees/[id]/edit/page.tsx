@@ -74,10 +74,10 @@ export default function EditOrgChartPage() {
 	return (
 		<>
 			<PageHeader
-				title="Org Chart/Directory"
+				title="Employees"
 				crumbs={[
 					{ label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
-					{ label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART },
+					{ label: "Employees", href: ROUTES.ADMIN.ORG_CHART },
 					{
 						label: apiEmployee?.emp_name || "Employee",
 						href: ROUTES.ADMIN.ORG_CHART_PROFILE_ID(String(id)),

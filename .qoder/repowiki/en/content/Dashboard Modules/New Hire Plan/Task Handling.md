@@ -23,7 +23,7 @@
 
 ## Introduction
 
-The New Hire Plan system in the CartwrightKing Admin ERP platform features a flexible task handling mechanism centered around the `NewTaskModal` component. This modal serves as a unified interface for creating both tasks and training items within onboarding checklists, enabling HR administrators to efficiently build structured onboarding plans. The component leverages conditional rendering based on a `type` prop to dynamically adapt its UI and behavior, providing a consistent yet context-aware experience. Integrated with core UI components like `AppModal`, `RichTextEditor`, and `Dropzone`, it supports rich content creation and file attachments, ensuring comprehensive task documentation. This document details the implementation, integration, and practical usage of this mechanism, offering guidance for both HR users and developers.
+The Training Checklists system in the CartwrightKing Admin ERP platform features a flexible task handling mechanism centered around the `NewTaskModal` component. This modal serves as a unified interface for creating both tasks and training items within onboarding checklists, enabling HR administrators to efficiently build structured onboarding plans. The component leverages conditional rendering based on a `type` prop to dynamically adapt its UI and behavior, providing a consistent yet context-aware experience. Integrated with core UI components like `AppModal`, `RichTextEditor`, and `Dropzone`, it supports rich content creation and file attachments, ensuring comprehensive task documentation. This document details the implementation, integration, and practical usage of this mechanism, offering guidance for both HR users and developers.
 
 ## Core Components
 

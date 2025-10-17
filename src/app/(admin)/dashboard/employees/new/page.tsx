@@ -32,8 +32,8 @@ export default function NewOrgChartPage() {
   return (
     <>
       <PageHeader
-        title="Org Chart/Directory"
-        crumbs={[{ label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }, { label: "Org Chart/Directory", href: ROUTES.ADMIN.ORG_CHART }, { label: "Add New", href: ROUTES.ADMIN.ORG_CHART_NEW }]}
+        title="Employees"
+        crumbs={[{ label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }, { label: "Employees", href: ROUTES.ADMIN.ORG_CHART }, { label: "Add New", href: ROUTES.ADMIN.ORG_CHART_NEW }]}
         action={
           <div className="flex gap-2">
             <Button onClick={handleSave} disabled={isSubmitting}>
