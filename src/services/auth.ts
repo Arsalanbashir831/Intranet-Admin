@@ -32,6 +32,11 @@ export type Executive = {
 
 export type Employee = {
   id: number;
+  emp_name: string;
+  profile_picture: string | null;
+  role: string;
+  branch_department_ids: number[];
+  isAdmin: boolean;
   // Add employee fields as needed
 };
 

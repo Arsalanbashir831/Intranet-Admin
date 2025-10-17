@@ -15,7 +15,7 @@ import { useLogout } from "@/hooks/queries/use-auth";
 export function AdminFooterMenu() {
 	const { user } = useAuth();
 	const logoutMutation = useLogout();
-
+	console.log(user);
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>

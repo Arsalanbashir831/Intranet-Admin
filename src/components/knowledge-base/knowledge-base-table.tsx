@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarStack } from "@/components/ui/avatar-stack";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useGetFolderTree, useDeleteFolder } from "@/hooks/queries/use-knowledge-folders";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
+import { useAuth } from "@/contexts/auth-context";
 import { format } from "date-fns";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
@@ -41,6 +43,7 @@ type CreatedByDetail = {
   role: string;
   profile_picture: string;
   branch_department_ids: number[];
+  is_admin?: boolean;
 };
 
 type FolderTreeFile = {
@@ -89,6 +92,12 @@ export type KnowledgeBaseRow = {
   createdByName: string;
   createdByAvatar?: string;
   accessLevel: "Specific Branch Departments" | "Specific Departments" | "Specific Branches" | "Specific Employees" | "All Employees";
+  accessLevelDetails: {
+    employees: Array<{ id: number; emp_name: string; email: string; profile_picture?: string }>;
+    branchDepartments: Array<{ id: number; branch: { branch_name: string }; department: { dept_name: string } }>;
+    departments: Array<{ id: number; dept_name: string }>;
+    branches: Array<{ id: number; branch_name: string }>;
+  };
   dateCreated: string; // YYYY-MM-DD
   originalData: FolderTreeItem;
 };
@@ -120,15 +129,22 @@ const transformFolderToRow = (folder: FolderTreeItem): KnowledgeBaseRow => {
   return {
     id: folder.id.toString(),
     folder: folder.name,
-    createdByName: folder.created_by?.emp_name || "Unknown",
+    createdByName: folder.created_by?.emp_name || "Admin",
     createdByAvatar: folder.created_by?.profile_picture || undefined,
     accessLevel: getAccessLevel(folder),
+    accessLevelDetails: {
+      employees: (folder.access_level.employees || []) as Array<{ id: number; emp_name: string; email: string; profile_picture?: string }>,
+      branchDepartments: (folder.access_level.branch_departments || []) as Array<{ id: number; branch: { branch_name: string }; department: { dept_name: string } }>,
+      departments: (folder.access_level.departments || []) as Array<{ id: number; dept_name: string }>,
+      branches: (folder.access_level.branches || []) as Array<{ id: number; branch_name: string }>,
+    },
     dateCreated: format(new Date(folder.created_at), "yyyy-MM-dd"),
     originalData: folder,
   };
 };
 
 export function KnowledgeBaseTable() {
+  const { user } = useAuth();
   const [sortedBy, setSortedBy] = React.useState<string>("folder");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
@@ -237,29 +253,78 @@ export function KnowledgeBaseTable() {
       header: ({ column }) => <CardTableColumnHeader column={column} title="Access Level" />,
       cell: ({ row }) => {
         const accessLevel = row.original.accessLevel;
+        const accessLevelDetails = row.original.accessLevelDetails;
+        
+        // Helper function to render avatars with count using AvatarStack
+        const renderAvatarsWithCount = (items: any[], maxAvatars: number = 3) => {
+          const visibleItems = items.slice(0, maxAvatars);
+          const remainingCount = items.length - maxAvatars;
+          
+          const avatarElements = visibleItems.map((item, index) => {
+            const name = item.emp_name || item.branch_name || item.dept_name || '?';
+            const initials = name
+              .split(' ')
+              .map((n: string) => n[0])
+              .join('')
+              .toUpperCase()
+              .slice(0, 2);
+            
+            return (
+              <Avatar key={index} className="size-5">
+                <AvatarImage src={item.profile_picture} alt={name} />
+                <AvatarFallback className="text-[8px]">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            );
+          });
+          
+          return (
+            <div className="flex items-center gap-2">
+              <AvatarStack size={24} className="flex-shrink-0">
+                {avatarElements}
+              </AvatarStack>
+              {remainingCount > 0 && (
+                <span className="text-xs text-[#667085]">
+                  +{remainingCount}
+                </span>
+              )}
+            </div>
+          );
+        };
+
         if (accessLevel === "Specific Branch Departments") {
           return (
-            <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
-              Specific Branch Departments
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="bg-[#ffdfdf] text-[#D64545] border-0">
+                {accessLevelDetails.branchDepartments.slice(0, 3).map((bd, index) => (
+                  <div key={index} className="text-xs">
+                    {bd.branch?.branch_name}
+                  </div>
+                ))}
+              </Badge>
+            </div>
           );
         } else if (accessLevel === "Specific Departments") {
           return (
-            <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
-              Specific Departments
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
+                Departments
+              </Badge>
+              {renderAvatarsWithCount(accessLevelDetails.departments)}
+            </div>
           );
         } else if (accessLevel === "Specific Branches") {
           return (
-            <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
-              Specific Branches
-            </Badge>
+            <div className="flex items-center gap-2">
+              {renderAvatarsWithCount(accessLevelDetails.branches)}
+            </div>
           );
         } else if (accessLevel === "Specific Employees") {
           return (
-            <Badge variant="secondary" className="bg-[#EEF3FF] text-[#2F5DD1] border-0">
-              Specific Employees
-            </Badge>
+            <div className="flex items-center gap-2">
+              {renderAvatarsWithCount(accessLevelDetails.employees)}
+            </div>
           );
         } else {
           return (
@@ -278,38 +343,58 @@ export function KnowledgeBaseTable() {
     {
       id: "actions",
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <span onClick={(e) => e.stopPropagation()}>
-            <ConfirmPopover
-              title="Delete folder?"
-              description="This action cannot be undone. All files in this folder will also be deleted."
-              confirmText="Delete"
-              onConfirm={() => handleDeleteFolder(row.original.id)}
-              disabled={deletingId === row.original.id || deleteFolder.isPending}
-            >
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                className="text-[#D64575]"
+      cell: ({ row }) => {
+        // Check if current user can edit/delete this folder
+        const folderCreatedByAdmin = row.original.originalData.created_by?.is_admin === true;
+        const currentUserIsAdmin = user?.isAdmin;
+
+        console.log(currentUserIsAdmin, folderCreatedByAdmin);
+        
+        // If folder was created by admin, only admins can edit/delete it
+        // If folder was created by manager, both admins and managers can edit/delete it
+        const canEditDelete = currentUserIsAdmin || !folderCreatedByAdmin;
+        
+        if (!canEditDelete) {
+          return (
+            <Badge variant="secondary" className="bg-secondary text-secondary-foreground border-0">
+              Admin Only
+            </Badge>
+          );
+        }
+
+        return (
+          <div className="flex items-center gap-1">
+            <span onClick={(e) => e.stopPropagation()}>
+              <ConfirmPopover
+                title="Delete folder?"
+                description="This action cannot be undone. All files in this folder will also be deleted."
+                confirmText="Delete"
+                onConfirm={() => handleDeleteFolder(row.original.id)}
+                disabled={deletingId === row.original.id || deleteFolder.isPending}
               >
-                <Trash2 className="size-4" />
-              </Button>
-            </ConfirmPopover>
-          </span>
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            className="text-[#2563EB]"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEdit(row.original);
-            }}
-          >
-            <Pencil className="size-4" />
-          </Button>
-       </div>
-      ),
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="text-[#D64575]"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </ConfirmPopover>
+            </span>
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="text-[#2563EB]"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(row.original);
+              }}
+            >
+              <Pencil className="size-4" />
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 

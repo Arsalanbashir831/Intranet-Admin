@@ -24,6 +24,7 @@ interface User {
 	role?: string;
 	isManager?: boolean;
 	managedDepartments?: number[];
+	isAdmin?: boolean; // Add isAdmin field
 }
 
 interface AuthContextType {
@@ -52,13 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					// Use the me API to get user details
 					try {
 						const meData = await getMe();
-						const profilePictureUrl = meData.executive?.profile_picture
-							? `${getBaseUrl()}${meData.executive.profile_picture}`
+						const employeeProfilePictureUrl = meData?.employee?.profile_picture
+							? `${getBaseUrl()}${meData?.employee?.profile_picture}`
 							: undefined;
 
 						setUser({
 							id: meData.user.id,
-							username: meData.user.username,
+							username: meData?.employee?.emp_name || meData.user.username,
 							email: meData.user.email,
 							firstName: meData.user.first_name,
 							lastName: meData.user.last_name,
@@ -67,10 +68,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 							isSuperuser: meData.user.is_superuser,
 							executiveId: meData.executive?.id || null,
 							employeeId: meData.employee?.id || null,
-							name: meData.executive?.name || meData.user.username,
-							profilePicture: profilePictureUrl,
-							avatar: profilePictureUrl, // Alias for backward compatibility
-							role: meData.executive?.role,
+							name: meData?.employee?.emp_name || meData.user.username,
+							profilePicture: employeeProfilePictureUrl,
+							avatar: employeeProfilePictureUrl,
+							role: meData.employee?.role,
+							isManager: meData.employee?.role === "Manager",
+							managedDepartments: meData.employee?.branch_department_ids || [],
+							isAdmin: meData.employee !== null ? meData.employee.isAdmin : meData.user.is_superuser,
 						});
 					} catch {
 						// If me API fails, try to refresh token and try again
@@ -85,13 +89,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 							// Try to get user details again with new token
 							const meData = await getMe();
-							const profilePictureUrl = meData.executive?.profile_picture
-								? `${getBaseUrl()}${meData.executive.profile_picture}`
+							const employeeProfilePictureUrl = meData?.employee?.profile_picture
+								? `${getBaseUrl()}${meData?.employee?.profile_picture}`
 								: undefined;
 
 							setUser({
 								id: meData.user.id,
-								username: meData.user.username,
+								username: meData?.employee?.emp_name || meData.user.username,
 								email: meData.user.email,
 								firstName: meData.user.first_name,
 								lastName: meData.user.last_name,
@@ -100,10 +104,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 								isSuperuser: meData.user.is_superuser,
 								executiveId: meData.executive?.id || null,
 								employeeId: meData.employee?.id || null,
-								name: meData.executive?.name || meData.user.username,
-								profilePicture: profilePictureUrl,
-								avatar: profilePictureUrl, // Alias for backward compatibility
-								role: meData.executive?.role,
+								name: meData?.employee?.emp_name || meData.user.username,
+								profilePicture: employeeProfilePictureUrl,
+								avatar: employeeProfilePictureUrl,
+								role: meData.employee?.role,
+								isManager: meData.employee?.role === "Manager",
+								managedDepartments: meData.employee?.branch_department_ids || [],
+								isAdmin: meData.employee !== null ? meData.employee.isAdmin : meData.user.is_superuser,
 							});
 						} catch (refreshError) {
 							// Refresh failed, user is not authenticated
@@ -140,13 +147,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			if (accessToken && refreshTokenValue) {
 				try {
 					const meData = await getMe();
-					const profilePictureUrl = meData.executive?.profile_picture
-						? `${getBaseUrl()}${meData.executive.profile_picture}`
+					const employeeProfilePictureUrl = meData?.employee?.profile_picture || undefined
+						? `${getBaseUrl()}${meData?.employee?.profile_picture}`
 						: undefined;
 
 					setUser({
 						id: meData.user.id,
-						username: meData.user.username,
+						username: meData?.employee?.emp_name || meData.user.username,
 						email: meData.user.email,
 						firstName: meData.user.first_name,
 						lastName: meData.user.last_name,
@@ -155,9 +162,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 						isSuperuser: meData.user.is_superuser,
 						executiveId: meData.executive?.id || null,
 						employeeId: meData.employee?.id || null,
-						name: meData.executive?.name || meData.user.username,
-						profilePicture: profilePictureUrl,
-						avatar: profilePictureUrl, // Alias for backward compatibility
+						name: meData?.employee?.emp_name || meData.user.username,
+						profilePicture: employeeProfilePictureUrl,
+						avatar: employeeProfilePictureUrl,
 						role: meData.executive?.role,
 					});
 				} catch {
@@ -170,13 +177,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 						// Get user details with new token
 						const meData = await getMe();
-						const profilePictureUrl = meData.executive?.profile_picture
-							? `${getBaseUrl()}${meData.executive.profile_picture}`
+						const employeeProfilePictureUrl = meData?.employee?.profile_picture
+							? `${getBaseUrl()}${meData?.employee?.profile_picture}`
 							: undefined;
 
 						setUser({
 							id: meData.user.id,
-							username: meData.user.username,
+							username: meData?.employee?.emp_name || meData.user.username,
 							email: meData.user.email,
 							firstName: meData.user.first_name,
 							lastName: meData.user.last_name,
@@ -185,10 +192,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 							isSuperuser: meData.user.is_superuser,
 							executiveId: meData.executive?.id || null,
 							employeeId: meData.employee?.id || null,
-							name: meData.executive?.name || meData.user.username,
-							profilePicture: profilePictureUrl,
-							avatar: profilePictureUrl, // Alias for backward compatibility
-							role: meData.executive?.role,
+							name: meData?.employee?.emp_name || meData.user.username,
+							profilePicture: employeeProfilePictureUrl,
+							avatar: employeeProfilePictureUrl,
+							role: meData.employee?.role,
+							isManager: meData.employee?.role === "Manager",
+							managedDepartments: meData.employee?.branch_department_ids || [],
+							isAdmin: meData.employee !== null ? meData.employee.isAdmin : meData.user.is_superuser,
 						});
 					} catch (refreshError) {
 						console.error("Token refresh failed:", refreshError);

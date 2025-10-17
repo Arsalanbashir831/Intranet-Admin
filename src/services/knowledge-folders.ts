@@ -69,6 +69,7 @@ export type CreatedByDetail = {
   role: string;
   profile_picture: string;
   branch_department_ids: number[];
+  is_admin?: boolean;
 };
 
 export type FolderTreeFile = {
