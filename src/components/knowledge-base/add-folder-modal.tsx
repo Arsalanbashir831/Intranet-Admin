@@ -108,10 +108,10 @@ export function AddFolderModal({
 
   // Branch Department items - filtered by manager scope
   const branchDepartmentItems: SelectableItem[] = React.useMemo(() => {
-    if (!departmentsData?.departments.results) return [];
+    if (!departmentsData || !Array.isArray(departmentsData)) return [];
     
     const items: SelectableItem[] = [];
-    departmentsData.departments.results.forEach((dept: Department) => {
+    departmentsData.forEach((dept: Department) => {
       if (dept.branch_departments) {
         dept.branch_departments.forEach((bd) => {
           // Filter: if manager, only show their managed branch departments

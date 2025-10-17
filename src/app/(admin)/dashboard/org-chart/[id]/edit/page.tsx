@@ -35,44 +35,23 @@ export default function EditOrgChartPage() {
 		? data.employee
 		: (data as ApiEmployee | undefined);
 
-	const branchDepartmentId = apiEmployee?.branch_department
-		? String(
-				(
-					apiEmployee as unknown as {
-						branch_department: { id?: number | string };
-					}
-				).branch_department.id ?? ""
-		  )
+	// Get the first branch department ID from the array
+	const branchDepartmentId = apiEmployee?.branch_departments?.[0]?.id
+		? String(apiEmployee.branch_departments[0].id)
 		: undefined;
 
 	const initialValues: OrgChartInitialValues | undefined = apiEmployee
 		? {
-				emp_name:
-					(apiEmployee as unknown as { emp_name?: string }).emp_name ?? "",
-				email:
-					(apiEmployee as unknown as { email?: string | null }).email ??
-					undefined,
-				phone:
-					(apiEmployee as unknown as { phone?: string | null }).phone ??
-					undefined,
-				role:
-					(apiEmployee as unknown as { role?: string | null }).role ??
-					undefined,
-				education:
-					(apiEmployee as unknown as { education?: string | null }).education ??
-					undefined,
-				bio:
-					(apiEmployee as unknown as { bio?: string | null }).bio ?? undefined,
+				emp_name: apiEmployee.emp_name ?? "",
+				email: apiEmployee.email ?? undefined,
+				phone: apiEmployee.phone ?? undefined,
+				role: apiEmployee.role_id ? String(apiEmployee.role_id) : undefined,
+				education: apiEmployee.education ?? undefined,
+				bio: apiEmployee.bio ?? undefined,
 				branch_department: branchDepartmentId,
-				profileImageUrl:
-					(apiEmployee as unknown as { profile_picture?: string | null })
-						.profile_picture ?? undefined,
-				address:
-					(apiEmployee as unknown as { address?: string | null }).address ??
-					undefined,
-				city:
-					(apiEmployee as unknown as { city?: string | null }).city ??
-					undefined,
+				profileImageUrl: apiEmployee.profile_picture ?? undefined,
+				address: apiEmployee.address ?? undefined,
+				city: apiEmployee.city ?? undefined,
 		  }
 		: undefined;
 

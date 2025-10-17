@@ -77,14 +77,10 @@ export function PollForm({
   const useAllBranchDepartments = () => {
     const result = useDepartments(undefined, { pageSize: 100 });
     const branchDeptItems = React.useMemo(() => {
-      const departmentsPayload = (
-        result.data as { departments?: { results?: unknown[] } }
-      )?.departments;
-      const results = Array.isArray(departmentsPayload?.results)
-        ? departmentsPayload.results
-        : Array.isArray(result.data)
-        ? result.data
-        : result.data?.departments?.results ?? [];
+      // Handle both array format (new) and nested object format (old)
+      const results = Array.isArray(result.data) 
+        ? result.data 
+        : (result.data as any)?.departments?.results ?? [];
 
       const items: { id: string; label: string }[] = [];
       for (const dept of results || []) {
@@ -129,14 +125,10 @@ export function PollForm({
   const useSearchBranchDepartmentsAdapter = (query: string) => {
     const result = useSearchDepartments(query, { pageSize: 100 });
     const branchDeptItems = React.useMemo(() => {
-      const departmentsPayload = (
-        result.data as { departments?: { results?: unknown[] } }
-      )?.departments;
-      const results = Array.isArray(departmentsPayload?.results)
-        ? departmentsPayload.results
-        : Array.isArray(result.data)
-        ? result.data
-        : result.data?.departments?.results ?? [];
+      // Handle both array format (new) and nested object format (old)
+      const results = Array.isArray(result.data) 
+        ? result.data 
+        : (result.data as any)?.departments?.results ?? [];
       const items: { id: string; label: string }[] = [];
       for (const dept of results || []) {
         const deptData = dept as {
@@ -323,9 +315,10 @@ export function PollForm({
   // Transform data for SelectableTags
   const departmentItems = React.useMemo(() => {
     if (!departmentsData) return [];
+    // Handle both array format (new) and nested object format (old)
     const list = Array.isArray(departmentsData) 
       ? departmentsData 
-      : (departmentsData as { departments?: { results?: unknown[] } })?.departments?.results || [];
+      : (departmentsData as any)?.departments?.results || [];
     return createCustomSelectableItems(list as Array<{ id: unknown; dept_name: unknown }>, "id", "dept_name");
   }, [departmentsData]);
 

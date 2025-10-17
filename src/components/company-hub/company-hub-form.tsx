@@ -183,7 +183,8 @@ export function CompanyHubForm({
 
 	// Build base lists with "All" item, ids coerced to string for consistency
 	const departments = React.useMemo(() => {
-		const results = departmentsData?.departments?.results ?? [];
+		// departmentsData is now directly an array of departments
+		const results = Array.isArray(departmentsData) ? departmentsData : [];
 		if (!Array.isArray(results)) return [];
 		const uniq = new Map<number, { id: string; name: string }>();
 		results.forEach((d: { id: number; dept_name: string }) => {
