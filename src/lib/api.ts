@@ -9,7 +9,7 @@ import axios, {
 } from "axios";
 
 const BACKEND_URL =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_BASE_URL) ||
+  (typeof process !== "undefined" && `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`) ||
   "/api"; // fallback to Next.js API proxy
 
 interface PendingRequest {
