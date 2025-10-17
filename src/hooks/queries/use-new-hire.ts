@@ -40,7 +40,7 @@ export function useChecklists(
 
 export function useChecklist(id: number | string) {
   return useQuery({
-    queryKey: ["checklists", id],
+    queryKey: ["checklist", id],
     queryFn: () => getChecklist(id),
     enabled: !!id,
     staleTime: 60_000,
@@ -65,8 +65,8 @@ export function useUpdateChecklist(id: number | string) {
     mutationFn: (payload: ChecklistUpdateRequest) => updateChecklist(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["checklists"] });
-      queryClient.invalidateQueries({ queryKey: ["checklists", id] });
-      queryClient.invalidateQueries({ queryKey: ["checklists", String(id)] }); // Handle both string and number ids
+      queryClient.invalidateQueries({ queryKey: ["checklist", id] });
+      queryClient.invalidateQueries({ queryKey: ["checklist", String(id)] }); // Handle both string and number ids
     },
   });
 }
@@ -121,6 +121,7 @@ export function useCreateAttachment() {
       queryClient.invalidateQueries({ queryKey: ["attachments"] });
       queryClient.invalidateQueries({ queryKey: ["attachments", "checklist", variables.checklist] });
       queryClient.invalidateQueries({ queryKey: ["checklists", variables.checklist] });
+      queryClient.invalidateQueries({ queryKey: ["checklist", variables.checklist] });
     },
   });
 }
@@ -134,6 +135,9 @@ export function useUpdateAttachment(id: number | string) {
       queryClient.invalidateQueries({ queryKey: ["attachments"] });
       queryClient.invalidateQueries({ queryKey: ["attachments", id] });
       queryClient.invalidateQueries({ queryKey: ["attachments", String(id)] });
+      // Also invalidate checklist queries since attachments are nested in checklist data
+      queryClient.invalidateQueries({ queryKey: ["checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["checklist"] });
     },
   });
 }
@@ -146,6 +150,7 @@ export function useDeleteAttachment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attachments"] });
       queryClient.invalidateQueries({ queryKey: ["checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["checklist"] });
     },
   });
 }
@@ -189,6 +194,9 @@ export function useCreateAttachmentFile() {
       queryClient.invalidateQueries({ queryKey: ["attachment-files"] });
       queryClient.invalidateQueries({ queryKey: ["attachment-files", "attachment", variables.attachment] });
       queryClient.invalidateQueries({ queryKey: ["attachments", variables.attachment] });
+      // Also invalidate checklist queries since files are nested in checklist data
+      queryClient.invalidateQueries({ queryKey: ["checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["checklist"] });
     },
   });
 }
@@ -201,6 +209,9 @@ export function useDeleteAttachmentFile() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attachment-files"] });
       queryClient.invalidateQueries({ queryKey: ["attachments"] });
+      // Also invalidate checklist queries since files are nested in checklist data
+      queryClient.invalidateQueries({ queryKey: ["checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["checklist"] });
     },
   });
 }

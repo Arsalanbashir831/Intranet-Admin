@@ -35,8 +35,8 @@ export default function NewHirePlanCreatePage() {
       return;
     }
 
-    if (formData.taskItems.length === 0 && formData.trainingItems.length === 0) {
-      toast.error("Please add at least one task or training item");
+    if (formData.trainingItems.length === 0) {
+      toast.error("Please add at least one training item");
       return;
     }
 
@@ -56,7 +56,7 @@ export default function NewHirePlanCreatePage() {
       });
 
       // Step 2: Create attachments
-      const allItems = [...formData.taskItems, ...formData.trainingItems];
+      const allItems = [...formData.trainingItems];
       
       if (allItems.length > 0) {
         const createPromises = allItems.map(async (item) => {

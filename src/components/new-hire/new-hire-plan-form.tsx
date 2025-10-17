@@ -32,7 +32,6 @@ type ApiEmployee = {
 
 export type NewHirePlanFormData = {
   assignees: string[];
-  taskItems: ChecklistItemData[];
   trainingItems: ChecklistItemData[];
 };
 
@@ -40,24 +39,33 @@ export interface NewHirePlanFormProps {
   onFormDataChange?: (data: NewHirePlanFormData) => void;
   initialData?: {
     assignees?: string[];
-    taskItems?: ChecklistItemData[];
     trainingItems?: ChecklistItemData[];
   };
 }
 
 export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFormProps) {
-  const [assignees, setAssignees] = React.useState<string[]>(initialData?.assignees || []);
-  const [taskItems, setTaskItems] = React.useState<ChecklistItemData[]>(initialData?.taskItems || []);
-  const [trainingItems, setTrainingItems] = React.useState<ChecklistItemData[]>(initialData?.trainingItems || []);
+  // Use initialData directly as the source of truth, with fallbacks
+  const assignees = initialData?.assignees || [];
+  const trainingItems = initialData?.trainingItems || [];
   
-  // Update state when initialData changes
-  React.useEffect(() => {
-    if (initialData) {
-      setAssignees(initialData.assignees || []);
-      setTaskItems(initialData.taskItems || []);
-      setTrainingItems(initialData.trainingItems || []);
+  // Create setters that work with the parent's state management
+  const setAssignees = React.useCallback((newAssignees: string[]) => {
+    if (onFormDataChange) {
+      onFormDataChange({
+        assignees: newAssignees,
+        trainingItems,
+      });
     }
-  }, [initialData]);
+  }, [onFormDataChange, trainingItems]);
+  
+  const setTrainingItems = React.useCallback((newTrainingItems: ChecklistItemData[]) => {
+    if (onFormDataChange) {
+      onFormDataChange({
+        assignees,
+        trainingItems: newTrainingItems,
+      });
+    }
+  }, [onFormDataChange, assignees]);
   
   // Load all employees data (no need for departments since we get expanded data)
   const { data: allEmployeesData } = useEmployees();
@@ -69,7 +77,7 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
       id: number | string;
       emp_name: string;
       profile_picture?: string | null;
-      branch_department?: {
+      branch_departments?: Array<{
         id: number;
         branch: {
           id: number;
@@ -80,12 +88,14 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
           dept_name: string;
         };
         manager?: unknown;
-      };
+      }>;
     }[]).map((e) => ({
       id: e.id,
       full_name: e.emp_name,
       username: undefined,
-      department_name: e.branch_department?.department?.dept_name || 'Unknown',
+      department_name: e.branch_departments?.[0] 
+        ? `${e.branch_departments[0].branch?.branch_name || 'Unknown'} - ${e.branch_departments[0].department?.dept_name || 'Unknown'}`
+        : 'Unknown',
       profile_picture_url: e.profile_picture || undefined,
     }));
   }, [allEmployeesData]);
@@ -127,16 +137,15 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
     return transformedSearchData;
   }, [searchEmployees]);
 
-  // Notify parent component of form data changes
+  // Notify parent component of form data changes on mount
   React.useEffect(() => {
     if (onFormDataChange) {
       onFormDataChange({
         assignees,
-        taskItems,
         trainingItems,
       });
     }
-  }, [assignees, taskItems, trainingItems, onFormDataChange]);
+  }, [onFormDataChange]); // Only run on mount, not on every data change
 
   // Helper function to get employee by ID for rendering (no hooks)
   const getEmployeeById = React.useCallback((id: string) => {
@@ -203,13 +212,13 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
           </div>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <ChecklistCard 
+        <div className="grid gap-5 md:grid-cols">
+          {/* <ChecklistCard 
             title="Tasks Checklist" 
             initial={taskItems} 
             variant="task" 
             onItemsChange={setTaskItems}
-          />
+          /> */}
           <ChecklistCard 
             title="Training Checklist" 
             initial={trainingItems} 

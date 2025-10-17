@@ -42,18 +42,7 @@ export default function NewHirePlanEditPage() {
 
     // Use attachments directly from checklist response (they're nested in the response)
     const attachments = checklist.attachments || [];
-    const taskItems = attachments
-      .filter((att) => att.type === "task")
-      .map((att) => ({
-        id: String(att.id),
-        title: att.title,
-        body: att.detail || "",
-        type: "task" as const,
-        files: [], // Existing files are handled separately
-        existingFiles: att.files || [] as { id: number; attachment: number; file: string; uploaded_at: string }[], // Store existing files for reference
-        deletedFileIds: [], // Initialize with empty array
-      }));
-
+    
     const trainingItems = attachments
       .filter((att) => att.type === "training")
       .map((att) => ({
@@ -68,10 +57,10 @@ export default function NewHirePlanEditPage() {
 
     return {
       assignees: checklist.assigned_to.map(String),
-      taskItems,
       trainingItems,
     };
   }, [checklist]);
+
 
   const handleSave = async (isDraft: boolean) => {
     if (!formData || !id || !checklist) {
@@ -84,8 +73,8 @@ export default function NewHirePlanEditPage() {
       return;
     }
 
-    if (formData.taskItems.length === 0 && formData.trainingItems.length === 0) {
-      toast.error("Please add at least one task or training item");
+    if (formData.trainingItems.length === 0) {
+      toast.error("Please add at least one training item");
       return;
     }
 
@@ -104,7 +93,7 @@ export default function NewHirePlanEditPage() {
       });
 
       // Step 2: Handle attachments CRUD operations
-      const allCurrentItems = [...formData.taskItems, ...formData.trainingItems];
+      const allCurrentItems = [...formData.trainingItems];
       const existingAttachments = checklist.attachments || [];
 
       // Create maps for comparison
