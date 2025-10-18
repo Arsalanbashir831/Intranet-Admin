@@ -117,7 +117,7 @@ export function useBranchDepartments(params?: Record<string, string | number | b
   const branchDepartments =
     Array.isArray(departmentsData)
       ? departmentsData
-      : (departmentsData as DepartmentListResponse)?.departments?.results || [];
+      : (departmentsData as DepartmentListResponse | undefined)?.departments?.results || [];
 
   const allBranchDepartments = branchDepartments.flatMap((dept: Department) => {
     const deptName = dept.dept_name || (dept as Record<string, unknown>).name || "Unknown Department";

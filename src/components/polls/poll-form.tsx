@@ -80,7 +80,7 @@ export function PollForm({
       // Handle both array format (new) and nested object format (old)
       const results = Array.isArray(result.data) 
         ? result.data 
-        : (result.data as any)?.departments?.results ?? [];
+        : (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
 
       const items: { id: string; label: string }[] = [];
       for (const dept of results || []) {
@@ -128,7 +128,7 @@ export function PollForm({
       // Handle both array format (new) and nested object format (old)
       const results = Array.isArray(result.data) 
         ? result.data 
-        : (result.data as any)?.departments?.results ?? [];
+        : (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
       const items: { id: string; label: string }[] = [];
       for (const dept of results || []) {
         const deptData = dept as {
@@ -318,7 +318,7 @@ export function PollForm({
     // Handle both array format (new) and nested object format (old)
     const list = Array.isArray(departmentsData) 
       ? departmentsData 
-      : (departmentsData as any)?.departments?.results || [];
+      : (departmentsData as { departments?: { results?: unknown[] } } | undefined)?.departments?.results || [];
     return createCustomSelectableItems(list as Array<{ id: unknown; dept_name: unknown }>, "id", "dept_name");
   }, [departmentsData]);
 

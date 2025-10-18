@@ -256,7 +256,7 @@ export function KnowledgeBaseTable() {
         const accessLevelDetails = row.original.accessLevelDetails;
         
         // Helper function to render avatars with count using AvatarStack
-        const renderAvatarsWithCount = (items: any[], maxAvatars: number = 3) => {
+        const renderAvatarsWithCount = (items: Array<{ emp_name?: string; branch_name?: string; dept_name?: string; profile_picture?: string | null }>, maxAvatars: number = 3) => {
           const visibleItems = items.slice(0, maxAvatars);
           const remainingCount = items.length - maxAvatars;
           
@@ -271,7 +271,7 @@ export function KnowledgeBaseTable() {
             
             return (
               <Avatar key={index} className="size-5">
-                <AvatarImage src={item.profile_picture} alt={name} />
+                <AvatarImage src={item.profile_picture || undefined} alt={name} />
                 <AvatarFallback className="text-[8px]">
                   {initials}
                 </AvatarFallback>

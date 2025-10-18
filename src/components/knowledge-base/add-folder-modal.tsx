@@ -95,8 +95,7 @@ export function AddFolderModal({
     const filteredEmployees = isManager
       ? employeesData.results.filter((emp: Employee) => {
           // Check if employee belongs to any of manager's departments
-          if (!emp.branch_departments || emp.branch_departments.length === 0) return false;
-          return emp.branch_departments.some((bd: any) => managedDepartments.includes(bd.id));
+          return managedDepartments.includes(emp.branch_department);
         })
       : employeesData.results;
     

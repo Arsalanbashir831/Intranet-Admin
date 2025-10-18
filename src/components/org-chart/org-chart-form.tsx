@@ -60,13 +60,13 @@ export function OrgChartForm({
 		const result = useDepartments(undefined, { pageSize: 100 }); // Get more departments
 		const branchDeptItems = React.useMemo(() => {
 			const departmentsPayload = (
-				result.data as { departments?: { results?: unknown[] } }
+				result.data as { departments?: { results?: unknown[] } } | undefined
 			)?.departments;
 			const results = Array.isArray(departmentsPayload?.results)
 				? departmentsPayload.results
 				: Array.isArray(result.data)
 				? result.data
-				: result.data?.departments?.results ?? [];
+				: (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
 
 			const items: { id: string; label: string }[] = [];
 			for (const dept of results || []) {
@@ -112,13 +112,13 @@ export function OrgChartForm({
 		const result = useSearchDepartments(query, { pageSize: 100 });
 		const branchDeptItems = React.useMemo(() => {
 			const departmentsPayload = (
-				result.data as { departments?: { results?: unknown[] } }
+				result.data as { departments?: { results?: unknown[] } } | undefined
 			)?.departments;
 			const results = Array.isArray(departmentsPayload?.results)
 				? departmentsPayload.results
 				: Array.isArray(result.data)
 				? result.data
-				: result.data?.departments?.results ?? [];
+				: (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
 			const items: { id: string; label: string }[] = [];
 			for (const dept of results || []) {
 				const deptData = dept as {

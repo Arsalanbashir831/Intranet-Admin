@@ -86,11 +86,16 @@ export default function CompanyHubEditPage() {
   const initialData = React.useMemo<CompanyHubInitialData | undefined>(() => {
     if (!announcement) return undefined;
     
+    // Type assertion for announcement with additional fields
+    const announcementWithBranchDepts = announcement as typeof announcement & {
+      permitted_branch_departments?: number[];
+    };
+    
     return {
       type: announcement.type === "policy" ? "policy" : "announcement",
       title: announcement.title,
       // Map permitted_branch_departments from API response
-      selectedBranchDepartments: (announcement as any).permitted_branch_departments?.map(String) || [],
+      selectedBranchDepartments: announcementWithBranchDepts.permitted_branch_departments?.map(String) || [],
       body: announcement.body,
     };
   }, [announcement]);

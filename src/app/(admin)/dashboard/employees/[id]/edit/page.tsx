@@ -35,9 +35,9 @@ export default function EditOrgChartPage() {
 		? data.employee
 		: (data as ApiEmployee | undefined);
 
-	// Get the first branch department ID from the array
-	const branchDepartmentId = apiEmployee?.branch_departments?.[0]?.id
-		? String(apiEmployee.branch_departments[0].id)
+	// Get the branch department ID
+	const branchDepartmentId = apiEmployee?.branch_department
+		? String(apiEmployee.branch_department)
 		: undefined;
 
 	const initialValues: OrgChartInitialValues | undefined = apiEmployee
@@ -45,13 +45,13 @@ export default function EditOrgChartPage() {
 				emp_name: apiEmployee.emp_name ?? "",
 				email: apiEmployee.email ?? undefined,
 				phone: apiEmployee.phone ?? undefined,
-				role: apiEmployee.role_id ? String(apiEmployee.role_id) : undefined,
+				role: apiEmployee.role ?? undefined,
 				education: apiEmployee.education ?? undefined,
 				bio: apiEmployee.bio ?? undefined,
 				branch_department: branchDepartmentId,
 				profileImageUrl: apiEmployee.profile_picture ?? undefined,
-				address: apiEmployee.address ?? undefined,
-				city: apiEmployee.city ?? undefined,
+				address: (apiEmployee as typeof apiEmployee & { address?: string })?.address ?? undefined,
+				city: (apiEmployee as typeof apiEmployee & { city?: string })?.city ?? undefined,
 		  }
 		: undefined;
 

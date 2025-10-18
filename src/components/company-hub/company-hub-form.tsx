@@ -73,7 +73,7 @@ export function CompanyHubForm({
 			// Handle both array format (new) and nested object format (old)
 			const results = Array.isArray(result.data) 
 				? result.data 
-				: (result.data as any)?.departments?.results ?? [];
+				: (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
 
 			const items: { id: string; label: string }[] = [];
 			for (const dept of results || []) {
@@ -121,7 +121,7 @@ export function CompanyHubForm({
 			// Handle both array format (new) and nested object format (old)
 			const results = Array.isArray(result.data) 
 				? result.data 
-				: (result.data as any)?.departments?.results ?? [];
+				: (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
 			const items: { id: string; label: string }[] = [];
 			for (const dept of results || []) {
 				const deptData = dept as {
