@@ -155,7 +155,7 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
     <div className="space-y-4">
       <Card className="space-y-4 border-[#FFF6F6] shadow-none px-5">
         <div >
-          <h3 className="text-xl font-semibold text-foreground">Recent Training Checklistss</h3>
+          <h3 className="text-xl font-semibold text-foreground">Recent Training Checklists</h3>
           <div className="mt-3">
             <SelectableTags
               items={[]} // Not used when using async search

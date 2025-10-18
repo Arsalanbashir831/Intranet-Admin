@@ -24,14 +24,14 @@ export function ChecklistItem({
     }, [item.files, item.existingFiles, item.deletedFileIds]);
 
     return (
-      <div className="flex items-center justify-between rounded-md border border-[#D1CECE] bg-white p-4 cursor-pointer" onClick={() => onEdit?.(item)}>
-        <div className="flex items-start gap-2">
-          <span className="grid size-9 place-items-center rounded-sm border border-[#D1CECE]">
+      <div className="flex items-center justify-between rounded-md border border-[#D1CECE] bg-white p-4 cursor-pointer h-[120px]" onClick={() => onEdit?.(item)}>
+        <div className="flex items-start gap-2 min-w-0 flex-1 overflow-hidden">
+          <span className="grid size-9 shrink-0 place-items-center rounded-sm border border-[#D1CECE]">
             <Image src="/icons/clipboard-text-primary.svg" alt="note" width={24} height={24} />
           </span>
-          <div className="leading-tight flex-1">
-            <div className="text-base font-bold text-[#0D141C] mb-1">{item.title}</div>
-            <div className="text-xs text-[#0D141C] leading-relaxed prose prose-sm sm:prose-base focus:outline-none prose-p:leading-relaxed prose-pre:p-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 [&_ul_li_p]:inline [&_ol_li_p]:inline [&_ul_li_p]:m-0 [&_ol_li_p]:m-0" dangerouslySetInnerHTML={{ __html: item.body }} />
+          <div className="leading-tight flex-1 min-w-0 overflow-hidden">
+            <div className="text-base font-bold text-[#0D141C] mb-1 truncate">{item.title}</div>
+            <div className="text-xs text-[#0D141C] leading-relaxed prose prose-sm sm:prose-base focus:outline-none prose-p:leading-relaxed prose-pre:p-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 [&_ul_li_p]:inline [&_ol_li_p]:inline [&_ul_li_p]:m-0 [&_ol_li_p]:m-0 line-clamp-3 overflow-hidden" dangerouslySetInnerHTML={{ __html: item.body }} />
             {fileCount > 0 ? (
               <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                 <Paperclip className="size-3" />
@@ -42,7 +42,7 @@ export function ChecklistItem({
             ) : null}
           </div>
         </div>
-        <Button size="icon" variant="ghost" className="text-[#D64575]" onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}>
+        <Button size="icon" variant="ghost" className="text-[#D64575] shrink-0" onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}>
           <Trash className="size-4" />
         </Button>
       </div>
