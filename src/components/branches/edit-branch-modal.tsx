@@ -61,18 +61,22 @@ export function EditBranchModal({ open, setOpen, branch }: EditBranchModalProps)
       setOpen(false);
     } catch (error: unknown) {
       console.error("Error updating branch:", error);
+      
+      // The API client converts errors to Error objects with messages
+      const errorMessage = error instanceof Error ? error.message : String(error);
       const err = error as { response?: { data?: Record<string, unknown>; status?: number } };
       const status = err?.response?.status;
 
-      // Handle specific error cases
-      if (status === 409) {
+      // Handle specific error cases - check both message and status
+      if (status === 409 || errorMessage.toLowerCase().includes("already exists") || errorMessage.toLowerCase().includes("duplicate")) {
         toast.error("A branch with this name already exists");
-      } else if (status === 403) {
+      } else if (status === 403 || errorMessage.toLowerCase().includes("access denied") || errorMessage.toLowerCase().includes("don't have permission")) {
         toast.error("You don't have permission to perform this action");
-      } else if (status === 404) {
+      } else if (status === 404 || errorMessage.toLowerCase().includes("not found")) {
         toast.error("Branch not found");
       } else {
-        toast.error("Failed to update branch. Please try again.");
+        // Use the error message if available, otherwise show generic message
+        toast.error(errorMessage || "Failed to update branch. Please try again.");
       }
     } finally {
       setIsSubmitting(false);

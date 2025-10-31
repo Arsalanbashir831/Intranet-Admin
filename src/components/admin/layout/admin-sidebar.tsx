@@ -47,18 +47,18 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const { user } = useAuth();
   const isCollapsed = state === "collapsed";
-  const isSuperuser = user?.isSuperuser === true;
+  const isAdmin = user?.isAdmin === true;
 
   // Filter navigation items based on user permissions
   const visibleNavItems = useMemo(() => {
     return NAV_ITEMS.filter((item) => {
-      // Hide Branches if user is not superuser
-      if (item.href === ROUTES.ADMIN.BRANCHES && !isSuperuser) {
+      // Hide Branches if user is not admin
+      if (item.href === ROUTES.ADMIN.BRANCHES && !isAdmin) {
         return false;
       }
       return true;
     });
-  }, [isSuperuser]);
+  }, [isAdmin]);
 
   return (
     <Sidebar collapsible="icon" className="border-none">
