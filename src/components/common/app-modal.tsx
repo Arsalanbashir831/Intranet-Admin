@@ -60,7 +60,21 @@ export function AppModal({
               <div className="grid size-9 place-items-center rounded bg-[#008285] text-white overflow-hidden">
                 {typeof icon === "string" ? (
                   // If a string path is provided, render as an image from public/
-                  <Image src={icon} alt="icon" className="size-5" width={20} height={20} />
+                  // <Image src={icon} alt="icon" className="size-5" width={20} height={20} />
+                  <span
+                    className="size-5 inline-block bg-current flex-shrink-0"
+                    style={{
+                      WebkitMaskImage: `url(${icon})`,
+                      maskImage: `url(${icon})`,
+                      WebkitMaskRepeat: "no-repeat",
+                      maskRepeat: "no-repeat",
+                      WebkitMaskPosition: "center",
+                      maskPosition: "center",
+                      WebkitMaskSize: "contain",
+                      maskSize: "contain",
+                    }}
+                    aria-hidden
+                  />
                 ) : (
                   icon
                 )}
