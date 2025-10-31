@@ -11,7 +11,7 @@ import { LogOut, ChevronUp, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
 import { useLogout } from "@/hooks/queries/use-auth";
-
+// admin folder
 export function AdminFooterMenu() {
 	const { user } = useAuth();
 	const logoutMutation = useLogout();
