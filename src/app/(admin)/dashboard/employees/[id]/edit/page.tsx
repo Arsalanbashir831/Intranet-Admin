@@ -35,20 +35,59 @@ export default function EditOrgChartPage() {
 		? data.employee
 		: (data as ApiEmployee | undefined);
 
-	// Get the branch department ID
-	const branchDepartmentId = apiEmployee?.branch_department
-		? String(apiEmployee.branch_department)
-		: undefined;
+	// Get the branch department ID - check multiple possible fields
+	const branchDepartmentId = React.useMemo(() => {
+		if (!apiEmployee) return undefined;
+		
+		// Try branch_department_ids array first (from API response)
+		if (Array.isArray((apiEmployee as typeof apiEmployee & { branch_department_ids?: number[] }).branch_department_ids) && 
+		    (apiEmployee as typeof apiEmployee & { branch_department_ids?: number[] }).branch_department_ids!.length > 0) {
+			return String((apiEmployee as typeof apiEmployee & { branch_department_ids?: number[] }).branch_department_ids![0]);
+		}
+		
+		// Try branch_departments array (from API response)
+		const branchDepartments = (apiEmployee as typeof apiEmployee & { branch_departments?: Array<{ id: number }> }).branch_departments;
+		if (Array.isArray(branchDepartments) && branchDepartments.length > 0 && branchDepartments[0].id) {
+			return String(branchDepartments[0].id);
+		}
+		
+		// Fallback to branch_department (if it exists as a single value)
+		if ((apiEmployee as typeof apiEmployee & { branch_department?: number }).branch_department) {
+			return String((apiEmployee as typeof apiEmployee & { branch_department?: number }).branch_department);
+		}
+		
+		return undefined;
+	}, [apiEmployee]);
+
+	// Get role_id - use role_id from API response, fallback to role string and map it
+	const roleId = React.useMemo(() => {
+		if (!apiEmployee) return undefined;
+		
+		// Try role_id first (from API response)
+		const roleIdValue = (apiEmployee as typeof apiEmployee & { role_id?: number }).role_id;
+		if (roleIdValue !== undefined) {
+			return String(roleIdValue);
+		}
+		
+		// Fallback: map role string to role_id if role_id is not available
+		const roleString = apiEmployee.role;
+		if (roleString === "Junior Staff") return "1";
+		if (roleString === "Mid Senior Staff") return "2";
+		if (roleString === "Senior Staff") return "3";
+		if (roleString === "Manager") return "4";
+		
+		return undefined;
+	}, [apiEmployee]);
 
 	const initialValues: OrgChartInitialValues | undefined = apiEmployee
 		? {
 				emp_name: apiEmployee.emp_name ?? "",
 				email: apiEmployee.email ?? undefined,
 				phone: apiEmployee.phone ?? undefined,
-				role: apiEmployee.role ?? undefined,
+				role: roleId, // Use role_id converted to string
 				education: apiEmployee.education ?? undefined,
 				bio: apiEmployee.bio ?? undefined,
-				branch_department: branchDepartmentId,
+				branch_department: branchDepartmentId, // Use branch_department_ids[0] or branch_departments[0].id
 				profileImageUrl: apiEmployee.profile_picture ?? undefined,
 				address: (apiEmployee as typeof apiEmployee & { address?: string })?.address ?? undefined,
 				city: (apiEmployee as typeof apiEmployee & { city?: string })?.city ?? undefined,
