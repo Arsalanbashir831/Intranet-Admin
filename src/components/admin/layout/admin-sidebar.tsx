@@ -20,6 +20,8 @@ import {
 import { AdminFooterMenu } from "./admin-footer-menu";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
+import { useMemo } from "react";
 
 type NavItem = {
   label: string;
@@ -43,7 +45,20 @@ export const NAV_ITEMS: NavItem[] = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
+  const { user } = useAuth();
   const isCollapsed = state === "collapsed";
+  const isSuperuser = user?.isSuperuser === true;
+
+  // Filter navigation items based on user permissions
+  const visibleNavItems = useMemo(() => {
+    return NAV_ITEMS.filter((item) => {
+      // Hide Branches if user is not superuser
+      if (item.href === ROUTES.ADMIN.BRANCHES && !isSuperuser) {
+        return false;
+      }
+      return true;
+    });
+  }, [isSuperuser]);
 
   return (
     <Sidebar collapsible="icon" className="border-none">
@@ -72,7 +87,7 @@ export function AdminSidebar() {
         <SidebarGroup className="border-b border-[#E4E4E4] py-4">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-4">
-              {NAV_ITEMS.map((item) => {
+              {visibleNavItems.map((item) => {
                 const isActive = item.href === ROUTES.ADMIN.DASHBOARD 
                   ? pathname === item.href 
                   : pathname === item.href || pathname.startsWith(item.href + "/");
