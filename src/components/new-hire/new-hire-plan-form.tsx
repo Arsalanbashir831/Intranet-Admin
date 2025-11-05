@@ -12,6 +12,7 @@ export type ChecklistItemData = {
   title: string; 
   body: string; 
   type: "task" | "training";
+  deadline?: string;
   files?: File[];
   deletedFileIds?: number[];
   existingFiles?: Array<{

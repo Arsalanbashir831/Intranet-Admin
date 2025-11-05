@@ -14,6 +14,7 @@ export const API_ROUTES = {
         DELETE: (id: number | string) => `/branches/${id}/`,
     },
     BRANCH_DEPARTMENTS: {
+        LIST: "/branchdepartments/",
         CREATE: "/branchdepartments/",
         UPDATE: (id: number | string) => `/branchdepartments/${id}/`,
         DELETE: (id: number | string) => `/branchdepartments/${id}/`,
@@ -112,5 +113,11 @@ export const API_ROUTES = {
         DETAIL: (id: number | string) => `/knowledge/polls/${id}/`,
         CREATE: "/knowledge/polls/",
         DELETE: (id: number | string) => `/knowledge/polls/${id}/`,
+    },
+    ROLES: {
+        LIST: "/roles/",
+        CREATE: "/roles/",
+        UPDATE: (id: number | string) => `/roles/${id}/`,
+        DELETE: (id: number | string) => `/roles/${id}/`,
     }
 } as const;

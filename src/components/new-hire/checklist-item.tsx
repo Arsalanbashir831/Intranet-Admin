@@ -32,6 +32,11 @@ export function ChecklistItem({
           <div className="leading-tight flex-1 min-w-0 overflow-hidden">
             <div className="text-base font-bold text-[#0D141C] mb-1 truncate">{item.title}</div>
             <div className="text-xs text-[#0D141C] leading-relaxed prose prose-sm sm:prose-base focus:outline-none prose-p:leading-relaxed prose-pre:p-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 [&_ul_li_p]:inline [&_ol_li_p]:inline [&_ul_li_p]:m-0 [&_ol_li_p]:m-0 line-clamp-3 overflow-hidden" dangerouslySetInnerHTML={{ __html: item.body }} />
+            {item.deadline ? (
+              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                <span>Deadline: {new Date(item.deadline).toLocaleDateString()}</span>
+              </div>
+            ) : null}
             {fileCount > 0 ? (
               <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                 <Paperclip className="size-3" />

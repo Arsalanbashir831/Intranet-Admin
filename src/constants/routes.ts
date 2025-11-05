@@ -30,6 +30,7 @@ export const ROUTES = {
     EXECUTIVE_MEMBERS_NEW: "/dashboard/executive-members/new",
     EXECUTIVE_MEMBERS_ID: (id: string) => `/dashboard/executive-members/${id}`,
     EXECUTIVE_MEMBERS_ID_EDIT: (id: string) => `/dashboard/executive-members/${id}/edit`,
+    ROLES: "/dashboard/roles",
   POLLS: "/dashboard/polls",
   POLLS_NEW: "/dashboard/polls/new",
   POLLS_ID: (id: string) => `/dashboard/polls/${id}`,

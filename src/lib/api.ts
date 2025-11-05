@@ -110,15 +110,61 @@ export class ApiClient {
       return Promise.reject(new Error("Network error. Please check your connection and try again."));
     }
 
+    // Helper function to extract error message from response
+    const extractErrorMessage = (responseData: unknown): string | null => {
+      if (!responseData || typeof responseData !== "object") {
+        return null;
+      }
+      
+      const data = responseData as Record<string, unknown>;
+      
+      // Check for direct error field
+      if ("error" in data && typeof data.error === "string") {
+        return data.error;
+      }
+      
+      // Check for detail field (common in DRF responses)
+      if ("detail" in data && typeof data.detail === "string") {
+        return data.detail;
+      }
+      
+      // Check for message field
+      if ("message" in data && typeof data.message === "string") {
+        return data.message;
+      }
+      
+      // Check for non_field_errors
+      if ("non_field_errors" in data) {
+        const nfe = data.non_field_errors;
+        if (Array.isArray(nfe) && nfe.length > 0) {
+          return nfe.join(". ");
+        } else if (typeof nfe === "string") {
+          return nfe;
+        }
+      }
+      
+      return null;
+    };
+
     // Handle specific HTTP status codes
     switch (error.response.status) {
       case 401:
         // Unauthorized - token might be expired
         break; // Continue with token refresh logic
+      case 400:
+        // Bad Request - validation errors or business logic errors
+        console.error("ApiClient: Bad request", error);
+        const badRequestMessage = extractErrorMessage(error.response.data);
+        return Promise.reject(
+          new Error(badRequestMessage || "Invalid request. Please check your input and try again.")
+        );
       case 403:
         // Forbidden - user doesn't have permission
         console.error("ApiClient: Forbidden access", error);
-        return Promise.reject(new Error("Access denied. You don't have permission to perform this action."));
+        const forbiddenMessage = extractErrorMessage(error.response.data);
+        return Promise.reject(
+          new Error(forbiddenMessage || "Access denied. You don't have permission to perform this action.")
+        );
       case 404:
         // Not found
         console.error("ApiClient: Resource not found", error);
@@ -138,9 +184,12 @@ export class ApiClient {
         console.error("ApiClient: Service unavailable", error);
         return Promise.reject(new Error("Service temporarily unavailable. Please try again later."));
       default:
-        // Other errors
+        // Other errors - try to extract message from response
         console.error("ApiClient: Unexpected error", error);
-        return Promise.reject(new Error("An unexpected error occurred. Please try again."));
+        const defaultMessage = extractErrorMessage(error.response.data);
+        return Promise.reject(
+          new Error(defaultMessage || "An unexpected error occurred. Please try again.")
+        );
     }
 
     if (error.response?.status === 401 && !originalReq._retry) {

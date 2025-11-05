@@ -48,13 +48,14 @@ export function ChecklistCard({
       setOpen(true);
     };
 
-    const handleCreate = ({ title: t, detail, files }: { title: string; detail: string; files?: File[] }) => {
+    const handleCreate = ({ title: t, detail, deadline, files }: { title: string; detail: string; deadline?: string; files?: File[] }) => {
       const id = `${variant}-${Date.now()}`;
       const newItem: ChecklistItemData = {
         id, 
         title: t || "Task Title..", 
         body: detail || "Task body about this task..",
         type: variant,
+        deadline: deadline,
         files: files
       };
       const updatedItems = [newItem, ...items];
@@ -63,13 +64,14 @@ export function ChecklistCard({
       setEditItem(null); // Clear edit state
     };
 
-    const handleUpdate = (id: string, { title: t, detail, files, deletedFileIds }: { title: string; detail: string; files?: File[]; deletedFileIds?: number[] }) => {
+    const handleUpdate = (id: string, { title: t, detail, deadline, files, deletedFileIds }: { title: string; detail: string; deadline?: string; files?: File[]; deletedFileIds?: number[] }) => {
       const updatedItems = items.map(item => 
         item.id === id 
           ? { 
               ...item, 
               title: t, 
-              body: detail, 
+              body: detail,
+              deadline: deadline,
               // Update files with newly added files
               files: files !== undefined ? [...(item.files || []), ...files] : item.files,
               // Merge deleted file IDs with existing ones

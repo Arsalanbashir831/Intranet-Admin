@@ -17,6 +17,7 @@ import { ROUTES } from "@/constants/routes";
 import { useEmployees, useDeleteEmployee } from "@/hooks/queries/use-employees";
 import { useBranchDepartmentEmployees, useDepartmentEmployees } from "@/hooks/queries/use-departments";
 import { useManagerScope } from "@/contexts/manager-scope-context";
+import { useRoles } from "@/hooks/queries/use-roles";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,20 @@ export function EmployeeTable() {
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [filters, setFilters] = React.useState<Record<string, unknown>>({});
+  
+  // Fetch roles to map role IDs to names
+  const { data: rolesData } = useRoles(undefined, { pageSize: 1000 });
+  
+  // Create a map of role ID to role name
+  const roleMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    if (rolesData?.roles?.results) {
+      rolesData.roles.results.forEach(role => {
+        map.set(String(role.id), role.name);
+      });
+    }
+    return map;
+  }, [rolesData]);
 
   // Debounce search query to avoid too many API calls
   React.useEffect(() => {
@@ -177,6 +192,10 @@ export function EmployeeTable() {
         return url; // Return as-is if it doesn't start with /
       };
 
+      // Map role ID to role name if available
+      const roleId = String(employee.role ?? "");
+      const roleName = roleMap.get(roleId) || roleId; // Use mapped name or fallback to ID/name
+      
       return {
         id: String(employee.id),
         name: String(employee.emp_name ?? ""),
@@ -184,12 +203,12 @@ export function EmployeeTable() {
         location: uniqueBranches.join(", ") || "--",
         email: String(employee.email ?? ""),
         department: uniqueDepartments.join(", ") || "--",
-        role: String(employee.role ?? ""),
+        role: roleName,
         reportingTo: firstManager?.employee?.emp_name ?? null,
         reportingAvatar: getAbsoluteUrl(firstManager?.employee?.profile_picture),
       };
     });
-  }, [apiData, shouldUseDepartmentFilter, shouldUseBranchDepartmentFilter]);
+  }, [apiData, shouldUseDepartmentFilter, shouldUseBranchDepartmentFilter, roleMap]);
   
   const { pinnedIds, togglePin } = usePinnedRows<EmployeeRow>(data);
 

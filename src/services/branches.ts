@@ -153,6 +153,50 @@ export async function deleteBranch(id: number | string) {
 }
 
 // Branch Departments functions
+export type BranchDepartmentListItem = {
+  id: number;
+  branch: {
+    id: number;
+    branch_name: string;
+  };
+  department: {
+    id: number;
+    dept_name: string;
+  };
+  employee_count: number;
+  manager: null | {
+    id: number;
+    employee: {
+      id: number;
+      emp_name: string;
+      profile_picture?: string | null;
+      email: string;
+      role: string;
+      role_id: number;
+    };
+    branch_department: {
+      id: number;
+      branch: {
+        id: number;
+        branch_name: string;
+      };
+      department: {
+        id: number;
+        dept_name: string;
+      };
+    };
+  };
+};
+
+export type BranchDepartmentListResponse = {
+  branch_departments: {
+    count: number;
+    page: number;
+    page_size: number;
+    results: BranchDepartmentListItem[];
+  };
+};
+
 export type BranchDepartmentCreateRequest = {
   branch_id: number;
   department_id: number;
@@ -168,6 +212,37 @@ export type BranchDepartmentResponse = {
   branch_id: number;
   department_id: number;
 };
+
+export async function listBranchDepartments(
+  params?: Record<string, string | number | boolean>,
+  pagination?: { page?: number; pageSize?: number }
+) {
+  const url = API_ROUTES.BRANCH_DEPARTMENTS.LIST;
+  const queryParams: Record<string, string> = {};
+  
+  // Add pagination parameters
+  if (pagination) {
+    const paginationParams = generatePaginationParams(
+      pagination.page ? pagination.page - 1 : 0,
+      pagination.pageSize || 10
+    );
+    Object.assign(queryParams, paginationParams);
+  }
+  
+  // Add other parameters
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      queryParams[key] = String(value);
+    });
+  }
+  
+  const query = Object.keys(queryParams).length > 0 
+    ? `?${new URLSearchParams(queryParams)}` 
+    : "";
+    
+  const res = await apiCaller<BranchDepartmentListResponse>(`${url}${query}`, "GET");
+  return res.data;
+}
 
 export async function createBranchDepartment(payload: BranchDepartmentCreateRequest) {
   const res = await apiCaller<BranchDepartmentResponse>(API_ROUTES.BRANCH_DEPARTMENTS.CREATE, "POST", payload, {}, "json");

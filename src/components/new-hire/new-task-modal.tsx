@@ -10,13 +10,14 @@ import { Dropzone } from "@/components/ui/dropzone";
 export type NewTaskModalProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onCreate?: (task: { title: string; detail: string; files?: File[] }) => void;
-  onUpdate?: (id: string, task: { title: string; detail: string; files?: File[]; deletedFileIds?: number[] }) => void;
+  onCreate?: (task: { title: string; detail: string; deadline?: string; files?: File[] }) => void;
+  onUpdate?: (id: string, task: { title: string; detail: string; deadline?: string; files?: File[]; deletedFileIds?: number[] }) => void;
   type?: "task" | "training";
   editItem?: {
     id: string;
     title: string;
     body: string;
+    deadline?: string;
     existingFiles?: Array<{
       id: number;
       attachment: number;
@@ -33,6 +34,7 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
   const isEditing = !!editItem;
   const [title, setTitle] = React.useState(editItem?.title || (isTraining ? "Training 1" : "Task 1"));
   const [detail, setDetail] = React.useState(editItem?.body || "");
+  const [deadline, setDeadline] = React.useState(editItem?.deadline || "");
   const [files, setFiles] = React.useState<File[]>([]);
   const [deletedFileIds, setDeletedFileIds] = React.useState<number[]>([]);
   const [blobUrls, setBlobUrls] = React.useState<string[]>([]); // Track blob URLs for cleanup
@@ -42,12 +44,14 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
     if (editItem) {
       setTitle(editItem.title);
       setDetail(editItem.body);
+      setDeadline(editItem.deadline || "");
       // Reset files when editing to avoid duplicates
       setFiles([]);
       setDeletedFileIds(editItem.deletedFileIds || []);
     } else {
       setTitle(isTraining ? "Training 1" : "Task 1");
       setDetail("");
+      setDeadline("");
       setFiles([]);
       setDeletedFileIds([]);
       // Clean up blob URLs when switching to create mode
@@ -67,15 +71,17 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
     if (isEditing && editItem && onUpdate) {
       onUpdate(editItem.id, { 
         title, 
-        detail, 
+        detail,
+        deadline: deadline || undefined,
         files: files.length > 0 ? files : undefined,
         deletedFileIds: deletedFileIds.length > 0 ? deletedFileIds : undefined
       });
     } else {
-      onCreate?.({ title, detail, files: files.length > 0 ? files : undefined });
+      onCreate?.({ title, detail, deadline: deadline || undefined, files: files.length > 0 ? files : undefined });
     }
     setTitle(isTraining ? "Training 1" : "Task 1");
     setDetail("");
+    setDeadline("");
     setFiles([]);
     setDeletedFileIds([]);
     // Clean up blob URLs
@@ -87,6 +93,7 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
   const handleCancel = () => {
     setTitle(isTraining ? "Training 1" : "Task 1");
     setDetail("");
+    setDeadline("");
     setFiles([]);
     setDeletedFileIds([]);
     // Clean up blob URLs
@@ -142,6 +149,16 @@ export function NewTaskModal({ open, setOpen, onCreate, onUpdate, type = "task",
             minHeight="160px"
             maxHeight="260px"
             className="w-full"
+          />
+        </div>
+
+        <div className="flex flex-col md:flex-row items-start gap-6">
+          <Label className="w-28 pt-2">Deadline:</Label>
+          <Input
+            type="date"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            className="border-[#E2E8F0] w-full"
           />
         </div>
 

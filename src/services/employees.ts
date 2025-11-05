@@ -23,8 +23,6 @@ export type EmployeeCreateRequest = {
   role?: number | null;
   education?: string | null;
   bio?: string | null;
-  address?: string | null;
-  city?: string | null;
   profile_picture?: File | string | null; // Support both File and string
 };
 export type EmployeeCreateResponse = Employee;
