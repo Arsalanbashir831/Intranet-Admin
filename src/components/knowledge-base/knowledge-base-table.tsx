@@ -272,7 +272,7 @@ export function KnowledgeBaseTable() {
             return (
               <Avatar key={index} className="size-5">
                 <AvatarImage src={item.profile_picture || undefined} alt={name} />
-                <AvatarFallback className="text-[8px]">
+                <AvatarFallback className="text-[8px] bg-primary/70 text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -308,9 +308,6 @@ export function KnowledgeBaseTable() {
         } else if (accessLevel === "Specific Departments") {
           return (
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
-                Departments
-              </Badge>
               {renderAvatarsWithCount(accessLevelDetails.departments)}
             </div>
           );

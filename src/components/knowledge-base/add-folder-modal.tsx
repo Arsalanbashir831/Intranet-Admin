@@ -7,15 +7,14 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SelectableTags, SelectableItem } from "@/components/ui/selectable-tags";
 import { useCreateFolder, useUpdateFolder, useGetFolder } from "@/hooks/queries/use-knowledge-folders";
-import { useAllEmployees } from "@/hooks/queries/use-employees";
-import { useBranchDepartments } from "@/hooks/queries/use-departments";
+import { useDepartments } from "@/hooks/queries/use-departments";
+import { useAllBranches } from "@/hooks/queries/use-branches";
 import { useManagerScope } from "@/contexts/manager-scope-context";
 import { FolderCreateRequest } from "@/services/knowledge-folders";
+import { createCustomSelectableItems } from "@/components/ui/selectable-tags";
 import type { components } from "@/types/api";
 
-type Employee = components["schemas"]["Employee"];
-
-type AccessType = "all-employees" | "people" | "branch-department";
+type AccessType = "all-employees" | "branch" | "department";
 
 
 
@@ -37,41 +36,38 @@ export function AddFolderModal({
   showAccessOptions?: boolean;
 }) {
   // Get manager scope to filter options
-  const { isManager, managedDepartments } = useManagerScope();
+  const { isManager } = useManagerScope();
   
   const [folderName, setFolderName] = React.useState("");
-  // Default to "branch-department" for managers, "all-employees" for admins
-  const [access, setAccess] = React.useState<AccessType>(isManager ? "branch-department" : "all-employees");
-  const [selectedPeople, setSelectedPeople] = React.useState<string[]>([]);
-  const [selectedBranchDepartments, setSelectedBranchDepartments] = React.useState<string[]>([]);
+  // Default to "department" for managers, "all-employees" for admins
+  const [access, setAccess] = React.useState<AccessType>(isManager ? "department" : "all-employees");
+  const [selectedBranches, setSelectedBranches] = React.useState<string[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = React.useState<string[]>([]);
 
   const createFolder = useCreateFolder();
   const updateFolder = useUpdateFolder();
-  const { data: employeesData } = useAllEmployees();
-  const { data: branchDepartmentsData } = useBranchDepartments();
+  const { data: departmentsData } = useDepartments(undefined, { pageSize: 1000 });
+  const { data: branchesData } = useAllBranches();
   const { data: folderData, isLoading: isFolderLoading } = useGetFolder(folderId || 0, isEditMode && !!folderId);
 
   // Load folder data when in edit mode
   React.useEffect(() => {
     if (isEditMode && folderData?.folder) {
       const folder = folderData.folder as components["schemas"]["KnowledgeFolder"] & {
-        permitted_branch_departments?: number[];
+        permitted_branches?: number[];
+        permitted_departments?: number[];
       };
       setFolderName(folder.name);
       
       // Determine access type based on permissions
-      // Check for permitted_branch_departments first (new field)
-      if (folder.permitted_branch_departments && folder.permitted_branch_departments.length > 0) {
-        setAccess("branch-department");
-        setSelectedBranchDepartments(folder.permitted_branch_departments.map((d: number) => d.toString()));
+      if (folder.permitted_branches && folder.permitted_branches.length > 0) {
+        setAccess("branch");
+        setSelectedBranches(folder.permitted_branches.map((b: number) => b.toString()));
       } else if (folder.permitted_departments && folder.permitted_departments.length > 0) {
-        setAccess("branch-department");
-        setSelectedBranchDepartments(folder.permitted_departments.map((d: number) => d.toString()));
-      } else if (folder.permitted_employees && folder.permitted_employees.length > 0) {
-        setAccess("people");
-        setSelectedPeople(folder.permitted_employees.map((e: number) => e.toString()));
+        setAccess("department");
+        setSelectedDepartments(folder.permitted_departments.map((d: number) => d.toString()));
       } else {
-        setAccess(isManager ? "branch-department" : "all-employees");
+        setAccess(isManager ? "department" : "all-employees");
       }
     }
   }, [isEditMode, folderData, isManager]);
@@ -80,50 +76,29 @@ export function AddFolderModal({
   React.useEffect(() => {
     if (!open) {
       setFolderName("");
-      setAccess(isManager ? "branch-department" : "all-employees");
-      setSelectedPeople([]);
-      setSelectedBranchDepartments([]);
+      setAccess(isManager ? "department" : "all-employees");
+      setSelectedBranches([]);
+      setSelectedDepartments([]);
     }
   }, [open, isManager]);
 
-  // Create selectable items from API data - filtered by manager scope
-  const peopleItems: SelectableItem[] = React.useMemo(() => {
-    if (!employeesData?.results) return [];
-    
-    // Filter employees: if manager, only show employees from their managed departments
-    const filteredEmployees = isManager
-      ? employeesData.results.filter((emp: Employee) => {
-          // Check if employee belongs to any of manager's departments
-          return managedDepartments.includes(emp.branch_department);
-        })
-      : employeesData.results;
-    
-    return filteredEmployees.map((emp: Employee) => ({
-      id: emp.id.toString(),
-      label: emp.emp_name,
-    }));
-  }, [employeesData, isManager, managedDepartments]);
+  // Create selectable items from API data - branches
+  const branchItems: SelectableItem[] = React.useMemo(() => {
+    if (!branchesData) return [];
+    const list = Array.isArray(branchesData) 
+      ? branchesData 
+      : (branchesData as { branches?: { results?: unknown[] } })?.branches?.results || [];
+    return createCustomSelectableItems(list as Array<{ id: unknown; branch_name: unknown }>, "id", "branch_name");
+  }, [branchesData]);
 
-  // Branch Department items - filtered by manager scope
-  const branchDepartmentItems: SelectableItem[] = React.useMemo(() => {
-    if (!branchDepartmentsData || !Array.isArray(branchDepartmentsData)) return [];
-    
-    // Filter: if manager, only show their managed branch departments
-    const filteredBranchDepartments = isManager
-      ? branchDepartmentsData.filter((bd) => {
-          return managedDepartments.includes(bd.id);
-        })
-      : branchDepartmentsData;
-    
-    return filteredBranchDepartments.map((bd) => {
-      const branchName = bd.branch?.branch_name || 'Unknown Branch';
-      const deptName = bd.department?.dept_name || 'Unknown Department';
-      return {
-        id: bd.id.toString(),
-        label: `${deptName} - ${branchName}`,
-      };
-    });
-  }, [branchDepartmentsData, isManager, managedDepartments]);
+  // Create selectable items from API data - departments
+  const departmentItems: SelectableItem[] = React.useMemo(() => {
+    if (!departmentsData) return [];
+    const list = Array.isArray(departmentsData) 
+      ? departmentsData 
+      : (departmentsData as { departments?: { results?: unknown[] } })?.departments?.results || [];
+    return createCustomSelectableItems(list as Array<{ id: unknown; dept_name: unknown }>, "id", "dept_name");
+  }, [departmentsData]);
 
   const canCreate = folderName.trim().length > 0;
 
@@ -134,10 +109,10 @@ export function AddFolderModal({
       name: folderName,
       parent: isEditMode ? (folderData?.folder?.parent || null) : (parentFolderId || null),
       inherits_parent_permissions: true,
-      permitted_employees: access === "people" ? selectedPeople.map(Number) : [],
-      permitted_branch_departments: access === "branch-department" ? selectedBranchDepartments.map(Number) : [],
-      permitted_departments: [] as number[],
-      permitted_branches: [] as number[],
+      permitted_branches: access === "branch" ? selectedBranches.map(Number) : [],
+      permitted_departments: access === "department" ? selectedDepartments.map(Number) : [],
+      permitted_branch_departments: [] as number[],
+      permitted_employees: [] as number[],
     } satisfies FolderCreateRequest;
 
     try {
@@ -149,9 +124,9 @@ export function AddFolderModal({
       
       // Reset form
       setFolderName("");
-      setAccess(isManager ? "branch-department" : "all-employees");
-      setSelectedPeople([]);
-      setSelectedBranchDepartments([]);
+      setAccess(isManager ? "department" : "all-employees");
+      setSelectedBranches([]);
+      setSelectedDepartments([]);
       onOpenChange(false);
       
       // Call completion callback if provided
@@ -202,47 +177,43 @@ export function AddFolderModal({
                     </div>
                   )}
                   <div className="flex items-start gap-3 px-4">
-                    <RadioGroupItem id="access-people" value="people" />
+                    <RadioGroupItem id="access-branch" value="branch" />
                     <div>
-                      <Label htmlFor="access-people" className="text-sm font-medium cursor-pointer">Specific people</Label>
+                      <Label htmlFor="access-branch" className="text-sm font-medium cursor-pointer">Branch</Label>
                       <div className="text-xs text-muted-foreground">
-                        {isManager ? "Choose people from your departments" : "Choose who to share this folder with"}
+                        Choose branches to share this folder with
                       </div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 px-4">
-                    <RadioGroupItem id="access-branch-department" value="branch-department" />
+                    <RadioGroupItem id="access-department" value="department" />
                     <div>
-                      <Label htmlFor="access-branch-department" className="text-sm font-medium cursor-pointer">
-                        {isManager ? "Branch Department (Your departments only)" : "Branch Department"}
-                      </Label>
+                      <Label htmlFor="access-department" className="text-sm font-medium cursor-pointer">Department</Label>
                       <div className="text-xs text-muted-foreground">
-                        {isManager 
-                          ? "Share with your managed branch departments" 
-                          : "Choose branch departments to share this folder with"
-                        }
+                        Choose departments to share this folder with
                       </div>
                     </div>
                   </div>
              
               </RadioGroup>
 
-              {access === "people" ? (
+              {access === "branch" ? (
                 <SelectableTags
-                  items={peopleItems}
-                  selectedItems={selectedPeople}
-                  onSelectionChange={setSelectedPeople}
-                  placeholder={isManager ? "Add people from your departments" : "Add people"}
+                  items={branchItems}
+                  selectedItems={selectedBranches}
+                  onSelectionChange={setSelectedBranches}
+                  placeholder="Select branches"
                   className="w-full"
                 />
               ) : null}
 
-              {access === "branch-department" ? (
+              {access === "department" ? (
                 <SelectableTags
-                  items={branchDepartmentItems}
-                  selectedItems={selectedBranchDepartments}
-                  onSelectionChange={setSelectedBranchDepartments}
-                  placeholder={isManager ? "Select your branch departments" : "Select branch departments"}
+                  items={departmentItems}
+                  selectedItems={selectedDepartments}
+                  onSelectionChange={setSelectedDepartments}
+                  placeholder="Select departments"
+                  className="w-full"
                 />
               ) : null}
             </div>

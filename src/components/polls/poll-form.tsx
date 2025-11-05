@@ -24,6 +24,8 @@ import {
 import {
   useAllBranches,
   useSearchBranches,
+  useBranchDepartments,
+  useSearchBranchDepartments,
 } from "@/hooks/queries/use-branches";
 import { useManagerScope } from "@/contexts/manager-scope-context";
 
@@ -40,7 +42,6 @@ const pollFormSchema = z.object({
   })).min(2, "At least 2 options are required"),
   permitted_branches: z.array(z.string()).optional(),
   permitted_departments: z.array(z.string()).optional(),
-  permitted_branch_departments: z.array(z.string()).optional(),
 });
 
 export type PollFormData = z.infer<typeof pollFormSchema>;
@@ -69,113 +70,113 @@ export function PollForm({
   const { data: departmentsData } = useDepartments();
   const { data: branchesData } = useAllBranches();
 
-  // Create adapter functions for branch departments (similar to org-chart-form.tsx)
-  const useAllBranchDepartments = () => {
-    const result = useDepartments(undefined, { pageSize: 100 });
-    const branchDeptItems = React.useMemo(() => {
-      // Handle both array format (new) and nested object format (old)
-      const results = Array.isArray(result.data) 
-        ? result.data 
-        : (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
+  const form = useForm<PollFormData>({
+    resolver: zodResolver(pollFormSchema),
+    defaultValues: {
+      title: initialData?.title || "",
+      subtitle: initialData?.subtitle || "",
+      question: initialData?.question || "",
+      poll_type: initialData?.poll_type || "public",
+      expires_at: initialData?.expires_at || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      options: initialData?.options || [
+        { option_text: "" },
+        { option_text: "" },
+      ],
+      permitted_branches: initialData?.permitted_branches || [],
+      permitted_departments: initialData?.permitted_departments || [],
+    },
+  });
 
-      const items: { id: string; label: string }[] = [];
-      for (const dept of results || []) {
-        const deptData = dept as {
-          dept_name?: string;
-          name?: string;
-          branch_departments?: unknown[];
-        };
-        const deptName = String(deptData.dept_name ?? deptData.name ?? "");
-        const branchDepartments = deptData.branch_departments as
-          | Array<{
-              id: number;
-              branch?: { branch_name?: string };
-              branch_name?: string;
-            }>
-          | undefined;
-        if (Array.isArray(branchDepartments)) {
-          for (const bd of branchDepartments) {
-            const bdId = String(bd.id);
-            const branchName = String(
-              bd?.branch?.branch_name ?? bd?.branch_name ?? ""
-            );
-            
-            // Filter: If manager, only show their managed departments
-            if (isManager && !managedDepartments.includes(bd.id)) {
-              continue; // Skip this department
-            }
-            
-            items.push({ id: bdId, label: `${deptName} - ${branchName}` });
-          }
-        }
-      }
-      return items;
-    }, [result.data, isManager, managedDepartments]);
+  const { watch, setValue, handleSubmit, getValues, formState: { errors } } = form;
+  
+  // Watch form values for controlled inputs
+  const watchedValues = watch();
 
-    return {
-      data: branchDeptItems,
-      isLoading: result.isLoading,
-    };
-  };
+  // Create a stable form data change handler
+  const handleFormDataChange = React.useCallback(() => {
+    if (onFormDataChange) {
+      const currentData = getValues();
+      onFormDataChange(currentData);
+    }
+  }, [onFormDataChange, getValues]);
 
-  const useSearchBranchDepartmentsAdapter = (query: string) => {
-    const result = useSearchDepartments(query, { pageSize: 100 });
-    const branchDeptItems = React.useMemo(() => {
-      // Handle both array format (new) and nested object format (old)
-      const results = Array.isArray(result.data) 
-        ? result.data 
-        : (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
-      const items: { id: string; label: string }[] = [];
-      for (const dept of results || []) {
-        const deptData = dept as {
-          dept_name?: string;
-          name?: string;
-          branch_departments?: unknown[];
-        };
-        const deptName = String(deptData.dept_name ?? deptData.name ?? "");
-        const branchDepartments = deptData.branch_departments as
-          | Array<{
-              id: number;
-              branch?: { branch_name?: string };
-              branch_name?: string;
-            }>
-          | undefined;
-        if (Array.isArray(branchDepartments)) {
-          for (const bd of branchDepartments) {
-            const bdId = String(bd.id);
-            const branchName = String(
-              bd?.branch?.branch_name ?? bd?.branch_name ?? ""
-            );
-            
-            // Filter: If manager, only show their managed departments
-            if (isManager && !managedDepartments.includes(bd.id)) {
-              continue; // Skip this department
-            }
-            
-            items.push({ id: bdId, label: `${deptName} - ${branchName}` });
-          }
-        }
-      }
-      return items;
-    }, [result.data, isManager, managedDepartments]);
+  // Watch specific fields and call the handler when they change
+  const title = watch("title");
+  const subtitle = watch("subtitle");
+  const question = watch("question");
+  const pollType = watch("poll_type");
+  const expiresAt = watch("expires_at");
+  const options = watch("options");
+  const permittedBranches = watch("permitted_branches");
+  const permittedDepartments = watch("permitted_departments");
 
-    return {
-      data: branchDeptItems,
-      isLoading: result.isLoading,
-    };
-  };
+  // Fetch branch departments to filter departments by selected branches
+  const shouldFilterByBranches = permittedBranches && permittedBranches.length > 0;
+  const { data: branchDepartmentsData } = useBranchDepartments(
+    shouldFilterByBranches
+      ? { branch: permittedBranches.join(",") }
+      : undefined,
+    { pageSize: 1000 }
+  );
 
   // Create adapter hooks for SelectableTags search functionality
-  const useSearchDepartmentsAdapter = (query: string) => {
-    const searchResult = useSearchDepartments(query, { page: 1, pageSize: 50 });
+  // Filter departments by selected branches when searching
+  const useSearchDepartmentsAdapter = React.useCallback((query: string) => {
+    // Always call both hooks unconditionally to follow Rules of Hooks
+    // When branches are selected, use branch departments API with branch and search filters
+    const branchDeptResult = useBranchDepartments(
+      shouldFilterByBranches && permittedBranches
+        ? { 
+            branch: permittedBranches.join(","),
+            ...(query.trim() ? { search: query.trim() } : {})
+          }
+        : undefined,
+      { pageSize: 1000 }
+    );
+    
+    // When no branches selected, use regular departments search
+    const deptSearchResult = useSearchDepartments(
+      !shouldFilterByBranches ? query : "",
+      { page: 1, pageSize: 50 }
+    );
+    
+    // Use the appropriate result based on whether branches are selected
+    const activeResult = shouldFilterByBranches ? branchDeptResult : deptSearchResult;
+    
     const selectableItems = React.useMemo(() => {
-      if (searchResult.data) {
+      if (shouldFilterByBranches) {
+        // Get unique departments from branch departments results
+        const branchDeptData = activeResult.data as { branch_departments?: { results?: unknown[] } } | undefined;
+        const results = branchDeptData?.branch_departments?.results;
+        if (!results || !Array.isArray(results)) return [];
+        
+        const uniqueDepartments = new Map<number, { id: number; dept_name: string }>();
+        
+        (results as Array<{ department?: { id: number; dept_name: string } }>).forEach((bd) => {
+          if (bd.department?.id && bd.department?.dept_name) {
+            if (!uniqueDepartments.has(bd.department.id)) {
+              uniqueDepartments.set(bd.department.id, {
+                id: bd.department.id,
+                dept_name: bd.department.dept_name,
+              });
+            }
+          }
+        });
+        
+        return Array.from(uniqueDepartments.values()).map(dept => ({
+          id: String(dept.id),
+          label: dept.dept_name,
+        }));
+      } else {
+        // Handle departments search results
+        if (!activeResult.data) return [];
+        
         if (
-          typeof searchResult.data === "object" &&
-          searchResult.data !== null &&
-          "departments" in searchResult.data
+          typeof activeResult.data === "object" &&
+          activeResult.data !== null &&
+          "departments" in activeResult.data
         ) {
-          const departmentsData = searchResult.data as {
+          const departmentsData = activeResult.data as {
             departments?: {
               results?: Array<{ id: unknown; dept_name: unknown }>;
             };
@@ -184,18 +185,22 @@ export function PollForm({
           return createCustomSelectableItems(rawData, "id", "dept_name");
         }
         if (
-          typeof searchResult.data === "object" &&
-          searchResult.data !== null &&
-          "results" in searchResult.data
+          typeof activeResult.data === "object" &&
+          activeResult.data !== null &&
+          "results" in activeResult.data
         ) {
-          const rawData = (searchResult.data as { results: Array<{ id: unknown; dept_name: unknown }> }).results;
+          const rawData = (activeResult.data as { results: Array<{ id: unknown; dept_name: unknown }> }).results;
           return createCustomSelectableItems(rawData, "id", "dept_name");
         }
       }
       return [];
-    }, [searchResult.data]);
-    return { ...searchResult, data: selectableItems };
-  };
+    }, [activeResult.data, shouldFilterByBranches]);
+    
+    return { 
+      data: selectableItems, 
+      isLoading: activeResult.isLoading 
+    };
+  }, [shouldFilterByBranches, permittedBranches]);
 
   const useSearchBranchesAdapter = (query: string) => {
     const searchResult = useSearchBranches(query, { page: 1, pageSize: 50 });
@@ -228,52 +233,10 @@ export function PollForm({
     return { ...searchResult, data: selectableItems };
   };
 
-  const form = useForm<PollFormData>({
-    resolver: zodResolver(pollFormSchema),
-    defaultValues: {
-      title: initialData?.title || "",
-      subtitle: initialData?.subtitle || "",
-      question: initialData?.question || "",
-      poll_type: initialData?.poll_type || "public",
-      expires_at: initialData?.expires_at || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      options: initialData?.options || [
-        { option_text: "" },
-        { option_text: "" },
-      ],
-      permitted_branches: initialData?.permitted_branches || [],
-      permitted_departments: initialData?.permitted_departments || [],
-      permitted_branch_departments: initialData?.permitted_branch_departments || [],
-    },
-  });
-
-  const { watch, setValue, handleSubmit, getValues, formState: { errors } } = form;
-  
-  // Watch form values for controlled inputs
-  const watchedValues = watch();
-
-  // Create a stable form data change handler
-  const handleFormDataChange = React.useCallback(() => {
-    if (onFormDataChange) {
-      const currentData = getValues();
-      onFormDataChange(currentData);
-    }
-  }, [onFormDataChange, getValues]);
-
-  // Watch specific fields and call the handler when they change
-  const title = watch("title");
-  const subtitle = watch("subtitle");
-  const question = watch("question");
-  const pollType = watch("poll_type");
-  const expiresAt = watch("expires_at");
-  const options = watch("options");
-  const permittedBranches = watch("permitted_branches");
-  const permittedDepartments = watch("permitted_departments");
-  const permittedBranchDepartments = watch("permitted_branch_departments");
-
   // Call form data change handler when any watched field changes
   React.useEffect(() => {
     handleFormDataChange();
-  }, [title, subtitle, question, pollType, expiresAt, options, permittedBranches, permittedDepartments, permittedBranchDepartments, handleFormDataChange]);
+  }, [title, subtitle, question, pollType, expiresAt, options, permittedBranches, permittedDepartments, handleFormDataChange]);
 
   // Memoize the submit function to prevent infinite re-renders
   const submitFunction = React.useCallback(() => {
@@ -308,15 +271,40 @@ export function PollForm({
     setValue("options", newOptions);
   };
 
-  // Transform data for SelectableTags
+  // Transform data for SelectableTags - filter departments by selected branches
   const departmentItems = React.useMemo(() => {
+    // If branches are selected, filter departments from those branches only
+    if (permittedBranches && permittedBranches.length > 0 && branchDepartmentsData) {
+      const branchDeptResults = branchDepartmentsData.branch_departments?.results || [];
+      
+      // Get unique departments from selected branches
+      const uniqueDepartments = new Map<number, { id: number; dept_name: string }>();
+      
+      branchDeptResults.forEach((bd: { department?: { id: number; dept_name: string } }) => {
+        if (bd.department?.id && bd.department?.dept_name) {
+          if (!uniqueDepartments.has(bd.department.id)) {
+            uniqueDepartments.set(bd.department.id, {
+              id: bd.department.id,
+              dept_name: bd.department.dept_name,
+            });
+          }
+        }
+      });
+      
+      return Array.from(uniqueDepartments.values()).map(dept => ({
+        id: String(dept.id),
+        label: dept.dept_name,
+      }));
+    }
+    
+    // If no branches selected, show all departments
     if (!departmentsData) return [];
     // Handle both array format (new) and nested object format (old)
     const list = Array.isArray(departmentsData) 
       ? departmentsData 
       : (departmentsData as { departments?: { results?: unknown[] } } | undefined)?.departments?.results || [];
     return createCustomSelectableItems(list as Array<{ id: unknown; dept_name: unknown }>, "id", "dept_name");
-  }, [departmentsData]);
+  }, [departmentsData, permittedBranches, branchDepartmentsData]);
 
   const branchItems = React.useMemo(() => {
     if (!branchesData) return [];
@@ -479,7 +467,13 @@ export function PollForm({
               <SelectableTags
                 items={branchItems}
                 selectedItems={permittedBranches || []}
-                onSelectionChange={(items) => setValue("permitted_branches", items)}
+                onSelectionChange={(items) => {
+                  setValue("permitted_branches", items);
+                  // Clear departments when branches change to ensure they match
+                  if (items.length > 0) {
+                    setValue("permitted_departments", []);
+                  }
+                }}
                 placeholder="Select branches (empty = public access)"
                 searchPlaceholder="Search branches..."
                 emptyMessage="No branches found."
@@ -500,9 +494,17 @@ export function PollForm({
                 items={departmentItems}
                 selectedItems={permittedDepartments || []}
                 onSelectionChange={(items) => setValue("permitted_departments", items)}
-                placeholder="Select departments (empty = public access)"
+                placeholder={
+                  permittedBranches && permittedBranches.length > 0
+                    ? "Select departments from selected branches (empty = public access)"
+                    : "Select branches first, or select departments (empty = public access)"
+                }
                 searchPlaceholder="Search departments..."
-                emptyMessage="No departments found."
+                emptyMessage={
+                  permittedBranches && permittedBranches.length > 0
+                    ? "No departments found in selected branches."
+                    : "No departments found."
+                }
                 icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
                 useSearch={useSearchDepartmentsAdapter}
                 useAllItems={() => ({
@@ -510,46 +512,73 @@ export function PollForm({
                   isLoading: false,
                 })}
               />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-12 items-center gap-4">
-            <Label className="col-span-12 md:col-span-2 text-sm">Branch Department Access:</Label>
-            <div className="col-span-12 md:col-span-10">
-              <SelectableTags
-                items={[]} // Empty since we're using async hooks
-                selectedItems={permittedBranchDepartments || []}
-                onSelectionChange={(items) => setValue("permitted_branch_departments", items)}
-                placeholder="Select branch departments (empty = public access)"
-                searchPlaceholder="Search branch departments..."
-                emptyMessage="No branch departments found."
-                icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-                useSearch={useSearchBranchDepartmentsAdapter}
-                useAllItems={useAllBranchDepartments}
-              />
+              {permittedBranches && permittedBranches.length > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Only departments from selected branches are shown.
+                </p>
+              )}
             </div>
           </div>
         </>
       ) : (
         <>
-          {/* Manager only sees branch department access */}
+          {/* Manager only sees branch and department access */}
           <div className="grid grid-cols-12 items-center gap-4">
-            <Label className="col-span-12 md:col-span-2 text-sm">Branch Department Access:</Label>
+            <Label className="col-span-12 md:col-span-2 text-sm">Branch Access:</Label>
             <div className="col-span-12 md:col-span-10">
               <SelectableTags
-                items={[]} // Empty since we're using async hooks
-                selectedItems={permittedBranchDepartments || []}
-                onSelectionChange={(items) => setValue("permitted_branch_departments", items)}
-                placeholder="Select branch departments (empty = public access)"
-                searchPlaceholder="Search branch departments..."
-                emptyMessage="No branch departments found."
+                items={branchItems}
+                selectedItems={permittedBranches || []}
+                onSelectionChange={(items) => {
+                  setValue("permitted_branches", items);
+                  // Clear departments when branches change to ensure they match
+                  if (items.length > 0) {
+                    setValue("permitted_departments", []);
+                  }
+                }}
+                placeholder="Select branches (empty = public access)"
+                searchPlaceholder="Search branches..."
+                emptyMessage="No branches found."
                 icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-                useSearch={useSearchBranchDepartmentsAdapter}
-                useAllItems={useAllBranchDepartments}
+                useSearch={useSearchBranchesAdapter}
+                useAllItems={() => ({
+                  data: branchItems,
+                  isLoading: false,
+                })}
               />
-              <p className="mt-1 text-xs text-muted-foreground">
-                As a manager, you can only assign polls to your managed departments.
-              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
+            <Label className="col-span-12 md:col-span-2 text-sm">Department Access:</Label>
+            <div className="col-span-12 md:col-span-10">
+              <SelectableTags
+                items={departmentItems}
+                selectedItems={permittedDepartments || []}
+                onSelectionChange={(items) => setValue("permitted_departments", items)}
+                placeholder={
+                  permittedBranches && permittedBranches.length > 0
+                    ? "Select departments from selected branches (empty = public access)"
+                    : "Select branches first, or select departments (empty = public access)"
+                }
+                searchPlaceholder="Search departments..."
+                emptyMessage={
+                  permittedBranches && permittedBranches.length > 0
+                    ? "No departments found in selected branches."
+                    : "No departments found."
+                }
+                icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
+                useSearch={useSearchDepartmentsAdapter}
+                useAllItems={() => ({
+                  data: departmentItems,
+                  isLoading: false,
+                })}
+              />
+              {permittedBranches && permittedBranches.length > 0 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Only departments from selected branches are shown.
+                </p>
+              )}
             </div>
           </div>
         </>
