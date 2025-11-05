@@ -4,7 +4,6 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -83,8 +82,6 @@ export function BranchesTable() {
       page_size: apiData.branches.page_size,
     };
   }, [apiData]);
-
-  const { pinnedIds, togglePin } = usePinnedRows<BranchRow>(data);
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearchQuery(value);

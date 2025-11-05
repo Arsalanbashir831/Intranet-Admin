@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Separator } from "../ui/separator";
-import Image from "next/image";
 
 export type AppModalProps = {
   open: boolean;

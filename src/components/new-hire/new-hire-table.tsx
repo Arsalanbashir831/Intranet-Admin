@@ -103,7 +103,7 @@ export function NewHireTable() {
           // Try to parse if it's a JSON string
           const parsed = JSON.parse(checklist.department_details);
           departmentName = parsed.dept_name || parsed.name || checklist.department_details || 'N/A';
-        } catch (e) {
+        } catch {
           // If parsing fails, use the string value directly
           departmentName = checklist.department_details || 'N/A';
         }

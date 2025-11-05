@@ -9,9 +9,7 @@ import { CardTableColumnHeader } from "@/components/card-table/card-table-column
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { Badge } from "@/components/ui/badge";
 import { useBranch } from "@/hooks/queries/use-branches";
-import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants/routes";
-import type { Branch } from "@/services/branches";
 
 export type BranchDepartmentRow = {
   id: string;

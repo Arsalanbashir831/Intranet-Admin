@@ -7,7 +7,6 @@ import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
 } from "axios";
-import {toast} from "sonner";
 
 const BACKEND_URL =
   (typeof process !== "undefined" && `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`) ||

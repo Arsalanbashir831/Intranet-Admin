@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Plus, Trash2, ChevronDownIcon } from "lucide-react";
@@ -17,7 +15,6 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
   SelectableTags,
-  createSelectableItems,
   createCustomSelectableItems,
 } from "@/components/ui/selectable-tags";
 import {
@@ -61,7 +58,6 @@ export function PollForm({
   onFormDataChange,
   onSubmit,
   onRegisterSubmit,
-  onSubmitComplete,
 }: PollFormProps) {
   // Use a ref to store form data to prevent infinite re-renders
   const formDataRef = React.useRef<PollFormData | null>(null);

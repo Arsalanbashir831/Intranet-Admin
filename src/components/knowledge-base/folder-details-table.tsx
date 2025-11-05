@@ -19,30 +19,6 @@ import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/a
 import { useAuth } from "@/contexts/auth-context";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { Badge } from "../ui/badge";
-
-// Types from the folder tree API response
-type FolderTreeFile = {
-  id: number;
-  folder: number;
-  name: string;
-  description: string;
-  file: string;
-  file_url: string;
-  inherits_parent_permissions: boolean;
-  permitted_branches: number[];
-  permitted_departments: number[];
-  permitted_employees: number[];
-  uploaded_by: number | null;
-  uploaded_at: string;
-  size: number;
-  content_type: string;
-  effective_permissions: {
-    branches: number[];
-    departments: number[];
-    employees: number[];
-  };
-};
 
 
 export type FolderItemRow = {

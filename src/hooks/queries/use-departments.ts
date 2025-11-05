@@ -13,9 +13,6 @@ import { listAllBranches } from "@/services/branches";
 import type {
   DepartmentCreateRequest,
   DepartmentUpdateRequest,
-  Department,
-  BranchDepartment,
-  DepartmentListResponse,
 } from "@/services/departments";
 
 // Helpers

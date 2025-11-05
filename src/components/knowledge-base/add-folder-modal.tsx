@@ -8,11 +8,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SelectableTags, SelectableItem } from "@/components/ui/selectable-tags";
 import { useCreateFolder, useUpdateFolder, useGetFolder } from "@/hooks/queries/use-knowledge-folders";
 import { useAllEmployees } from "@/hooks/queries/use-employees";
-import { useDepartments } from "@/hooks/queries/use-departments";
+import { useBranchDepartments } from "@/hooks/queries/use-departments";
 import { useManagerScope } from "@/contexts/manager-scope-context";
 import { FolderCreateRequest } from "@/services/knowledge-folders";
 import type { components } from "@/types/api";
-import type { Department } from "@/services/departments";
 
 type Employee = components["schemas"]["Employee"];
 
@@ -49,7 +48,7 @@ export function AddFolderModal({
   const createFolder = useCreateFolder();
   const updateFolder = useUpdateFolder();
   const { data: employeesData } = useAllEmployees();
-  const { data: departmentsData } = useDepartments();
+  const { data: branchDepartmentsData } = useBranchDepartments();
   const { data: folderData, isLoading: isFolderLoading } = useGetFolder(folderId || 0, isEditMode && !!folderId);
 
   // Load folder data when in edit mode
@@ -107,28 +106,24 @@ export function AddFolderModal({
 
   // Branch Department items - filtered by manager scope
   const branchDepartmentItems: SelectableItem[] = React.useMemo(() => {
-    if (!departmentsData || !Array.isArray(departmentsData)) return [];
+    if (!branchDepartmentsData || !Array.isArray(branchDepartmentsData)) return [];
     
-    const items: SelectableItem[] = [];
-    departmentsData.forEach((dept: Department) => {
-      if (dept.branch_departments) {
-        dept.branch_departments.forEach((bd) => {
-          // Filter: if manager, only show their managed branch departments
-          if (isManager && !managedDepartments.includes(bd.id)) {
-            return; // Skip this branch department
-          }
-          
-          const branchName = bd.branch?.branch_name || 'Unknown Branch';
-          items.push({
-            id: bd.id.toString(),
-            label: `${dept.dept_name} - ${branchName}`,
-          });
-        });
-      }
+    // Filter: if manager, only show their managed branch departments
+    const filteredBranchDepartments = isManager
+      ? branchDepartmentsData.filter((bd) => {
+          return managedDepartments.includes(bd.id);
+        })
+      : branchDepartmentsData;
+    
+    return filteredBranchDepartments.map((bd) => {
+      const branchName = bd.branch?.branch_name || 'Unknown Branch';
+      const deptName = bd.department?.dept_name || 'Unknown Department';
+      return {
+        id: bd.id.toString(),
+        label: `${deptName} - ${branchName}`,
+      };
     });
-    
-    return items;
-  }, [departmentsData, isManager, managedDepartments]);
+  }, [branchDepartmentsData, isManager, managedDepartments]);
 
   const canCreate = folderName.trim().length > 0;
 

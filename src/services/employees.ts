@@ -208,7 +208,7 @@ export async function updateEmployee(id: number | string, payload: EmployeeUpdat
     return res.data;
   } else if (isRemovingPicture) {
     // User is explicitly removing the profile picture
-    const { profile_picture: _profile_picture, ...employeeData } = payload;
+    const { ...employeeData } = payload;
     
     // First update the employee data (JSON only)
     // Convert number arrays to string arrays for API compatibility

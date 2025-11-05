@@ -5,8 +5,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dropzone } from "@/components/ui/dropzone";
 import {
 	SelectableTags,
-	createSelectableItems,
-	createCustomSelectableItems,
 } from "@/components/ui/selectable-tags";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { ChevronDownIcon } from "lucide-react";
@@ -58,9 +56,6 @@ export function CompanyHubForm({
 }: CompanyHubFormProps) {
 	// Get manager scope to filter departments
 	const { isManager, managedDepartments } = useManagerScope();
-	
-	// Load base datasets
-	const { data: departmentsData } = useDepartments();
 
 	/**
 	 * Adapters (async search) — normalize to SelectableItem[] only.
@@ -319,7 +314,6 @@ export function CompanyHubForm({
 							}
 						}}
 						accept="image/*"
-						maxSize={10 * 1024 * 1024} // 10MB
 						multiple={false}
 						showPreview={true}
 						initialPreviewUrls={initialPreviewUrls}

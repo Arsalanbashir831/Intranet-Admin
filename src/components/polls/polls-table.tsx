@@ -130,13 +130,13 @@ export function PollsTable({ className }: { className?: string }) {
   
   const { togglePin, isPinned } = usePinnedRows(polls.map(poll => ({ id: poll.id.toString() })));
   
-  const handleDelete = async (id: number) => {
+  const handleDelete = React.useCallback(async (id: number) => {
     try {
       await deletePollMutation.mutateAsync(id);
     } catch (error) {
       console.error("Failed to delete poll:", error);
     }
-  };
+  }, [deletePollMutation]);
   
   const columns: ColumnDef<Poll>[] = React.useMemo(
     () => [

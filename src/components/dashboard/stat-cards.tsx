@@ -4,7 +4,6 @@ import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { ChevronRight } from "lucide-react";
 import { useDashboardStats } from "@/hooks/queries/use-stats";
 import { Skeleton } from "@/components/ui/skeleton";
 

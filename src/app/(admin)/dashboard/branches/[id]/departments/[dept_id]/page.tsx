@@ -2,7 +2,6 @@ import { PageHeader } from "@/components/page-header";
 import { ROUTES } from "@/constants/routes";
 import * as React from "react";
 import { DepartmentsDetailTable } from "@/components/departments/departments-detail-table";
-import { getBranchDepartmentEmployees } from "@/services/departments";
 import { getBranch } from "@/services/branches";
 
 interface BranchDepartmentDetailsPageProps {

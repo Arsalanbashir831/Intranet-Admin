@@ -252,7 +252,6 @@ export async function updateFolder(id: number | string, payload: FolderUpdateReq
 export async function patchFolder(id: number | string, payload: FolderPatchRequest): Promise<FolderUpdateResponse> {
   // Create a clean payload for patching, excluding readonly fields
   const {
-    id: _id, // exclude id
     created_at: _created_at,
     updated_at: _updated_at,
     effective_permissions: _effective_permissions,
