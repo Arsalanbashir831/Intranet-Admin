@@ -16,19 +16,21 @@ import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 import type { Branch } from "@/services/branches";
 import { EditBranchModal } from "./edit-branch-modal";
 
 export type BranchRow = {
   id: string;
   branch_name: string;
-  location: string;
   employee_count: number;
-  departments_count: number;
+  departments: string;
 };
 
 export function BranchesTable() {
   const { user } = useAuth();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
@@ -68,9 +70,8 @@ export function BranchesTable() {
     return branches.map((branch: Branch) => ({
       id: String(branch.id),
       branch_name: branch.branch_name,
-      location: branch.location || "--",
       employee_count: branch.employee_count,
-      departments_count: branch.departments?.length || 0,
+      departments: branch.departments?.map(d => d.dept_name).join(", ") || "--",
     }));
   }, [apiData]);
 
@@ -115,15 +116,6 @@ export function BranchesTable() {
       ),
     },
     {
-      accessorKey: "location",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Location" />
-      ),
-      cell: ({ getValue }) => (
-        <span className="text-sm text-[#667085]">{String(getValue())}</span>
-      ),
-    },
-    {
       accessorKey: "employee_count",
       header: ({ column }) => (
         <CardTableColumnHeader column={column} title="Employees" />
@@ -133,14 +125,12 @@ export function BranchesTable() {
       ),
     },
     {
-      accessorKey: "departments_count",
+      accessorKey: "departments",
       header: ({ column }) => (
         <CardTableColumnHeader column={column} title="Departments" />
       ),
       cell: ({ getValue }) => (
-        <Badge variant="secondary" className="bg-[#FFF1F5] text-[#D64575] border-0">
-          {String(getValue())}
-        </Badge>
+        <span className="text-sm text-[#667085]">{String(getValue())}</span>
       ),
     },
     {
@@ -224,8 +214,9 @@ export function BranchesTable() {
       <CardTable<BranchRow, unknown>
         columns={columns}
         data={data}
-        headerClassName="grid-cols-[1.5fr_1.5fr_1fr_1fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.5fr_1.5fr_1fr_1fr_0.8fr]"}
+        headerClassName="grid-cols-[1fr_1fr_2fr_0.8fr]"
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1fr_1fr_2fr_0.8fr] cursor-pointer"}
+        onRowClick={(row) => router.push(ROUTES.ADMIN.BRANCHES_ID(row.original.id))}
         footer={(table) => (
           <CardTablePagination
             table={table}

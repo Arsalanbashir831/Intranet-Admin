@@ -13,6 +13,11 @@ export const API_ROUTES = {
         UPDATE: (id: number | string) => `/branches/${id}/`,
         DELETE: (id: number | string) => `/branches/${id}/`,
     },
+    BRANCH_DEPARTMENTS: {
+        CREATE: "/branchdepartments/",
+        UPDATE: (id: number | string) => `/branchdepartments/${id}/`,
+        DELETE: (id: number | string) => `/branchdepartments/${id}/`,
+    },
     DEPARTMENTS: {
         LIST: "/departments/",
         DETAIL: (id: number | string) => `/departments/${id}/`,

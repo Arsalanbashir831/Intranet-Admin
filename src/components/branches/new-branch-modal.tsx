@@ -17,7 +17,6 @@ export function NewBranchModal({ open, setOpen }: NewBranchModalProps) {
 
   // State for functionality
   const [branchName, setBranchName] = useState("");
-  const [location, setLocation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -31,16 +30,10 @@ export function NewBranchModal({ open, setOpen }: NewBranchModalProps) {
       return;
     }
 
-    if (location.length > 200) {
-      toast.error("Location must be 200 characters or less");
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       const payload: import("@/services/branches").BranchCreateRequest = {
         branch_name: branchName.trim(),
-        ...(location.trim() ? { location: location.trim() } : {}),
       };
       
       await createBranch.mutateAsync(payload);
@@ -48,7 +41,6 @@ export function NewBranchModal({ open, setOpen }: NewBranchModalProps) {
       toast.success("Branch created successfully.");
       setOpen(false);
       setBranchName("");
-      setLocation("");
     } catch (error: unknown) {
       console.error("Error creating branch:", error);
       
@@ -83,7 +75,6 @@ export function NewBranchModal({ open, setOpen }: NewBranchModalProps) {
       onCancel={() => {
         setOpen(false);
         setBranchName("");
-        setLocation("");
       }}
       icon='/icons/branch.svg'
     >
@@ -99,18 +90,6 @@ export function NewBranchModal({ open, setOpen }: NewBranchModalProps) {
             disabled={isSubmitting}
             maxLength={100}
             required
-          />
-        </div>
-        <div className="flex justify-between items-start gap-8">
-          <Label htmlFor="location">Location:</Label>
-          <Input
-            id="location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Enter location (optional)"
-            className="border-[#D5D7DA] max-w-[400px]"
-            disabled={isSubmitting}
-            maxLength={200}
           />
         </div>
       </div>

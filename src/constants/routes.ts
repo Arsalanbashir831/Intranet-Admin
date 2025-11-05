@@ -21,6 +21,7 @@ export const ROUTES = {
     BRANCHES_NEW: "/dashboard/branches/new",
     BRANCHES_ID: (id: string) => `/dashboard/branches/${id}`,
     BRANCHES_ID_EDIT: (id: string) => `/dashboard/branches/${id}/edit`,
+    BRANCHES_ID_DEPARTMENTS_DEPT_ID: (id: string, deptId: string) => `/dashboard/branches/${id}/departments/${deptId}`,
     ORG_CHART: "/dashboard/employees",
     ORG_CHART_NEW: "/dashboard/employees/new",
     ORG_CHART_PROFILE_ID: (id: string) => `/dashboard/employees/${id}`,

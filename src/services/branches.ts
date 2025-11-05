@@ -5,7 +5,6 @@ import { generatePaginationParams } from "@/lib/pagination-utils";
 export type Branch = {
   id: number;
   branch_name: string;
-  location: string | null;
   employee_count: number;
   departments: Array<{
     id: number;
@@ -49,14 +48,12 @@ export type BranchDetailResponse = {
 };
 export type BranchCreateRequest = {
   branch_name: string;
-  location?: string;
 } & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
 export type BranchCreateResponse = {
   branch: Branch;
 };
 export type BranchUpdateRequest = {
   branch_name?: string;
-  location?: string;
 } & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
 export type BranchUpdateResponse = {
   branch: Branch;
@@ -153,4 +150,35 @@ export async function updateBranch(id: number | string, payload: BranchUpdateReq
 
 export async function deleteBranch(id: number | string) {
   await apiCaller<void>(API_ROUTES.BRANCHES.DELETE(id), "DELETE");
+}
+
+// Branch Departments functions
+export type BranchDepartmentCreateRequest = {
+  branch_id: number;
+  department_id: number;
+};
+
+export type BranchDepartmentUpdateRequest = {
+  branch_id: number;
+  department_id: number;
+};
+
+export type BranchDepartmentResponse = {
+  id: number;
+  branch_id: number;
+  department_id: number;
+};
+
+export async function createBranchDepartment(payload: BranchDepartmentCreateRequest) {
+  const res = await apiCaller<BranchDepartmentResponse>(API_ROUTES.BRANCH_DEPARTMENTS.CREATE, "POST", payload, {}, "json");
+  return res.data;
+}
+
+export async function updateBranchDepartment(id: number | string, payload: BranchDepartmentUpdateRequest) {
+  const res = await apiCaller<BranchDepartmentResponse>(API_ROUTES.BRANCH_DEPARTMENTS.UPDATE(id), "PATCH", payload, {}, "json");
+  return res.data;
+}
+
+export async function deleteBranchDepartment(id: number | string) {
+  await apiCaller<void>(API_ROUTES.BRANCH_DEPARTMENTS.DELETE(id), "DELETE");
 }

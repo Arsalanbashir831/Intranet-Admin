@@ -194,7 +194,7 @@ export function EmployeeRingChart() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[#14172A] text-lg font-semibold leading-6 sm:text-[22px]">Employee Chart</div>
-            <div className="text-[#666666] text-xs sm:text-sm mt-1">Hires as per department</div>
+            <div className="text-[#666666] text-xs sm:text-sm mt-1">Staff as per department</div>
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center text-red-500">
@@ -211,7 +211,7 @@ export function EmployeeRingChart() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[#14172A] text-lg font-semibold leading-6 sm:text-[22px]">Employee Chart</div>
-            <div className="text-[#666666] text-xs sm:text-sm mt-1">Hires as per department</div>
+            <div className="text-[#666666] text-xs sm:text-sm mt-1">Staff as per department</div>
           </div>
           <Select value={selectedBranch} onValueChange={setSelectedBranch}>
             <SelectTrigger className="w-[140px] !h-8 rounded-[4px] text-xs border-black">
@@ -249,7 +249,7 @@ export function EmployeeRingChart() {
                         return (
                           <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                             <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-xl font-semibold sm:text-2xl">0</tspan>
-                            <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 20} className="fill-muted-foreground text-xs sm:text-sm">Total Hires</tspan>
+                            <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 20} className="fill-muted-foreground text-xs sm:text-sm">Total Staff</tspan>
                           </text>
                         );
                       }
@@ -287,7 +287,7 @@ export function EmployeeRingChart() {
       <div className="flex items-center justify-between">
         <div>
           <div className="text-[#14172A] text-lg font-semibold leading-6 sm:text-[22px]">Employee Chart</div>
-          <div className="text-[#666666] text-xs sm:text-sm mt-1">Hires as per department</div>
+          <div className="text-[#666666] text-xs sm:text-sm mt-1">Staff as per department</div>
         </div>
         <Select value={selectedBranch} onValueChange={setSelectedBranch}>
           <SelectTrigger className="w-[140px] !h-8 rounded-[4px] text-xs border-black">
@@ -320,7 +320,7 @@ export function EmployeeRingChart() {
                       return (
                         <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                           <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-xl font-semibold sm:text-2xl">{currentData.total}</tspan>
-                          <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 20} className="fill-muted-foreground text-xs sm:text-sm">Total Hires</tspan>
+                          <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 20} className="fill-muted-foreground text-xs sm:text-sm">Total Staff</tspan>
                         </text>
                       );
                     }

@@ -37,8 +37,6 @@ export type BranchDepartment = {
 export type Department = {
   id: number;
   dept_name: string;
-  employee_count: number;
-  branch_departments: BranchDepartment[];
 };
 
 export type DepartmentListResponse = {
@@ -88,7 +86,8 @@ export async function listDepartments(
     : "";
     
   const res = await apiCaller<DepartmentListResponse>(`${url}${query}`, "GET");
-  return res.data.departments.results;
+  // Return the full response structure to access pagination info
+  return res.data;
 }
 
 export async function getDepartment(id: number | string) {
@@ -102,7 +101,7 @@ export async function createDepartment(payload: DepartmentCreateRequest) {
 }
 
 export async function updateDepartment(id: number | string, payload: DepartmentUpdateRequest) {
-  const res = await apiCaller<DepartmentUpdateResponse>(API_ROUTES.DEPARTMENTS.UPDATE(id), "PUT", payload, {}, "json");
+  const res = await apiCaller<DepartmentUpdateResponse>(API_ROUTES.DEPARTMENTS.UPDATE(id), "PATCH", payload, {}, "json");
   return res.data;
 }
 
