@@ -212,11 +212,11 @@ export function OrgChartForm({
 		const email = String(data.get("email") || "").trim();
 		const phone = String(data.get("phone") || "").trim();
 
-		if (!empName || selectedBranchDeptIds.length === 0) {
-			toast.error("Name and at least one Branch/Department are required");
-			onSubmitComplete?.(false); // Notify parent that submission failed
-			return;
-		}
+		// if (!empName || selectedBranchDeptIds.length === 0) {
+		// 	toast.error("Name and at least one Branch/Department are required");
+		// 	onSubmitComplete?.(false); // Notify parent that submission failed
+		// 	return;
+		// }
 
 		// Convert selected branch department IDs to numbers
 		const branchDepartmentIds = selectedBranchDeptIds.map((id) => Number(id));
