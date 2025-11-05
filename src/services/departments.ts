@@ -88,7 +88,7 @@ export async function listDepartments(
     : "";
     
   const res = await apiCaller<DepartmentListResponse>(`${url}${query}`, "GET");
-  return res.data;
+  return res.data.departments.results;
 }
 
 export async function getDepartment(id: number | string) {

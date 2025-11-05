@@ -13,6 +13,7 @@ import { CardTablePagination } from "@/components/card-table/card-table-paginati
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useAnnouncements, useDeleteAnnouncement } from "@/hooks/queries/use-announcements";
+import { useManagerScope } from "@/contexts/manager-scope-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
@@ -37,6 +38,7 @@ export type AnnouncementRow = {
 };
 
 export function RecentAnnouncementsTable() {
+  const { isManager } = useManagerScope();
   const [sortedBy, setSortedBy] = React.useState<string>("title");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
@@ -91,10 +93,11 @@ export function RecentAnnouncementsTable() {
     undefined,
     {
       placeholderData: (previousData) => previousData,
+      managerScope: isManager, // Pass manager scope if user is a manager
     }
   );
       
-  const deleteAnnouncement = useDeleteAnnouncement();
+  const deleteAnnouncement = useDeleteAnnouncement(isManager);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const router = useRouter();
 
@@ -110,21 +113,46 @@ export function RecentAnnouncementsTable() {
       permitted_employees?: number[];
       permitted_branches?: number[];
       permitted_departments?: number[];
+      permitted_branch_departments?: number[];
+      permitted_branch_departments_details?: Array<{
+        id: number;
+        branch: {
+          id: number;
+          branch_name: string;
+          location: string;
+        };
+        department: {
+          id: number;
+          dept_name: string;
+        };
+      }>;
       created_at: string;
       type: string;
       is_active: boolean;
-    }>).map((announcement) => ({
-      id: String(announcement.id),
-      title: String(announcement.title ?? ""),
-      access: announcement.permitted_employees?.length === 0 && 
-               announcement.permitted_branches?.length === 0 && 
-               announcement.permitted_departments?.length === 0 
-        ? "All Employees" 
-        : "Restricted Access",
-      date: new Date(announcement.created_at).toLocaleDateString(),
-      type: announcement.type === "policy" ? "Policy" : "Announcement",
-      status: announcement.is_active ? "Published" : "Draft",
-    }));
+    }>).map((announcement) => {
+      // Determine access level based on permissions
+      let accessText = "All Employees";
+      
+      if (announcement.permitted_branch_departments && announcement.permitted_branch_departments.length > 0) {
+        // Show generic text for branch departments
+        accessText = "Specific Branch Dept";
+      } else if (announcement.permitted_branches && announcement.permitted_branches.length > 0) {
+        accessText = `${announcement.permitted_branches.length} Branch(es)`;
+      } else if (announcement.permitted_departments && announcement.permitted_departments.length > 0) {
+        accessText = `${announcement.permitted_departments.length} Department(s)`;
+      } else if (announcement.permitted_employees && announcement.permitted_employees.length > 0) {
+        accessText = `${announcement.permitted_employees.length} Employee(s)`;
+      }
+      
+      return {
+        id: String(announcement.id),
+        title: String(announcement.title ?? ""),
+        access: accessText,
+        date: new Date(announcement.created_at).toLocaleDateString(),
+        type: announcement.type === "policy" ? "Policy" : "Announcement",
+        status: announcement.is_active ? "Published" : "Draft",
+      };
+    });
   }, [apiData]);
 
   const handleRowClick = (row: AnnouncementRow) => {
@@ -158,7 +186,7 @@ export function RecentAnnouncementsTable() {
       accessorKey: "access",
       header: ({ column }) => <CardTableColumnHeader column={column} title="Access Level" />,
       cell: ({ row }) => (
-        <Badge variant="secondary" className={row.original.access === "Restricted Access" ? "bg-blue-50 text-blue-700 border-0" : "bg-pink-50 text-pink-700 border-0"}>
+        <Badge variant="secondary" className={row.original.access === "All Employees" ? "bg-pink-50 text-pink-700 border-0" : "bg-blue-50 text-blue-700 border-0"}>
           {row.original.access}
         </Badge>
       ),
@@ -219,68 +247,68 @@ export function RecentAnnouncementsTable() {
 
   return (
     <Card className="border-[#FFF6F6] p-5 shadow-none">
-      <CardTableToolbar
-        title="Recent Announcements"
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        sortOptions={[
-          { label: "Title", value: "title" },
-          { label: "Access Level", value: "access" },
-          { label: "Date Posted", value: "date" },
-          { label: "Type", value: "type" },
-          { label: "Status", value: "status" },
-        ]}
-        activeSort={sortedBy}
-        onSortChange={(v) => setSortedBy(v)}
-        onFilterClick={() => setIsFilterOpen(true)}
-        className={cn(isFetching && "opacity-70")}
-      />
-      <CardTable<AnnouncementRow, unknown>
-        columns={columns}
-        data={data}
-        headerClassName="grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr] cursor-pointer"}
-        onRowClick={(row) => handleRowClick(row.original)}
-        footer={(table) => <CardTablePagination table={table} />}
-      />
-      
-      <FilterDrawer
-        open={isFilterOpen}
-        onOpenChange={setIsFilterOpen}
-        onReset={handleResetFilters}
-        showFilterButton={false}
-        title="Filter Announcements"
-        description="Filter announcements by various criteria"
-      >
-        <div className="space-y-6 py-4">
-          <SelectFilter 
-            label="Status"
-            value={(filters.includeInactive as string) || "__all__"} 
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, includeInactive: value }))}
-            options={[
-              { value: "__all__", label: "All Statuses" },
-              { value: "true", label: "Include Drafts" },
-              { value: "false", label: "Published Only" }
-            ]}
-          />
-          <SelectFilter 
-            label="Type"
-            value={(filters.type as string) || "__all__"} 
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, type: value }))}
-            options={[
-              { value: "__all__", label: "All Types" },
-              { value: "announcement", label: "Announcement" },
-              { value: "policy", label: "Policy" }
-            ]}
-          />
-          <BranchFilter 
-            value={(filters.branch as string) || "__all__"} 
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, branch: value }))}
-          />
-          <DepartmentFilter 
-            value={(filters.department as string) || "__all__"} 
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
-          />
+        <CardTableToolbar
+          title="Recent Announcements"
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortOptions={[
+            { label: "Title", value: "title" },
+            { label: "Access Level", value: "access" },
+            { label: "Date Posted", value: "date" },
+            { label: "Type", value: "type" },
+            { label: "Status", value: "status" },
+          ]}
+          activeSort={sortedBy}
+          onSortChange={(v) => setSortedBy(v)}
+          onFilterClick={() => setIsFilterOpen(true)}
+          className={cn(isFetching && "opacity-70")}
+        />
+        <CardTable<AnnouncementRow, unknown>
+          columns={columns}
+          data={data}
+          headerClassName="grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr]"
+          rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr] cursor-pointer"}
+          onRowClick={(row) => handleRowClick(row.original)}
+          footer={(table) => <CardTablePagination table={table} />}
+        />
+        
+        <FilterDrawer
+          open={isFilterOpen}
+          onOpenChange={setIsFilterOpen}
+          onReset={handleResetFilters}
+          showFilterButton={false}
+          title="Filter Announcements"
+          description="Filter announcements by various criteria"
+        >
+          <div className="space-y-6 py-4">
+            <SelectFilter 
+              label="Status"
+              value={(filters.includeInactive as string) || "__all__"} 
+              onValueChange={(value: string) => setFilters(prev => ({ ...prev, includeInactive: value }))}
+              options={[
+                { value: "__all__", label: "All Statuses" },
+                { value: "true", label: "Include Drafts" },
+                { value: "false", label: "Published Only" }
+              ]}
+            />
+            <SelectFilter 
+              label="Type"
+              value={(filters.type as string) || "__all__"} 
+              onValueChange={(value: string) => setFilters(prev => ({ ...prev, type: value }))}
+              options={[
+                { value: "__all__", label: "All Types" },
+                { value: "announcement", label: "Announcement" },
+                { value: "policy", label: "Policy" }
+              ]}
+            />
+            <BranchFilter 
+              value={(filters.branch as string) || "__all__"} 
+              onValueChange={(value: string) => setFilters(prev => ({ ...prev, branch: value }))}
+            />
+            <DepartmentFilter 
+              value={(filters.department as string) || "__all__"} 
+              onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
+            />
         </div>
       </FilterDrawer>
     </Card>

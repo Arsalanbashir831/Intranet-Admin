@@ -5,7 +5,7 @@ import { generatePaginationParams } from "@/lib/pagination-utils";
 export type Branch = {
   id: number;
   branch_name: string;
-  location: null | unknown;
+  location: string | null;
   employee_count: number;
   departments: Array<{
     id: number;
@@ -44,15 +44,23 @@ export type BranchListResponse = {
     results: Branch[];
   };
 };
-export type BranchDetailResponse = Branch;
+export type BranchDetailResponse = {
+  branch: Branch;
+};
 export type BranchCreateRequest = {
-  department: number;
-  location: number;
-  manager: number;
+  branch_name: string;
+  location?: string;
 } & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
-export type BranchCreateResponse = Branch;
-export type BranchUpdateRequest = Partial<BranchCreateRequest>;
-export type BranchUpdateResponse = Branch;
+export type BranchCreateResponse = {
+  branch: Branch;
+};
+export type BranchUpdateRequest = {
+  branch_name?: string;
+  location?: string;
+} & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
+export type BranchUpdateResponse = {
+  branch: Branch;
+};
 
 export async function listBranches(
   params?: Record<string, string | number | boolean>,
@@ -130,17 +138,17 @@ export async function listAllBranches(
 
 export async function getBranch(id: number | string) {
   const res = await apiCaller<BranchDetailResponse>(API_ROUTES.BRANCHES.DETAIL(id), "GET");
-  return res.data;
+  return res.data.branch;
 }
 
 export async function createBranch(payload: BranchCreateRequest) {
   const res = await apiCaller<BranchCreateResponse>(API_ROUTES.BRANCHES.CREATE, "POST", payload, {}, "json");
-  return res.data;
+  return res.data.branch;
 }
 
 export async function updateBranch(id: number | string, payload: BranchUpdateRequest) {
-  const res = await apiCaller<BranchUpdateResponse>(API_ROUTES.BRANCHES.UPDATE(id), "PUT", payload, {}, "json");
-  return res.data;
+  const res = await apiCaller<BranchUpdateResponse>(API_ROUTES.BRANCHES.UPDATE(id), "PATCH", payload, {}, "json");
+  return res.data.branch;
 }
 
 export async function deleteBranch(id: number | string) {

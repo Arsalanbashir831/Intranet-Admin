@@ -20,48 +20,51 @@ import type {
 export function useAnnouncements(
   params?: Record<string, string | number | boolean>,
   pagination?: { page?: number; pageSize?: number },
-  options?: { placeholderData?: (previousData?: AnnouncementListResponse) => AnnouncementListResponse | undefined }
+  options?: { 
+    placeholderData?: (previousData?: AnnouncementListResponse) => AnnouncementListResponse | undefined;
+    managerScope?: boolean;
+  }
 ) {
   return useQuery({
-    queryKey: ["announcements", params, pagination],
+    queryKey: ["announcements", params, pagination, options?.managerScope],
     queryFn: () => {
-      // Always include inactive announcements (drafts) in the results
+      // Only add include_inactive if not already specified in params
       const queryParams = {
         ...params,
-        include_inactive: true
+        ...(params?.include_inactive === undefined && { include_inactive: true })
       };
-      return listAnnouncements(queryParams, pagination);
+      return listAnnouncements(queryParams, pagination, options?.managerScope);
     },
     staleTime: 60_000,
     placeholderData: options?.placeholderData,
   });
 }
 
-export function useAnnouncement(id: number | string) {
+export function useAnnouncement(id: number | string, managerScope?: boolean) {
   return useQuery({
-    queryKey: ["announcements", id],
-    queryFn: () => getAnnouncement(id),
+    queryKey: ["announcements", id, managerScope],
+    queryFn: () => getAnnouncement(id, managerScope),
     enabled: !!id,
     staleTime: 60_000,
   });
 }
 
-export function useCreateAnnouncement() {
+export function useCreateAnnouncement(managerScope?: boolean) {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (payload: AnnouncementCreateRequest) => createAnnouncement(payload),
+    mutationFn: (payload: AnnouncementCreateRequest) => createAnnouncement(payload, managerScope),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
     },
   });
 }
 
-export function useUpdateAnnouncement(id: number | string) {
+export function useUpdateAnnouncement(id: number | string, managerScope?: boolean) {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (payload: AnnouncementUpdateRequest) => updateAnnouncement(id, payload),
+    mutationFn: (payload: AnnouncementUpdateRequest) => updateAnnouncement(id, payload, managerScope),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
       queryClient.invalidateQueries({ queryKey: ["announcements", id] });
@@ -70,11 +73,11 @@ export function useUpdateAnnouncement(id: number | string) {
   });
 }
 
-export function useDeleteAnnouncement() {
+export function useDeleteAnnouncement(managerScope?: boolean) {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (id: number | string) => deleteAnnouncement(id),
+    mutationFn: (id: number | string) => deleteAnnouncement(id, managerScope),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["announcements"] });
     },

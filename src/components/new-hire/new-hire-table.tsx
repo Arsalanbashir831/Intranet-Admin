@@ -241,7 +241,7 @@ export function NewHireTable() {
       "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
     })}>
       <CardTableToolbar
-        title='Recent New Hire Plan'
+        title='Recent Training Checklists'
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
         sortOptions={[
@@ -268,7 +268,7 @@ export function NewHireTable() {
         onOpenChange={setIsFilterOpen}
         onReset={handleResetFilters}
         showFilterButton={false}
-        title="Filter New Hire Plans"
+        title="Filter Training Checklistss"
         description="Filter new hire plans by status or department"
       >
         <div className="space-y-6 py-4">

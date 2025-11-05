@@ -16,6 +16,7 @@ import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { ROUTES } from "@/constants/routes";
 import { useEmployees, useDeleteEmployee } from "@/hooks/queries/use-employees";
 import { useBranchDepartmentEmployees, useDepartmentEmployees } from "@/hooks/queries/use-departments";
+import { useManagerScope } from "@/contexts/manager-scope-context";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
@@ -26,9 +27,9 @@ export type EmployeeRow = {
   id: string;
   name: string;
   avatar?: string;
-  location: string;
+  location: string; // Will show all branches separated by comma
   email: string;
-  department: string;
+  department: string; // Will show all departments separated by comma
   role: string;
   reportingTo: string | null;
   reportingAvatar?: string;
@@ -37,6 +38,7 @@ export type EmployeeRow = {
 
 export function EmployeeTable() {
   const router = useRouter();
+  const { isManager } = useManagerScope();
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
@@ -84,6 +86,7 @@ export function EmployeeTable() {
   // Use the appropriate hook based on filters
   const employeesQuery = useEmployees(
     shouldUseDepartmentFilter || shouldUseBranchDepartmentFilter ? undefined : searchParams
+    // Removed managerScope parameter to prevent unwanted manager_scope=true API calls
   );
   
   const departmentEmployeesQuery = useDepartmentEmployees(
@@ -104,7 +107,7 @@ export function EmployeeTable() {
     shouldUseBranchDepartmentFilter ? branchDeptEmployeesQuery :
     employeesQuery;
 
-  const deleteEmployee = useDeleteEmployee();
+  const deleteEmployee = useDeleteEmployee(isManager);
   const data = React.useMemo<EmployeeRow[]>(() => {
     // Handle different data structures from different APIs
     let employeesList: unknown[] = [];
@@ -136,22 +139,54 @@ export function EmployeeTable() {
         profile_picture?: string;
         email?: string;
         role?: string;
-        branch_department?: {
-          branch?: { branch_name?: string };
-          department?: { dept_name?: string };
-          manager?: { employee?: { emp_name?: string } };
-        };
+        branch_departments?: Array<{
+          id: number;
+          branch?: { id: number; branch_name?: string };
+          department?: { id: number; dept_name?: string };
+          manager?: { 
+            id: number;
+            employee?: { 
+              id: number;
+              emp_name?: string;
+              profile_picture?: string;
+            };
+          } | null;
+        }>;
       };
+
+      // Extract unique branches and departments
+      const branches = employee.branch_departments?.map(bd => bd.branch?.branch_name).filter(Boolean) || [];
+      const departments = employee.branch_departments?.map(bd => bd.department?.dept_name).filter(Boolean) || [];
+      
+      // Get unique values
+      const uniqueBranches = [...new Set(branches)];
+      const uniqueDepartments = [...new Set(departments)];
+
+      // Get the first manager found (if any)
+      const firstManager = employee.branch_departments?.find(bd => bd.manager)?.manager;
+
+      // Helper function to convert relative URLs to absolute URLs
+      const getAbsoluteUrl = (url: string | undefined | null): string | undefined => {
+        if (!url) return undefined;
+        if (url.startsWith('http')) return url; // Already absolute
+        if (url.startsWith('/')) {
+          // Relative URL starting with /, prepend API base URL
+          const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://192.168.1.16:8000';
+          return `${baseUrl}${url}`;
+        }
+        return url; // Return as-is if it doesn't start with /
+      };
+
       return {
         id: String(employee.id),
         name: String(employee.emp_name ?? ""),
-        avatar: employee.profile_picture ?? undefined,
-        location: String(employee?.branch_department?.branch?.branch_name ?? ""),
+        avatar: getAbsoluteUrl(employee.profile_picture),
+        location: uniqueBranches.join(", ") || "--",
         email: String(employee.email ?? ""),
-        department: String(employee?.branch_department?.department?.dept_name ?? ""),
+        department: uniqueDepartments.join(", ") || "--",
         role: String(employee.role ?? ""),
-        reportingTo: employee?.branch_department?.manager?.employee?.emp_name ?? null,
-        reportingAvatar: undefined,
+        reportingTo: firstManager?.employee?.emp_name ?? null,
+        reportingAvatar: getAbsoluteUrl(firstManager?.employee?.profile_picture),
       };
     });
   }, [apiData, shouldUseDepartmentFilter, shouldUseBranchDepartmentFilter]);

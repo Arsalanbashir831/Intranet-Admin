@@ -62,6 +62,8 @@ export const useCreateFile = () => {
       queryClient.invalidateQueries({ queryKey: fileKeys.all });
       // Also invalidate folder queries since files belong to folders
       queryClient.invalidateQueries({ queryKey: ["knowledge-folders"] });
+      // Invalidate folder tree queries (used by folder details table)
+      queryClient.invalidateQueries({ queryKey: ["knowledge-folders", "tree"] });
       toast.success("File uploaded successfully");
     },
     onError: (error: Error) => {
@@ -121,6 +123,8 @@ export const useDeleteFile = () => {
       queryClient.removeQueries({ queryKey: fileKeys.detail(id) });
       // Invalidate list queries
       queryClient.invalidateQueries({ queryKey: fileKeys.lists() });
+      // Invalidate folder tree queries (used by folder details table)
+      queryClient.invalidateQueries({ queryKey: ["knowledge-folders", "tree"] });
       toast.success("File deleted successfully");
     },
     onError: (error: Error) => {

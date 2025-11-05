@@ -32,7 +32,6 @@ type ApiEmployee = {
 
 export type NewHirePlanFormData = {
   assignees: string[];
-  taskItems: ChecklistItemData[];
   trainingItems: ChecklistItemData[];
 };
 
@@ -40,24 +39,41 @@ export interface NewHirePlanFormProps {
   onFormDataChange?: (data: NewHirePlanFormData) => void;
   initialData?: {
     assignees?: string[];
-    taskItems?: ChecklistItemData[];
     trainingItems?: ChecklistItemData[];
   };
 }
 
 export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFormProps) {
-  const [assignees, setAssignees] = React.useState<string[]>(initialData?.assignees || []);
-  const [taskItems, setTaskItems] = React.useState<ChecklistItemData[]>(initialData?.taskItems || []);
-  const [trainingItems, setTrainingItems] = React.useState<ChecklistItemData[]>(initialData?.trainingItems || []);
+  // Use local state for immediate UI updates
+  const [localAssignees, setLocalAssignees] = React.useState<string[]>(initialData?.assignees || []);
+  const [localTrainingItems, setLocalTrainingItems] = React.useState<ChecklistItemData[]>(initialData?.trainingItems || []);
   
-  // Update state when initialData changes
+  // Sync with initialData when it changes
   React.useEffect(() => {
-    if (initialData) {
-      setAssignees(initialData.assignees || []);
-      setTaskItems(initialData.taskItems || []);
-      setTrainingItems(initialData.trainingItems || []);
-    }
+    setLocalAssignees(initialData?.assignees || []);
+    setLocalTrainingItems(initialData?.trainingItems || []);
   }, [initialData]);
+  
+  // Create setters that work with local state and notify parent
+  const setAssignees = React.useCallback((newAssignees: string[]) => {
+    setLocalAssignees(newAssignees);
+    if (onFormDataChange) {
+      onFormDataChange({
+        assignees: newAssignees,
+        trainingItems: localTrainingItems,
+      });
+    }
+  }, [onFormDataChange, localTrainingItems]);
+  
+  const setTrainingItems = React.useCallback((newTrainingItems: ChecklistItemData[]) => {
+    setLocalTrainingItems(newTrainingItems);
+    if (onFormDataChange) {
+      onFormDataChange({
+        assignees: localAssignees,
+        trainingItems: newTrainingItems,
+      });
+    }
+  }, [onFormDataChange, localAssignees]);
   
   // Load all employees data (no need for departments since we get expanded data)
   const { data: allEmployeesData } = useEmployees();
@@ -69,7 +85,7 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
       id: number | string;
       emp_name: string;
       profile_picture?: string | null;
-      branch_department?: {
+      branch_departments?: Array<{
         id: number;
         branch: {
           id: number;
@@ -80,12 +96,14 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
           dept_name: string;
         };
         manager?: unknown;
-      };
+      }>;
     }[]).map((e) => ({
       id: e.id,
       full_name: e.emp_name,
       username: undefined,
-      department_name: e.branch_department?.department?.dept_name || 'Unknown',
+      department_name: e.branch_departments?.[0] 
+        ? `${e.branch_departments[0].branch?.branch_name || 'Unknown'} - ${e.branch_departments[0].department?.dept_name || 'Unknown'}`
+        : 'Unknown',
       profile_picture_url: e.profile_picture || undefined,
     }));
   }, [allEmployeesData]);
@@ -127,16 +145,6 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
     return transformedSearchData;
   }, [searchEmployees]);
 
-  // Notify parent component of form data changes
-  React.useEffect(() => {
-    if (onFormDataChange) {
-      onFormDataChange({
-        assignees,
-        taskItems,
-        trainingItems,
-      });
-    }
-  }, [assignees, taskItems, trainingItems, onFormDataChange]);
 
   // Helper function to get employee by ID for rendering (no hooks)
   const getEmployeeById = React.useCallback((id: string) => {
@@ -147,11 +155,11 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
     <div className="space-y-4">
       <Card className="space-y-4 border-[#FFF6F6] shadow-none px-5">
         <div >
-          <h3 className="text-xl font-semibold text-foreground">Recent New Hire Plans</h3>
+          <h3 className="text-xl font-semibold text-foreground">Recent Training Checklists</h3>
           <div className="mt-3">
             <SelectableTags
               items={[]} // Not used when using async search
-              selectedItems={assignees}
+              selectedItems={localAssignees}
               onSelectionChange={setAssignees}
               placeholder="Assigned to"
               searchPlaceholder="Search people..."
@@ -203,16 +211,16 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
           </div>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          <ChecklistCard 
+        <div className="grid gap-5 md:grid-cols">
+          {/* <ChecklistCard 
             title="Tasks Checklist" 
             initial={taskItems} 
             variant="task" 
             onItemsChange={setTaskItems}
-          />
+          /> */}
           <ChecklistCard 
-            title="Training Checklist" 
-            initial={trainingItems} 
+            title="Training Checklists" 
+            initial={localTrainingItems} 
             variant="training" 
             onItemsChange={setTrainingItems}
           />

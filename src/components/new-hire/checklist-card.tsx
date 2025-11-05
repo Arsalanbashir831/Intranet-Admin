@@ -22,10 +22,13 @@ export function ChecklistCard({
     const [editItem, setEditItem] = React.useState<ChecklistItemData | null>(null);
     const [blobUrls, setBlobUrls] = React.useState<string[]>([]); // Track blob URLs for cleanup
 
+    // Create a stable reference for initial data
+    const stableInitial = React.useMemo(() => initial, [initial.length, initial.map(i => i.id).join(',')]);
+    
     // Update items when initial data changes
     React.useEffect(() => {
-      setItems(initial);
-    }, [initial]);
+      setItems(stableInitial);
+    }, [stableInitial]);
 
     // Clean up blob URLs when component unmounts
     React.useEffect(() => {

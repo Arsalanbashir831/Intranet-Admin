@@ -43,9 +43,8 @@ function DepartmentNameFilter({
   
   const departmentNames = React.useMemo(() => {
     if (!departmentsData) return [];
-    const list = Array.isArray(departmentsData) 
-      ? departmentsData 
-      : (departmentsData as { departments?: { results?: unknown[] } })?.departments?.results || [];
+    // departmentsData is now directly an array of departments
+    const list = Array.isArray(departmentsData) ? departmentsData : [];
     // Extract unique department names
     const names = (list as { id: number; dept_name: string }[])
       .map(dept => dept.dept_name)
@@ -218,10 +217,11 @@ export function DepartmentsTable({ className }: { className?: string }) {
   // Update cache when new data arrives
   React.useEffect(() => {
     if (!shouldUseBranchFilter && departmentsData) {
-      if (isDepartmentData(departmentsData) && departmentsData.departments?.results) {
+      // departmentsData is now directly an array of departments
+      if (Array.isArray(departmentsData)) {
         setDepartmentCache(prev => {
           const newCache = new Map(prev);
-          newCache.set(serverPagination.page, departmentsData.departments.results);
+          newCache.set(serverPagination.page, departmentsData);
           return newCache;
         });
       }
@@ -373,7 +373,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
       });
       return count;
     } else {
-      if (!departmentsData || !isDepartmentData(departmentsData) || !departmentsData.departments) return 0;
+      if (!departmentsData || !Array.isArray(departmentsData)) return 0;
 
       // Calculate average branches per department from cached data
       const totalCachedDepartments = Array.from(departmentCache.values()).reduce(
@@ -384,7 +384,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
       if (totalCachedDepartments === 0) return 0;
 
       const avgBranchesPerDept = totalCachedFlattened / totalCachedDepartments;
-      return Math.ceil(departmentsData.departments.count * avgBranchesPerDept);
+      return Math.ceil(departmentsData.length * avgBranchesPerDept);
     }
   }, [allFlattenedDepartments, departmentCache, branchCache, departmentsData, shouldUseBranchFilter]);
 

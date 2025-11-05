@@ -1,0 +1,52 @@
+"use client";
+
+import * as React from "react";
+import { PageHeader } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/constants/routes";
+import { OrgChartForm } from "@/components/org-chart/org-chart-form";
+import { Loader2 } from "lucide-react";
+
+export default function NewOrgChartPage() {
+  let submitFn: (() => void) | null = null;
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSave = () => {
+    setIsSubmitting(true);
+    // Call the submit function
+    submitFn?.();
+    // Note: We're not resetting isSubmitting here because the form handling
+    // should manage this state. The form component should call a callback
+    // when submission is complete to reset this state.
+  };
+
+  const handleSubmitComplete = (success: boolean) => {
+    // Reset the submitting state when form submission is complete
+    if (!success) {
+      setIsSubmitting(false);
+    }
+    // If success is true, the form will navigate to another page,
+    // so we don't need to reset the state
+  };
+
+  return (
+    <>
+      <PageHeader
+        title="Employees"
+        crumbs={[{ label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }, { label: "Employees", href: ROUTES.ADMIN.ORG_CHART }, { label: "Add New", href: ROUTES.ADMIN.ORG_CHART_NEW }]}
+        action={
+          <div className="flex gap-2">
+            <Button onClick={handleSave} disabled={isSubmitting}>
+              {isSubmitting ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save"}
+            </Button>
+          </div>
+        }
+      />
+      <div className="px-4 md:px-12 py-4">
+        <OrgChartForm onRegisterSubmit={(fn) => { submitFn = fn; }} onSubmitComplete={handleSubmitComplete} />
+      </div>
+    </>
+  );
+}
+
+

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useLogin } from "@/hooks/queries/use-auth";
 import { toast } from "sonner";
 import { ROUTES } from "@/constants/routes";
+import RightAuthAside from "./RightAuthAside";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -140,7 +141,7 @@ export function LoginForm() {
           </div>
 
           {/* Title */}
-          <h1 className="mb-8 text-center text-4xl font-medium tracking-tight text-[#373332] sm:mb-10 sm:text-5xl">
+          <h1 className="mb-8 text-center text-4xl font-bold tracking-tight text-[#373332] sm:mb-10 sm:text-5xl">
             ADMIN LOGIN
           </h1>
 
@@ -213,17 +214,9 @@ export function LoginForm() {
           </form>
         </div>
 
-        {/* Right: Image with spacing + rounded corners */}
-        <div className="relative hidden items-center justify-center p-6 sm:p-8 lg:flex xl:p-12">
-          <div className="relative h-[87vh] w-full overflow-hidden rounded-2xl shadow-md">
-            <Image
-              src="/auth-img.png"
-              alt="Office"
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
+        {/* Right: Full-width auth pane */}
+        <div className="relative hidden lg:flex">
+          <RightAuthAside/>
         </div>
       </div>
     </div>

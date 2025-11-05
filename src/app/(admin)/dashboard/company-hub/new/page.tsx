@@ -49,8 +49,8 @@ export default function CompanyHubPage() {
       return;
     }
 
-    if (!formData.description.trim()) {
-      toast.error("Description is required");
+    if (!formData.body.trim()) {
+      toast.error("Body is required");
       return;
     }
 
@@ -64,17 +64,12 @@ export default function CompanyHubPage() {
     try {
       const payload: AnnouncementCreateRequest = {
         title: formData.title.trim(),
-        body: formData.description,
+        body: formData.body,
         type: formData.type,
-        hash_tags: formData.tags || null,
-        is_active: !isDraft, // Published if not draft
-        inherits_parent_permissions: true, // Default to true
-        // Always send arrays, even if empty, to properly clear selections
-        permitted_branches: formData.selectedBranches 
-          ? formData.selectedBranches.map(Number) 
-          : [],
-        permitted_departments: formData.selectedDepartments 
-          ? formData.selectedDepartments.map(Number) 
+        inherits_parent_permissions: false, // Set to false as per new API structure
+        // Convert string IDs to numbers for the API
+        permitted_branch_departments: formData.selectedBranchDepartments 
+          ? formData.selectedBranchDepartments.map(Number) 
           : [],
       };
 

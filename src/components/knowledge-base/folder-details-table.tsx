@@ -8,15 +8,18 @@ import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Pencil, Trash2, Folder as FolderIcon, FileText } from "lucide-react";
+import { Pencil, Trash2, Folder as FolderIcon, FileText, Download } from "lucide-react";
 import { TableContextMenu } from "@/components/knowledge-base/row-context-menus";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { useDeleteFolder, useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";
 import { useDeleteFile } from "@/hooks/queries/use-knowledge-files";
+import type { FolderTreeItem } from "@/services/knowledge-folders";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
+import { useAuth } from "@/contexts/auth-context";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
+import { Badge } from "../ui/badge";
 
 // Types from the folder tree API response
 type FolderTreeFile = {
@@ -41,20 +44,6 @@ type FolderTreeFile = {
   };
 };
 
-type FolderTreeItem = {
-  id: number;
-  name: string;
-  description: string;
-  parent: number | null;
-  inherits_parent_permissions: boolean;
-  effective_permissions: {
-    branches: number[];
-    departments: number[];
-    employees: number[];
-  };
-  files: FolderTreeFile[];
-  folders: FolderTreeItem[];
-};
 
 export type FolderItemRow = {
   id: string;
@@ -74,14 +63,15 @@ type Props = {
   onNewFolder?: () => void;
   onNewFile?: () => void;
   onFilesUploaded?: () => void; // Callback when files are uploaded
+  canAddContent?: boolean; // Whether user can add new content to this folder
 };
 
-export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, onFilesUploaded }: Props) {
+export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, onFilesUploaded, canAddContent = true }: Props) {
+  const { user } = useAuth();
   const [sortedBy, setSortedBy] = React.useState<string>("file");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [rows, setRows] = React.useState<FolderItemRow[]>([]);
-  const [accessFilter, setAccessFilter] = React.useState<string[]>([]);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [editingFolderId, setEditingFolderId] = React.useState<string | null>(null);
   const { enqueueFiles, uploadFiles } = useUploadQueue();
@@ -126,8 +116,8 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
         id: `folder-${folder.id}`,
         file: folder.name,
         kind: "folder",
-        createdByName: "Admin", // TODO: Get actual creator name
-        dateCreated: folderTreeData ? new Date().toISOString().slice(0, 10) : undefined, // TODO: Use actual created date
+        createdByName: folder.created_by?.emp_name || "Admin",
+        dateCreated: folder.created_at ? format(new Date(folder.created_at), "yyyy-MM-dd") : undefined,
         originalId: folder.id.toString(),
       });
     });
@@ -140,7 +130,7 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
         file: file.name,
         kind: "file",
         extension,
-        createdByName: "Admin", // TODO: Get actual uploader name
+        createdByName: "Admin", // Files don't have uploaded_by details in the API response
         dateCreated: file.uploaded_at ? format(new Date(file.uploaded_at), "yyyy-MM-dd") : undefined,
         originalId: file.id.toString(),
         fileSize: file.size,
@@ -213,6 +203,38 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
       // Error is handled by the mutation hooks
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleDownload = (row: FolderItemRow) => {
+    if (row.kind === "file" && row.originalId) {
+      // Find the file data to get the file_url
+      if (currentFolder) {
+        const file = currentFolder.files.find(f => f.id.toString() === row.originalId);
+        if (file && file.file_url) {
+          try {
+            // Create a temporary link to download the file
+            const link = document.createElement('a');
+            link.href = file.file_url;
+            link.download = file.name;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+
+            // Add to DOM, click, and remove
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } catch (error) {
+            console.error('Download failed:', error);
+            // Fallback: open in new tab
+            window.open(file.file_url, '_blank', 'noopener,noreferrer');
+          }
+        } else {
+          console.error('File not found or no file_url available');
+        }
+      } else {
+        console.error('Current folder data not available');
+      }
     }
   };
 
@@ -290,36 +312,86 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
     {
       id: "actions",
       header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <span onClick={(e) => e.stopPropagation()}>
-            <ConfirmPopover
-              title={`Delete ${row.original.kind === "folder" ? "folder" : "file"}?`}
-              description={`This action cannot be undone. ${row.original.kind === "folder" ? "All files in this folder will also be deleted." : ""}`}
-              confirmText="Delete"
-              onConfirm={() => handleDelete(row.original)}
-              disabled={deletingId === row.original.id || deleteFolder.isPending || deleteFile.isPending}
-            >
-              <Button size="icon" variant="ghost" className="text-[#D64575]">
-                <Trash2 className="size-4" />
+      cell: ({ row }) => {
+        // Check if the current user can edit/delete based on who created the parent folder
+        let canEditDelete = true;
+
+        if (row.original.kind === "folder") {
+          // For folders, find the specific folder data to check who created it
+          if (currentFolder) {
+            const folder = currentFolder.folders.find(f => f.id.toString() === row.original.originalId);
+            if (folder) {
+              const folderCreatedByAdmin = folder.created_by?.is_admin === true;
+              const currentUserIsAdmin = user?.isAdmin;
+              canEditDelete = currentUserIsAdmin || !folderCreatedByAdmin;
+
+              // Debug logging for folder access control
+              console.log('Folder access control:', {
+                folderName: row.original.file,
+                folderCreatedByAdmin,
+                currentUserIsAdmin,
+                canEditDelete,
+                folderCreator: folder.created_by?.emp_name
+              });
+            }
+          }
+        } else if (row.original.kind === "file") {
+          // For files, check the parent folder's creator
+          if (currentFolder) {
+            const parentFolderCreatedByAdmin = currentFolder.created_by?.is_admin === true;
+            const currentUserIsAdmin = user?.isAdmin;
+            canEditDelete = currentUserIsAdmin || !parentFolderCreatedByAdmin;
+          }
+        }
+
+        return (
+          <div className="flex items-center gap-1">
+            {row.original.kind === "file" && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-[#059669]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownload(row.original);
+                }}
+              >
+                <Download className="size-4" />
               </Button>
-            </ConfirmPopover>
-          </span>
-          {row.original.kind === "folder" && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-[#2563EB]"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEdit(row.original);
-              }}
-            >
-              <Pencil className="size-4" />
-            </Button>
-          )}
-        </div>
-      ),
+            )}
+             
+              <span onClick={(e) => e.stopPropagation()}>
+                <ConfirmPopover
+                  title={`Delete ${row.original.kind === "folder" ? "folder" : "file"}?`}
+                  description={`This action cannot be undone. ${row.original.kind === "folder" ? "All files in this folder will also be deleted." : ""}`}
+                  confirmText="Delete"
+                  onConfirm={() => handleDelete(row.original)}
+                  disabled={deletingId === row.original.id || deleteFolder.isPending || deleteFile.isPending}
+                >
+                  <Button size="icon" variant="ghost" className="text-[#D64575]" disabled={!canEditDelete}>
+                    <Trash2 className="size-4" />
+                  </Button>
+                </ConfirmPopover>
+              </span>
+            
+            {row.original.kind === "folder" && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-[#2563EB]"
+                disabled={!canEditDelete}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit(row.original);
+                }}
+              >
+                <Pencil className="size-4" />
+              </Button>
+            )}
+           
+          </div>
+        );
+      },
     },
   ];
 
@@ -382,47 +454,67 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
           showFilters={false}
           showSortOptions={false}
         />
-        <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile}>
+        {canAddContent ? (
+          <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile}>
+            <CardTable<FolderItemRow, unknown>
+              columns={columns}
+              data={filteredAndSortedRows}
+              headerClassName="grid-cols-[1.4fr_1fr_1fr_0.8fr]"
+              rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_0.8fr] cursor-pointer"}
+              // wrapRow={(rowEl, row) => (
+              //   <RowContextMenu
+              //     key={row.id}
+              //     onRename={() => {}}
+              //     onDelete={() => {}}
+              //   >
+              //     {rowEl}
+              //   </RowContextMenu>
+              // )}
+              onRowClick={(row) => {
+                const isFolder = (row.original.kind ?? "file") === "folder";
+                if (isFolder) {
+                  // Emit a custom event for the consumer to navigate
+                  const event = new CustomEvent("kb:open-folder", { detail: row.original });
+                  window.dispatchEvent(event);
+                } else {
+                  // For files, open in new tab
+                  const fileRow = row.original;
+                  if (fileRow.originalId) {
+                    const file = currentFolder?.files.find(f => f.id.toString() === fileRow.originalId);
+                    if (file) {
+                      window.open(file.file_url, '_blank');
+                    }
+                  }
+                }
+              }}
+              footer={() => null}
+              noResultsContent={(
+                <div className="text-center">
+                  <div className="text-[13px] font-medium text-[#111827]">This folder is empty</div>
+                  <div className="text-[11px] text-[#6B7280]">Drag and drop files onto this window to upload</div>
+                </div>
+              )}
+            />
+          </TableContextMenu>
+        ) : (
           <CardTable<FolderItemRow, unknown>
             columns={columns}
             data={filteredAndSortedRows}
             headerClassName="grid-cols-[1.4fr_1fr_1fr_0.8fr]"
             rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.4fr_1fr_1fr_0.8fr] cursor-pointer"}
-            // wrapRow={(rowEl, row) => (
-            //   <RowContextMenu
-            //     key={row.id}
-            //     onRename={() => {}}
-            //     onDelete={() => {}}
-            //   >
-            //     {rowEl}
-            //   </RowContextMenu>
-            // )}
             onRowClick={(row) => {
-              const isFolder = (row.original.kind ?? "file") === "folder";
-              if (isFolder) {
-                // Emit a custom event for the consumer to navigate
-                const event = new CustomEvent("kb:open-folder", { detail: row.original });
-                window.dispatchEvent(event);
-              } else {
-                // For files, open in new tab
-                const fileRow = row.original;
-                if (fileRow.originalId) {
-                  const file = currentFolder?.files.find(f => f.id.toString() === fileRow.originalId);
-                  if (file) {
-                    window.open(file.file_url, '_blank');
-                  }
-                }
+              if (row.original.kind === "folder" && row.original.originalId) {
+                window.dispatchEvent(new CustomEvent("kb:open-folder", { detail: row.original }));
               }
             }}
             footer={() => null}
             noResultsContent={(
               <div className="text-center">
                 <div className="text-[13px] font-medium text-[#111827]">This folder is empty</div>
-                <div className="text-[11px] text-[#6B7280]">Drag and drop files onto this window to upload</div>
               </div>
             )}
           />
-        </TableContextMenu>
+        )}
       </Card>
 
       <AddFolderModal

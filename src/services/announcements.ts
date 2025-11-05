@@ -23,12 +23,8 @@ export type AnnouncementCreateRequest = {
   title: string;
   body: string;
   type?: AnnouncementTypeEnum;
-  hash_tags?: string | null;
-  is_active?: boolean;
   inherits_parent_permissions?: boolean;
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_employees?: number[];
+  permitted_branch_departments?: number[];
 };
 
 export type AnnouncementCreateResponse = Announcement;
@@ -38,12 +34,8 @@ export type AnnouncementUpdateRequest = {
   title?: string;
   body?: string;
   type?: AnnouncementTypeEnum;
-  hash_tags?: string | null;
-  is_active?: boolean;
   inherits_parent_permissions?: boolean;
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_employees?: number[];
+  permitted_branch_departments?: number[];
 };
 
 export type AnnouncementUpdateResponse = Announcement;
@@ -87,10 +79,16 @@ export type AnnouncementAttachmentUpdateResponse = AnnouncementAttachment;
 // Announcement CRUD operations
 export async function listAnnouncements(
   params?: Record<string, string | number | boolean>,
-  pagination?: { page?: number; pageSize?: number }
+  pagination?: { page?: number; pageSize?: number },
+  managerScope?: boolean
 ) {
   const url = API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.LIST;
   const queryParams: Record<string, string> = {};
+  
+  // Add manager scope parameter
+  if (managerScope) {
+    queryParams.manager_scope = 'true';
+  }
   
   // Add pagination parameters
   if (pagination) {
@@ -116,54 +114,47 @@ export async function listAnnouncements(
   return res.data;
 }
 
-export async function getAnnouncement(id: number | string) {
-  const res = await apiCaller<AnnouncementDetailResponse>(
-    `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DETAIL(id)}?include_inactive=true`, 
-    "GET"
-  );
+export async function getAnnouncement(id: number | string, managerScope?: boolean) {
+  const url = managerScope 
+    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DETAIL(id)}?include_inactive=true&manager_scope=true`
+    : `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DETAIL(id)}?include_inactive=true`;
+  const res = await apiCaller<AnnouncementDetailResponse>(url, "GET");
   return res.data;
 }
 
-export async function createAnnouncement(payload: AnnouncementCreateRequest) {
+export async function createAnnouncement(payload: AnnouncementCreateRequest, managerScope?: boolean) {
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
+    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
   };
   
-  const res = await apiCaller<AnnouncementCreateResponse>(
-    API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.CREATE, 
-    "POST", 
-    apiPayload, 
-    {}, 
-    "json"
-  );
+  const url = managerScope 
+    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.CREATE}?manager_scope=true`
+    : API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.CREATE;
+  const res = await apiCaller<AnnouncementCreateResponse>(url, "POST", apiPayload, {}, "json");
   return res.data;
 }
 
-export async function updateAnnouncement(id: number | string, payload: AnnouncementUpdateRequest) {
+export async function updateAnnouncement(id: number | string, payload: AnnouncementUpdateRequest, managerScope?: boolean) {
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
+    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
   };
   
-  const res = await apiCaller<AnnouncementUpdateResponse>(
-    API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)+'?include_inactive=true', 
-    "PATCH", 
-    apiPayload, 
-    {}, 
-    "json"
-  );
+  const url = managerScope 
+    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)}?include_inactive=true&manager_scope=true`
+    : `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)}?include_inactive=true`;
+  const res = await apiCaller<AnnouncementUpdateResponse>(url, "PATCH", apiPayload, {}, "json");
   return res.data;
 }
 
-export async function deleteAnnouncement(id: number | string) {
-  await apiCaller<void>(`${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}?include_inactive=true`, "DELETE");
+export async function deleteAnnouncement(id: number | string, managerScope?: boolean) {
+  const url = managerScope 
+    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}?include_inactive=true&manager_scope=true`
+    : `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}?include_inactive=true`;
+  await apiCaller<void>(url, "DELETE");
 }
 
 // Announcement Attachment operations

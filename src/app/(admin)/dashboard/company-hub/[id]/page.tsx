@@ -86,13 +86,17 @@ export default function CompanyHubEditPage() {
   const initialData = React.useMemo<CompanyHubInitialData | undefined>(() => {
     if (!announcement) return undefined;
     
+    // Type assertion for announcement with additional fields
+    const announcementWithBranchDepts = announcement as typeof announcement & {
+      permitted_branch_departments?: number[];
+    };
+    
     return {
       type: announcement.type === "policy" ? "policy" : "announcement",
       title: announcement.title,
-      tags: (announcement.hash_tags || "") as string,
-      selectedBranches: announcement.permitted_branches?.map(String) || [],
-      selectedDepartments: announcement.permitted_departments?.map(String) || [],
-      description: announcement.body,
+      // Map permitted_branch_departments from API response
+      selectedBranchDepartments: announcementWithBranchDepts.permitted_branch_departments?.map(String) || [],
+      body: announcement.body,
     };
   }, [announcement]);
 
@@ -109,15 +113,11 @@ export default function CompanyHubEditPage() {
       
       await updateAnnouncement.mutateAsync({
         title: currentFormData.title || "",
-        body: currentFormData.description || "",
+        body: currentFormData.body || "",
         type: currentFormData.type === "policy" ? "policy" : "announcement",
-        hash_tags: currentFormData.tags || undefined,
-        is_active: !isDraft,
-        permitted_branches: currentFormData.selectedBranches 
-          ? currentFormData.selectedBranches.map(Number) 
-          : [],
-        permitted_departments: currentFormData.selectedDepartments 
-          ? currentFormData.selectedDepartments.map(Number) 
+        inherits_parent_permissions: false, // Set to false as per new API structure
+        permitted_branch_departments: currentFormData.selectedBranchDepartments 
+          ? currentFormData.selectedBranchDepartments.map(Number) 
           : [],
       });
       

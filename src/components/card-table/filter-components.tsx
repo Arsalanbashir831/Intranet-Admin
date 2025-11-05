@@ -25,9 +25,8 @@ export function DepartmentFilter({ value, onValueChange, placeholder = "Select d
   
   const departments = React.useMemo(() => {
     if (!departmentsData) return [];
-    const list = Array.isArray(departmentsData) 
-      ? departmentsData 
-      : (departmentsData as { departments?: { results?: unknown[] } })?.departments?.results || [];
+    // departmentsData is now directly an array of departments
+    const list = Array.isArray(departmentsData) ? departmentsData : [];
     return (list as { id: number; dept_name: string }[]).map(dept => ({
       id: dept.id,
       name: dept.dept_name

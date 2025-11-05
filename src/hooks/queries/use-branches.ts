@@ -18,11 +18,19 @@ const normalizeParams = (params?: Record<string, string | number | boolean>) => 
 
 // ---- Queries ----
 
-export function useBranches(params?: Record<string, string | number | boolean>) {
+export function useBranches(
+  params?: Record<string, string | number | boolean>,
+  pagination?: { page?: number; pageSize?: number }
+) {
   const keyParams = normalizeParams(params);
+  const keyPagination =
+    pagination && (pagination.page || pagination.pageSize)
+      ? { page: pagination.page ?? 1, pageSize: pagination.pageSize ?? 50 }
+      : undefined;
+
   return useQuery({
-    queryKey: ["branches", keyParams],
-    queryFn: () => listBranches(keyParams),
+    queryKey: ["branches", keyParams, keyPagination],
+    queryFn: () => listBranches(keyParams, keyPagination),
     staleTime: 60_000,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
