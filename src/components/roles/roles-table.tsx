@@ -10,7 +10,6 @@ import { Edit2, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
-import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { useRoles, useDeleteRole } from "@/hooks/queries/use-roles";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
@@ -79,8 +78,6 @@ export function RolesTable() {
       page_size: apiData.roles.page_size,
     };
   }, [apiData]);
-
-  const { pinnedIds, togglePin } = usePinnedRows<RoleRow>(data);
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearchQuery(value);

@@ -269,7 +269,6 @@ export function OrgChartForm({
 			else {
 				const err = error as { response?: { data?: Record<string, unknown>; status?: number } };
 				const dataErr = err?.response?.data;
-				const status = err?.response?.status;
 				
 				if (dataErr && typeof dataErr === "object") {
 					// Check for direct error field (common in custom error responses)

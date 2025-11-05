@@ -147,8 +147,6 @@ export async function createEmployee(payload: EmployeeCreateRequest, managerScop
     if (payload.role) formData.append('role', String(payload.role));
     if (payload.education) formData.append('education', payload.education);
     if (payload.bio) formData.append('bio', payload.bio);
-    if (payload.address) formData.append('address', payload.address);
-    if (payload.city) formData.append('city', payload.city);
     
     if (payload.profile_picture instanceof File) {
       formData.append('profile_picture', payload.profile_picture);

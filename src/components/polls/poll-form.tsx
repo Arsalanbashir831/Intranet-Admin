@@ -19,15 +19,14 @@ import {
 } from "@/components/ui/selectable-tags";
 import {
   useDepartments,
-  useSearchDepartments,
 } from "@/hooks/queries/use-departments";
 import {
   useAllBranches,
   useSearchBranches,
   useBranchDepartments,
-  useSearchBranchDepartments,
 } from "@/hooks/queries/use-branches";
 import { useManagerScope } from "@/contexts/manager-scope-context";
+import { useSearchDepartmentsWithBranches } from "@/hooks/use-search-departments-with-branches";
 
 const pollFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -64,7 +63,7 @@ export function PollForm({
   const formDataRef = React.useRef<PollFormData | null>(null);
   
   // Get manager scope to determine access level
-  const { isManager, managedDepartments } = useManagerScope();
+  const { isManager } = useManagerScope();
   
   // Load base datasets
   const { data: departmentsData } = useDepartments();
@@ -88,9 +87,6 @@ export function PollForm({
   });
 
   const { watch, setValue, handleSubmit, getValues, formState: { errors } } = form;
-  
-  // Watch form values for controlled inputs
-  const watchedValues = watch();
 
   // Create a stable form data change handler
   const handleFormDataChange = React.useCallback(() => {
@@ -119,88 +115,13 @@ export function PollForm({
     { pageSize: 1000 }
   );
 
-  // Create adapter hooks for SelectableTags search functionality
-  // Filter departments by selected branches when searching
-  const useSearchDepartmentsAdapter = React.useCallback((query: string) => {
-    // Always call both hooks unconditionally to follow Rules of Hooks
-    // When branches are selected, use branch departments API with branch and search filters
-    const branchDeptResult = useBranchDepartments(
-      shouldFilterByBranches && permittedBranches
-        ? { 
-            branch: permittedBranches.join(","),
-            ...(query.trim() ? { search: query.trim() } : {})
-          }
-        : undefined,
-      { pageSize: 1000 }
-    );
-    
-    // When no branches selected, use regular departments search
-    const deptSearchResult = useSearchDepartments(
-      !shouldFilterByBranches ? query : "",
-      { page: 1, pageSize: 50 }
-    );
-    
-    // Use the appropriate result based on whether branches are selected
-    const activeResult = shouldFilterByBranches ? branchDeptResult : deptSearchResult;
-    
-    const selectableItems = React.useMemo(() => {
-      if (shouldFilterByBranches) {
-        // Get unique departments from branch departments results
-        const branchDeptData = activeResult.data as { branch_departments?: { results?: unknown[] } } | undefined;
-        const results = branchDeptData?.branch_departments?.results;
-        if (!results || !Array.isArray(results)) return [];
-        
-        const uniqueDepartments = new Map<number, { id: number; dept_name: string }>();
-        
-        (results as Array<{ department?: { id: number; dept_name: string } }>).forEach((bd) => {
-          if (bd.department?.id && bd.department?.dept_name) {
-            if (!uniqueDepartments.has(bd.department.id)) {
-              uniqueDepartments.set(bd.department.id, {
-                id: bd.department.id,
-                dept_name: bd.department.dept_name,
-              });
-            }
-          }
-        });
-        
-        return Array.from(uniqueDepartments.values()).map(dept => ({
-          id: String(dept.id),
-          label: dept.dept_name,
-        }));
-      } else {
-        // Handle departments search results
-        if (!activeResult.data) return [];
-        
-        if (
-          typeof activeResult.data === "object" &&
-          activeResult.data !== null &&
-          "departments" in activeResult.data
-        ) {
-          const departmentsData = activeResult.data as {
-            departments?: {
-              results?: Array<{ id: unknown; dept_name: unknown }>;
-            };
-          };
-          const rawData = departmentsData.departments?.results || [];
-          return createCustomSelectableItems(rawData, "id", "dept_name");
-        }
-        if (
-          typeof activeResult.data === "object" &&
-          activeResult.data !== null &&
-          "results" in activeResult.data
-        ) {
-          const rawData = (activeResult.data as { results: Array<{ id: unknown; dept_name: unknown }> }).results;
-          return createCustomSelectableItems(rawData, "id", "dept_name");
-        }
-      }
-      return [];
-    }, [activeResult.data, shouldFilterByBranches]);
-    
-    return { 
-      data: selectableItems, 
-      isLoading: activeResult.isLoading 
-    };
-  }, [shouldFilterByBranches, permittedBranches]);
+  // Create adapter function for SelectableTags
+  // IMPORTANT: This function is called as a hook by SelectableTags during render (see line 108 in selectable-tags.tsx)
+  // The linter can't verify this pattern, but it's safe because SelectableTags calls it as: useSearch?.(query)
+  // We define it as a regular function (not useCallback) so it can be used as a hook
+  function useSearchDepartmentsAdapter(query: string) {
+    return useSearchDepartmentsWithBranches(query, shouldFilterByBranches || false, permittedBranches);
+  }
 
   const useSearchBranchesAdapter = (query: string) => {
     const searchResult = useSearchBranches(query, { page: 1, pageSize: 50 });

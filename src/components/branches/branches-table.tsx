@@ -9,7 +9,6 @@ import { Edit2, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
-import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { useBranches, useDeleteBranch } from "@/hooks/queries/use-branches";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";

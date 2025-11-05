@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, Calendar, Shield, Clock, BarChart3 } from "lucide-react";
-import type { Poll, PollOption, BranchDetail, DepartmentDetail, BranchDepartmentDetail, EmployeeDetail } from "@/types/polls";
+import type { Poll, BranchDetail, DepartmentDetail, BranchDepartmentDetail, EmployeeDetail } from "@/types/polls";
 
 type Voter = {
   id: number;
