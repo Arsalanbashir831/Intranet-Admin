@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
 import { FilterDrawer } from "@/components/card-table/filter-drawer";
-import { DepartmentFilter, BranchDepartmentFilter } from "@/components/card-table/filter-components";
+import { DepartmentFilter, BranchDepartmentFilter, RoleFilter } from "@/components/card-table/filter-components";
 
 export type EmployeeRow = {
   id: string;
@@ -86,6 +86,11 @@ export function EmployeeTable() {
       params.branch_department = String(filters.branchDepartment);
     }
     
+    // Add role filter if selected (but not if it's the "All" option)
+    if (filters.role && filters.role !== "__all__") {
+      params.role = String(filters.role);
+    }
+    
     return Object.keys(params).length > 0 ? params : undefined;
   }, [debouncedSearchQuery, filters]);
 
@@ -130,19 +135,19 @@ export function EmployeeTable() {
     if (shouldUseDepartmentFilter) {
       // For department employees, the data structure is different
       const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
-      employeesList = Array.isArray(employeesContainer?.results)
+      employeesList = (employeesContainer && Array.isArray(employeesContainer.results))
         ? employeesContainer.results
         : (Array.isArray(apiData) ? apiData : []);
     } else if (shouldUseBranchDepartmentFilter) {
       // For branch department employees, the data structure is different
       const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
-      employeesList = Array.isArray(employeesContainer?.results)
+      employeesList = (employeesContainer && Array.isArray(employeesContainer.results))
         ? employeesContainer.results
         : (Array.isArray(apiData) ? apiData : []);
     } else {
       // For regular employees query
       const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
-      employeesList = Array.isArray(employeesContainer?.results)
+      employeesList = (employeesContainer && Array.isArray(employeesContainer.results))
         ? employeesContainer.results
         : (Array.isArray(apiData) ? apiData : []);
     }
@@ -380,6 +385,10 @@ export function EmployeeTable() {
           <BranchDepartmentFilter 
             value={(filters.branchDepartment as string) || "__all__"} 
             onValueChange={(value: string) => setFilters(prev => ({ ...prev, branchDepartment: value }))}
+          />
+          <RoleFilter 
+            value={(filters.role as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, role: value }))}
           />
         </div>
       </FilterDrawer>
