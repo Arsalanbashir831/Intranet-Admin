@@ -172,7 +172,6 @@ export function NewHireTable() {
         </div>
       ),
     },
-    { accessorKey: "department", header: ({ column }) => <CardTableColumnHeader column={column} title="Department" />, cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span> },
     {
       accessorKey: "dateOfCreation",
       header: ({ column }) => <CardTableColumnHeader column={column} title="Date of Creation" />,
@@ -257,8 +256,8 @@ export function NewHireTable() {
       <CardTable<NewHireRow, unknown>
         columns={columns}
         data={ordered}
-        headerClassName="grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1fr_0.8fr_1.2fr_0.8fr] cursor-pointer"}
+        headerClassName="grid-cols-[1.2fr_1fr_0.8fr_1.2fr_0.8fr]"
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_0.8fr_1.2fr_0.8fr] cursor-pointer"}
         onRowClick={(row) => handleRowClick(row.original)}
         footer={(table) => <CardTablePagination table={table} />}
       />
