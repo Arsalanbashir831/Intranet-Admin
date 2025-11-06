@@ -396,10 +396,30 @@ export function KnowledgeBaseTable() {
   ];
 
   if (error) {
+    // Check if it's a 403 Forbidden error
+    const isForbidden = error.message && (
+      error.message.toLowerCase().includes('access denied') ||
+      error.message.toLowerCase().includes('forbidden') ||
+      error.message.toLowerCase().includes("don't have permission")
+    );
+
     return (
       <Card className="border-[#FFF6F6] p-5 shadow-none">
-        <div className="text-center py-8 text-red-600">
-          Error loading folders: {error.message}
+        <div className="text-center py-8">
+          {isForbidden ? (
+            <div className="space-y-2">
+              <div className="text-red-600 font-medium">
+                Access Denied
+              </div>
+              <div className="text-sm text-muted-foreground">
+                You don't have permission to access the knowledge base. Please contact your administrator if you believe this is an error.
+              </div>
+            </div>
+          ) : (
+            <div className="text-red-600">
+              Error loading folders: {error.message}
+            </div>
+          )}
         </div>
       </Card>
     );
