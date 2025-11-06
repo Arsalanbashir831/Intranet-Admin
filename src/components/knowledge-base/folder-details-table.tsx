@@ -402,7 +402,7 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
                 Access Denied
               </div>
               <div className="text-sm text-muted-foreground">
-                You don't have permission to access this folder. Please contact your administrator if you believe this is an error.
+                You don&apos;t have permission to access this folder. Please contact your administrator if you believe this is an error.
               </div>
             </div>
           ) : (
