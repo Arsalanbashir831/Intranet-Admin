@@ -6,15 +6,20 @@ import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit2 } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { cn } from "@/lib/utils";
-import { useDepartments } from "@/hooks/queries/use-departments";
+import {
+  useDepartments,
+  useDeleteDepartment,
+} from "@/hooks/queries/use-departments";
 import type { Department } from "@/services/departments";
 import { EditDepartmentModal } from "./edit-department-modal";
+import { toast } from "sonner";
+import { ConfirmPopover } from "@/components/common/confirm-popover";
 
 export type DepartmentRow = {
   id: string;
@@ -23,10 +28,18 @@ export type DepartmentRow = {
 
 export function DepartmentsTable({ className }: { className?: string }) {
   const [searchQuery, setSearchQuery] = React.useState<string>("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
-  const [serverPagination, setServerPagination] = React.useState({ page: 1, pageSize: 10 });
+  const [debouncedSearchQuery, setDebouncedSearchQuery] =
+    React.useState<string>("");
+  const [serverPagination, setServerPagination] = React.useState({
+    page: 1,
+    pageSize: 10,
+  });
   const [editModalOpen, setEditModalOpen] = React.useState(false);
-  const [selectedDepartment, setSelectedDepartment] = React.useState<Department | null>(null);
+  const [selectedDepartment, setSelectedDepartment] =
+    React.useState<Department | null>(null);
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+
+  const deleteDepartment = useDeleteDepartment();
 
   // Debounce search query to avoid too many API calls
   React.useEffect(() => {
@@ -46,46 +59,69 @@ export function DepartmentsTable({ className }: { className?: string }) {
     return Object.keys(params).length > 0 ? params : undefined;
   }, [debouncedSearchQuery]);
 
-  const { data: departmentsData, isLoading, error, isFetching } = useDepartments(
-    searchParams,
-    serverPagination
-  );
+  const {
+    data: departmentsData,
+    isLoading,
+    error,
+    isFetching,
+  } = useDepartments(searchParams, serverPagination);
 
   const handlePageChange = (page: number, pageSize: number) => {
     setServerPagination({ page, pageSize });
   };
 
-  const handleSearchChange = React.useCallback((value: string) => {
-    setSearchQuery(value);
-    // Reset pagination when searching
-    setServerPagination({ page: 1, pageSize: serverPagination.pageSize });
-  }, [serverPagination.pageSize]);
+  const handleSearchChange = React.useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+      // Reset pagination when searching
+      setServerPagination({ page: 1, pageSize: serverPagination.pageSize });
+    },
+    [serverPagination.pageSize]
+  );
 
   const handleEditClick = (row: DepartmentRow) => {
     if (!departmentsData) return;
-    
+
     // Handle both array (legacy) and paginated response structure
-    const departments = Array.isArray(departmentsData) 
-      ? departmentsData 
-      : (departmentsData as { departments?: { results?: Department[] } })?.departments?.results || [];
-    
-    const department = departments.find(dept => String(dept.id) === row.id);
-    
+    const departments = Array.isArray(departmentsData)
+      ? departmentsData
+      : (departmentsData as { departments?: { results?: Department[] } })
+          ?.departments?.results || [];
+
+    const department = departments.find((dept) => String(dept.id) === row.id);
+
     if (department) {
       setSelectedDepartment(department);
       setEditModalOpen(true);
     }
   };
 
+  const handleDeleteClick = React.useCallback(
+    async (row: DepartmentRow) => {
+      try {
+        setDeletingId(row.id);
+        await deleteDepartment.mutateAsync(row.id);
+        toast.success("Department deleted successfully");
+      } catch (error) {
+        console.error("Failed to delete department:", error);
+        toast.error("Failed to delete department");
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [deleteDepartment]
+  );
+
   // Transform API data to match our UI structure
   const data: DepartmentRow[] = React.useMemo(() => {
     if (!departmentsData) return [];
-    
+
     // Handle both array (legacy) and paginated response structure
-    const departments = Array.isArray(departmentsData) 
-      ? departmentsData 
-      : (departmentsData as { departments?: { results?: Department[] } })?.departments?.results || [];
-    
+    const departments = Array.isArray(departmentsData)
+      ? departmentsData
+      : (departmentsData as { departments?: { results?: Department[] } })
+          ?.departments?.results || [];
+
     return departments.map((dept: Department) => ({
       id: String(dept.id),
       department: dept.dept_name,
@@ -95,10 +131,15 @@ export function DepartmentsTable({ className }: { className?: string }) {
   // Get pagination info from API response if available
   const paginationInfo = React.useMemo(() => {
     if (!departmentsData) return undefined;
-    
+
     // If it's a paginated response, extract pagination info
-    if (typeof departmentsData === 'object' && 'departments' in departmentsData) {
-      const paginated = departmentsData as { departments?: { count?: number; page?: number; page_size?: number } };
+    if (
+      typeof departmentsData === "object" &&
+      "departments" in departmentsData
+    ) {
+      const paginated = departmentsData as {
+        departments?: { count?: number; page?: number; page_size?: number };
+      };
       if (paginated.departments) {
         return {
           count: paginated.departments.count || 0,
@@ -107,7 +148,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
         };
       }
     }
-    
+
     // Fallback for array response
     if (Array.isArray(departmentsData)) {
       return {
@@ -116,7 +157,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
         page_size: serverPagination.pageSize,
       };
     }
-    
+
     return undefined;
   }, [departmentsData, serverPagination]);
 
@@ -130,9 +171,16 @@ export function DepartmentsTable({ className }: { className?: string }) {
   // Show loading state only on initial load
   if (isLoading && !debouncedSearchQuery && data.length === 0) {
     return (
-      <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className)}>
+      <Card
+        className={cn(
+          "border-[#FFF6F6] p-5 shadow-none overflow-hidden",
+          className
+        )}
+      >
         <div className="flex items-center justify-center h-32">
-          <div className="text-sm text-muted-foreground">Loading departments...</div>
+          <div className="text-sm text-muted-foreground">
+            Loading departments...
+          </div>
         </div>
       </Card>
     );
@@ -140,7 +188,12 @@ export function DepartmentsTable({ className }: { className?: string }) {
 
   if (error) {
     return (
-      <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className)}>
+      <Card
+        className={cn(
+          "border-[#FFF6F6] p-5 shadow-none overflow-hidden",
+          className
+        )}
+      >
         <div className="flex items-center justify-center h-32">
           <div className="text-sm text-red-500">Error loading departments</div>
         </div>
@@ -151,16 +204,23 @@ export function DepartmentsTable({ className }: { className?: string }) {
   const columns: ColumnDef<DepartmentRow>[] = [
     {
       accessorKey: "department",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Department" />,
+      header: ({ column }) => (
+        <CardTableColumnHeader column={column} title="Department" />
+      ),
       cell: ({ row }) => (
-        <Badge variant="secondary" className="bg-[#FFF1F5] text-[#D64575] border-0">
+        <Badge
+          variant="secondary"
+          className="bg-[#FFF1F5] text-[#D64575] border-0"
+        >
           {row.original.department}
         </Badge>
       ),
     },
     {
       id: "actions",
-      header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
+      header: () => (
+        <span className="text-sm font-medium text-[#727272]">Action</span>
+      ),
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <Button
@@ -174,6 +234,21 @@ export function DepartmentsTable({ className }: { className?: string }) {
           >
             <Edit2 className="size-4" />
           </Button>
+          <span onClick={(e) => e.stopPropagation()}>
+            <ConfirmPopover
+              title="Delete department?"
+              description="This action cannot be undone."
+              confirmText="Delete"
+              onConfirm={() => handleDeleteClick(row.original)}
+              disabled={
+                deletingId === row.original.id || deleteDepartment.isPending
+              }
+            >
+              <Button size="icon" variant="ghost" className="text-[#D64575]">
+                <Trash2 className="size-4" />
+              </Button>
+            </ConfirmPopover>
+          </span>
         </div>
       ),
     },
@@ -181,11 +256,18 @@ export function DepartmentsTable({ className }: { className?: string }) {
 
   return (
     <>
-      <Card className={cn("border-[#FFF6F6] p-5 shadow-none overflow-hidden", className, {
-        "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery,
-      })}>
+      <Card
+        className={cn(
+          "border-[#FFF6F6] p-5 shadow-none overflow-hidden",
+          className,
+          {
+            "opacity-75 pointer-events-none":
+              isFetching && debouncedSearchQuery,
+          }
+        )}
+      >
         <CardTableToolbar
-          title='Departments'
+          title="Departments"
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
           showSortOptions={false}
@@ -194,8 +276,8 @@ export function DepartmentsTable({ className }: { className?: string }) {
         <CardTable<DepartmentRow, unknown>
           columns={columns}
           data={ordered}
-          headerClassName="grid-cols-2"
-          rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-2"}
+          headerClassName="grid-cols-[1fr_0.2fr]"
+          rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1fr_0.2fr]"}
           footer={(table) => (
             <CardTablePagination
               table={table}
