@@ -39,16 +39,23 @@ export function useSearchDepartmentsWithBranches(
   const activeResult = shouldFilterByBranches ? branchDeptResult : deptSearchResult;
   
   const selectableItems = React.useMemo(() => {
-    if (shouldFilterByBranches) {
+    if (shouldFilterByBranches && permittedBranches) {
       // Get unique departments from branch departments results
       const branchDeptData = activeResult.data as { branch_departments?: { results?: unknown[] } } | undefined;
       const results = branchDeptData?.branch_departments?.results;
       if (!results || !Array.isArray(results)) return [];
       
+      // Convert permitted branches to numbers for comparison
+      const selectedBranchIds = new Set(permittedBranches.map(b => Number(b)));
+      
       const uniqueDepartments = new Map<number, { id: number; dept_name: string }>();
       
-      (results as Array<{ department?: { id: number; dept_name: string } }>).forEach((bd) => {
-        if (bd.department?.id && bd.department?.dept_name) {
+      (results as Array<{ 
+        branch?: { id: number };
+        department?: { id: number; dept_name: string } 
+      }>).forEach((bd) => {
+        // Only include if the branch matches one of the selected branches
+        if (bd.branch?.id && selectedBranchIds.has(bd.branch.id) && bd.department?.id && bd.department?.dept_name) {
           if (!uniqueDepartments.has(bd.department.id)) {
             uniqueDepartments.set(bd.department.id, {
               id: bd.department.id,
@@ -89,7 +96,7 @@ export function useSearchDepartmentsWithBranches(
       }
     }
     return [];
-  }, [activeResult.data, shouldFilterByBranches]);
+  }, [activeResult.data, shouldFilterByBranches, permittedBranches]);
   
   return { 
     data: selectableItems, 

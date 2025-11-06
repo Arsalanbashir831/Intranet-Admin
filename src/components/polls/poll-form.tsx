@@ -198,11 +198,18 @@ export function PollForm({
     if (permittedBranches && permittedBranches.length > 0 && branchDepartmentsData) {
       const branchDeptResults = branchDepartmentsData.branch_departments?.results || [];
       
-      // Get unique departments from selected branches
+      // Convert permitted branches to numbers for comparison
+      const selectedBranchIds = new Set(permittedBranches.map(b => Number(b)));
+      
+      // Get unique departments from selected branches only
       const uniqueDepartments = new Map<number, { id: number; dept_name: string }>();
       
-      branchDeptResults.forEach((bd: { department?: { id: number; dept_name: string } }) => {
-        if (bd.department?.id && bd.department?.dept_name) {
+      branchDeptResults.forEach((bd: { 
+        branch?: { id: number };
+        department?: { id: number; dept_name: string } 
+      }) => {
+        // Only include if the branch matches one of the selected branches
+        if (bd.branch?.id && selectedBranchIds.has(bd.branch.id) && bd.department?.id && bd.department?.dept_name) {
           if (!uniqueDepartments.has(bd.department.id)) {
             uniqueDepartments.set(bd.department.id, {
               id: bd.department.id,
