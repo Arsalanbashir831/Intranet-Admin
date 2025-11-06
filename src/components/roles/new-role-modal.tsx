@@ -3,7 +3,7 @@
 import { AppModal } from "@/components/common/app-modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { AccessLevelSelect } from "./access-level-select";
 import { useState } from "react";
 import { useCreateRole } from "@/hooks/queries/use-roles";
 import { toast } from "sonner";
@@ -18,8 +18,7 @@ export function NewRoleModal({ open, setOpen }: NewRoleModalProps) {
 
     // State for functionality
     const [roleName, setRoleName] = useState("");
-    const [isManager, setIsManager] = useState(false);
-    const [isExecutive, setIsExecutive] = useState(false);
+    const [accessLevel, setAccessLevel] = useState<"employee" | "manager" | "executive">("employee");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async () => {
@@ -37,8 +36,7 @@ export function NewRoleModal({ open, setOpen }: NewRoleModalProps) {
         try {
             const payload: import("@/services/roles").RoleCreateRequest = {
                 name: roleName.trim(),
-                is_manager: isManager,
-                is_executive: isExecutive,
+                access_level: accessLevel,
             };
 
             await createRole.mutateAsync(payload);
@@ -46,8 +44,7 @@ export function NewRoleModal({ open, setOpen }: NewRoleModalProps) {
             toast.success("Role created successfully.");
             setOpen(false);
             setRoleName("");
-            setIsManager(false);
-            setIsExecutive(false);
+            setAccessLevel("employee");
         } catch (error: unknown) {
             console.error("Error creating role:", error);
 
@@ -79,54 +76,33 @@ export function NewRoleModal({ open, setOpen }: NewRoleModalProps) {
             onCancel={() => {
                 setOpen(false);
                 setRoleName("");
-                setIsManager(false);
-                setIsExecutive(false);
+                setAccessLevel("employee");
             }}
             icon='/icons/user-hierarchy.svg'
         >
             <div className="space-y-4 px-6">
-                <div className="flex justify-between items-start gap-8">
-                    <Label htmlFor="role-name" className="w-full">Role Name:</Label>
-                    <div className="flex flex-col gap-4 w-full">
-                        <Input
-                            id="role-name"
-                            value={roleName}
-                            onChange={(e) => setRoleName(e.target.value)}
-                            placeholder="Enter role name"
-                            className="border-[#D5D7DA] max-w-[400px] w-full"
-                            disabled={isSubmitting}
-                            maxLength={100}
-                            required
-                        />
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="is-manager"
-                                    checked={isManager}
-                                    onCheckedChange={(checked) => setIsManager(checked === true)}
-                                    disabled={isSubmitting}
-                                    className="border-[#D5D7DA]"
-                                />
-                                <Label htmlFor="is-manager" className="text-sm font-normal cursor-pointer">
-                                    Is Manager
-                                </Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="is-executive"
-                                    checked={isExecutive}
-                                    onCheckedChange={(checked) => setIsExecutive(checked === true)}
-                                    disabled={isSubmitting}
-                                    className="border-[#D5D7DA]"
-                                />
-                                <Label htmlFor="is-executive" className="text-sm font-normal cursor-pointer">
-                                    Is Executive
-                                </Label>
-                            </div>
-                        </div>
-                    </div>
+                <div className="flex justify-between items-center gap-8">
+                    <Label htmlFor="role-name">Role Name:</Label>
+                    <Input
+                        id="role-name"
+                        value={roleName}
+                        onChange={(e) => setRoleName(e.target.value)}
+                        placeholder="Enter role name"
+                        className="border-[#D5D7DA] max-w-[400px]"
+                        disabled={isSubmitting}
+                        maxLength={100}
+                        required
+                    />
                 </div>
-
+                <div className="flex justify-between items-center gap-8">
+                    <Label htmlFor="access-level">Access Level:</Label>
+                    <AccessLevelSelect
+                        value={accessLevel}
+                        onChange={setAccessLevel}
+                        disabled={isSubmitting}
+                        triggerClassName="border-[#D5D7DA] max-w-[400px]"
+                    />
+                </div>
             </div>
         </AppModal>
     );

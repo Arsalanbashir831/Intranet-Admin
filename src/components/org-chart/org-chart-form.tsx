@@ -59,8 +59,8 @@ export function OrgChartForm({
 		if (!rolesData?.roles?.results) return [];
 		
 		return rolesData.roles.results.filter(role => {
-			// If user is a manager, filter out roles with is_manager=true
-			if (isManager && role.is_manager) {
+			// If user is a manager, filter out roles with access_level="manager"
+			if (isManager && role.access_level === "manager") {
 				return false;
 			}
 			return true;
@@ -194,7 +194,7 @@ export function OrgChartForm({
 	// When role changes, ensure only one department is selected if not Manager
 	React.useEffect(() => {
 		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-		const isManagerRole = selectedRoleObj?.is_manager;
+		const isManagerRole = selectedRoleObj?.access_level === "manager";
 		
 		if (!isManagerRole && selectedBranchDeptIds.length > 1) {
 			// If role is not Manager and multiple departments selected, keep only the first one
@@ -236,7 +236,7 @@ export function OrgChartForm({
 
 		// Add branch department fields based on role
 		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-		const isManagerRole = selectedRoleObj?.is_manager;
+		const isManagerRole = selectedRoleObj?.access_level === "manager";
 		
 		if (isManagerRole) {
 			// Manager: use manager_branch_departments array
@@ -408,7 +408,7 @@ export function OrgChartForm({
 
 			<div className="grid grid-cols-12 items-center gap-4 border-t border-[#E9EAEB] pt-4">
 				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
-					Branch Department{availableRoles.find(r => String(r.id) === selectedRole)?.is_manager ? "s" : ""}:
+					Branch Department{availableRoles.find(r => String(r.id) === selectedRole)?.access_level === "manager" ? "s" : ""}:
 				</Label>
 				<div className="col-span-12 md:col-span-10">
 					<SelectableTags
@@ -416,7 +416,7 @@ export function OrgChartForm({
 						selectedItems={selectedBranchDeptIds}
 						onSelectionChange={(ids) => {
 							const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-							const isManagerRole = selectedRoleObj?.is_manager;
+							const isManagerRole = selectedRoleObj?.access_level === "manager";
 							
 							// If role is not Manager, allow only one selection
 							if (!isManagerRole) {
@@ -435,7 +435,7 @@ export function OrgChartForm({
 					/>
 					{(() => {
 						const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-						const isManagerRole = selectedRoleObj?.is_manager;
+						const isManagerRole = selectedRoleObj?.access_level === "manager";
 						
 						if (!isManagerRole) {
 							return (

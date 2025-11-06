@@ -21,8 +21,7 @@ import { EditRoleModal } from "./edit-role-modal";
 export type RoleRow = {
   id: string;
   name: string;
-  is_manager: boolean;
-  is_executive: boolean;
+  access_level: "employee" | "manager" | "executive";
 };
 
 export function RolesTable() {
@@ -65,8 +64,7 @@ export function RolesTable() {
     return roles.map((role: Role) => ({
       id: String(role.id),
       name: role.name,
-      is_manager: role.is_manager,
-      is_executive: role.is_executive,
+      access_level: role.access_level,
     }));
   }, [apiData]);
 
@@ -109,26 +107,28 @@ export function RolesTable() {
       ),
     },
     {
-      accessorKey: "is_manager",
+      accessorKey: "access_level",
       header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Is Manager" />
+        <CardTableColumnHeader column={column} title="Access Level" />
       ),
-      cell: ({ getValue }) => (
-        <Badge variant={getValue() ? "default" : "secondary"} className={getValue() ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-          {getValue() ? "Yes" : "No"}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "is_executive",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Is Executive" />
-      ),
-      cell: ({ getValue }) => (
-        <Badge variant={getValue() ? "default" : "secondary"} className={getValue() ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}>
-          {getValue() ? "Yes" : "No"}
-        </Badge>
-      ),
+      cell: ({ getValue }) => {
+        const accessLevel = getValue() as "employee" | "manager" | "executive";
+        const badgeColors = {
+          employee: "bg-gray-100 text-gray-800",
+          manager: "bg-green-100 text-green-800",
+          executive: "bg-blue-100 text-blue-800",
+        };
+        const displayText = {
+          employee: "Employee",
+          manager: "Manager",
+          executive: "Executive",
+        };
+        return (
+          <Badge variant="default" className={badgeColors[accessLevel]}>
+            {displayText[accessLevel]}
+          </Badge>
+        );
+      },
     },
     {
       id: "actions",
@@ -156,8 +156,27 @@ export function RolesTable() {
                     await deleteRole.mutateAsync(id);
                     toast.success("Role deleted successfully");
                   } catch (err) {
-                    console.error(err);
-                    toast.error("Failed to delete role");
+                    console.error("Error deleting role:", err);
+                    let errorMessage = "Failed to delete role. Please try again.";
+                    
+                    // Extract error message from API response
+                    if (err instanceof Error && err.message) {
+                      errorMessage = err.message;
+                    } else {
+                      const error = err as { response?: { data?: Record<string, unknown>; status?: number } };
+                      const dataErr = error?.response?.data;
+                      if (dataErr && typeof dataErr === "object") {
+                        if ("error" in dataErr && typeof dataErr.error === "string") {
+                          errorMessage = dataErr.error;
+                        } else if ("detail" in dataErr && typeof dataErr.detail === "string") {
+                          errorMessage = dataErr.detail;
+                        } else if ("message" in dataErr && typeof dataErr.message === "string") {
+                          errorMessage = dataErr.message;
+                        }
+                      }
+                    }
+                    
+                    toast.error(errorMessage);
                   } finally {
                     setDeletingId(null);
                   }
@@ -211,8 +230,8 @@ export function RolesTable() {
       <CardTable<RoleRow, unknown>
         columns={columns}
         data={data}
-        headerClassName="grid-cols-[2fr_1fr_1fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[2fr_1fr_1fr_0.8fr]"}
+        headerClassName="grid-cols-[2fr_1fr_0.8fr]"
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[2fr_1fr_0.8fr]"}
         footer={(table) => (
           <CardTablePagination
             table={table}

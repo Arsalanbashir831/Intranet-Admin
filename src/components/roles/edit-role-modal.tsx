@@ -3,11 +3,11 @@
 import { AppModal } from "@/components/common/app-modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
 import { useUpdateRole } from "@/hooks/queries/use-roles";
 import { toast } from "sonner";
 import type { Role } from "@/services/roles";
+import { AccessLevelSelect } from "./access-level-select";
 
 interface EditRoleModalProps {
   open: boolean;
@@ -20,20 +20,17 @@ export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
 
   // State for functionality
   const [roleName, setRoleName] = useState("");
-  const [isManager, setIsManager] = useState(false);
-  const [isExecutive, setIsExecutive] = useState(false);
+  const [accessLevel, setAccessLevel] = useState<"employee" | "manager" | "executive">("employee");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize form values when modal opens or role changes
   useEffect(() => {
     if (role) {
       setRoleName(role.name || "");
-      setIsManager(role.is_manager || false);
-      setIsExecutive(role.is_executive || false);
+      setAccessLevel(role.access_level || "employee");
     } else {
       setRoleName("");
-      setIsManager(false);
-      setIsExecutive(false);
+      setAccessLevel("employee");
     }
   }, [role]);
 
@@ -54,8 +51,7 @@ export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
     try {
       const payload: import("@/services/roles").RoleUpdateRequest = {
         name: roleName.trim(),
-        is_manager: isManager,
-        is_executive: isExecutive,
+        access_level: accessLevel,
       };
       
       await updateRole.mutateAsync(payload);
@@ -98,7 +94,7 @@ export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
       icon='/icons/user-hierarchy.svg'
     >
       <div className="space-y-4 px-6">
-        <div className="flex justify-between items-start gap-8">
+        <div className="flex justify-between items-center gap-8">
           <Label htmlFor="role-name">Role Name:</Label>
           <Input
             id="role-name"
@@ -111,29 +107,14 @@ export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
             required
           />
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="is-manager"
-              checked={isManager}
-              onCheckedChange={(checked) => setIsManager(checked === true)}
-              disabled={isSubmitting}
-            />
-            <Label htmlFor="is-manager" className="text-sm font-normal cursor-pointer">
-              Is Manager
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="is-executive"
-              checked={isExecutive}
-              onCheckedChange={(checked) => setIsExecutive(checked === true)}
-              disabled={isSubmitting}
-            />
-            <Label htmlFor="is-executive" className="text-sm font-normal cursor-pointer">
-              Is Executive
-            </Label>
-          </div>
+        <div className="flex justify-between items-center gap-8">
+          <Label htmlFor="access-level">Access Level:</Label>
+          <AccessLevelSelect
+            value={accessLevel}
+            onChange={setAccessLevel}
+            disabled={true}
+            triggerClassName="border-[#D5D7DA] max-w-[400px]"
+          />
         </div>
       </div>
     </AppModal>

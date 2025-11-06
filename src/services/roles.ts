@@ -5,8 +5,7 @@ import { generatePaginationParams } from "@/lib/pagination-utils";
 export type Role = {
   id: number;
   name: string;
-  is_manager: boolean;
-  is_executive: boolean;
+  access_level: "employee" | "manager" | "executive";
 };
 
 export type RoleListResponse = {
@@ -20,8 +19,7 @@ export type RoleListResponse = {
 
 export type RoleCreateRequest = {
   name: string;
-  is_manager: boolean;
-  is_executive: boolean;
+  access_level: "employee" | "manager" | "executive";
 } & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
 
 export type RoleCreateResponse = {
@@ -30,8 +28,7 @@ export type RoleCreateResponse = {
 
 export type RoleUpdateRequest = {
   name?: string;
-  is_manager?: boolean;
-  is_executive?: boolean;
+  access_level?: "employee" | "manager" | "executive";
 } & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
 
 export type RoleUpdateResponse = {
