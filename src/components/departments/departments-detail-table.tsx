@@ -13,6 +13,7 @@ import { useBranchDepartmentEmployees } from "@/hooks/queries/use-departments";
 import type { BranchDepartmentEmployee } from "@/services/departments";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants/routes";
+import { format } from "date-fns";
 
 export type DepartmentEmployeeRow = {
   id: string;
@@ -141,7 +142,7 @@ export function DepartmentsDetailTable({
         
         // Format the date for display
         try {
-          return <span className="text-sm text-[#667085]">{new Date(date).toLocaleDateString()}</span>;
+          return <span className="text-sm text-[#667085]">{format(new Date(date), "dd/MM/yyyy")}</span>;
         } catch {
           return <span className="text-sm text-[#667085]">{date}</span>;
         }

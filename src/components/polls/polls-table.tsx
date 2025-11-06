@@ -27,6 +27,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useDeletePoll } from "@/hooks/queries/use-polls";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
+import { format } from "date-fns";
 
 // Custom Poll Type Filter Component
 function PollTypeFilter({
@@ -231,7 +232,7 @@ export function PollsTable({ className }: { className?: string }) {
         cell: ({ row }) => {
           const expiresAt = row.getValue("expires_at") as string;
           const date = new Date(expiresAt);
-          return <div className="text-sm">{date.toLocaleDateString()}</div>;
+          return <div className="text-sm">{format(date, "dd/MM/yyyy")}</div>;
         },
       },
       {

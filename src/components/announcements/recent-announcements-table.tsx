@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { FilterDrawer } from "@/components/card-table/filter-drawer";
+import { format } from "date-fns";
 import { DepartmentFilter, BranchFilter } from "@/components/card-table/filter-components";
 import { 
   Select, 
@@ -102,8 +103,10 @@ export function RecentAnnouncementsTable() {
   const router = useRouter();
 
   const data = React.useMemo<AnnouncementRow[]>(() => {
+    if (!apiData) return [];
+    
     // Handle AnnouncementListResponse structure: { announcements: { results: Announcement[] } }
-    const list = Array.isArray(apiData?.announcements?.results)
+    const list = (apiData.announcements && Array.isArray(apiData.announcements.results))
       ? apiData.announcements.results
       : (Array.isArray(apiData) ? apiData : []);
     
@@ -148,7 +151,7 @@ export function RecentAnnouncementsTable() {
         id: String(announcement.id),
         title: String(announcement.title ?? ""),
         access: accessText,
-        date: new Date(announcement.created_at).toLocaleDateString(),
+        date: format(new Date(announcement.created_at), "dd/MM/yyyy"),
         type: announcement.type === "policy" ? "Policy" : "Announcement",
         status: announcement.is_active ? "Published" : "Draft",
       };

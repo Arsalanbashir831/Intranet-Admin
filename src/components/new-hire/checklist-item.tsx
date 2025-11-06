@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import { Trash, Paperclip } from "lucide-react";
 import { ChecklistItemData } from "./new-hire-plan-form";
+import { format } from "date-fns";
 import * as React from "react";
 
 export function ChecklistItem({ 
@@ -35,7 +36,7 @@ export function ChecklistItem({
             <div className="flex flex-col gap-1 pt-1">
               {item.deadline ? (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <span>Deadline: {new Date(item.deadline).toLocaleDateString()}</span>
+                  <span>Deadline: {format(new Date(item.deadline), "dd/MM/yyyy")}</span>
                 </div>
               ) : null}
               {fileCount > 0 ? (
