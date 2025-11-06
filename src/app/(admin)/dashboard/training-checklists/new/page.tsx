@@ -66,6 +66,7 @@ export default function NewHirePlanCreatePage() {
             title: item.title,
             detail: item.body,
             type: item.type,
+            deadline: item.deadline || null,
           });
 
           // Upload files for attachment

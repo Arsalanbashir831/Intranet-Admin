@@ -46,6 +46,7 @@ export type AttachmentCreateRequest = {
   title: string;
   detail?: string | null;
   type?: AttachmentTypeEnum;
+  deadline?: string | null;
 };
 
 export type AttachmentCreateResponse = Attachment;
@@ -55,6 +56,7 @@ export type AttachmentUpdateRequest = {
   title?: string;
   detail?: string | null;
   type?: AttachmentTypeEnum;
+  deadline?: string | null;
 };
 
 export type AttachmentUpdateResponse = Attachment;

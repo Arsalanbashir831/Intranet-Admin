@@ -62,9 +62,14 @@ export function DepartmentsTable({ className }: { className?: string }) {
   }, [serverPagination.pageSize]);
 
   const handleEditClick = (row: DepartmentRow) => {
-    const department = Array.isArray(departmentsData) 
-      ? departmentsData.find(dept => String(dept.id) === row.id)
-      : null;
+    if (!departmentsData) return;
+    
+    // Handle both array (legacy) and paginated response structure
+    const departments = Array.isArray(departmentsData) 
+      ? departmentsData 
+      : (departmentsData as { departments?: { results?: Department[] } })?.departments?.results || [];
+    
+    const department = departments.find(dept => String(dept.id) === row.id);
     
     if (department) {
       setSelectedDepartment(department);

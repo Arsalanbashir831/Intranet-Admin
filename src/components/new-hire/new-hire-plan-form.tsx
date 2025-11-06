@@ -212,7 +212,7 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
           </div>
         </div>
 
-        <div className="grid gap-5 md:grid-cols">
+        <div className="grid gap-5 md:grid-cols-1">
           {/* <ChecklistCard 
             title="Tasks Checklist" 
             initial={taskItems} 
