@@ -53,6 +53,11 @@ export function AdminSidebar() {
   // Filter navigation items based on user permissions
   const visibleNavItems = useMemo(() => {
     return NAV_ITEMS.filter((item) => {
+      // Hide Departments if user is not admin
+      if (item.href === ROUTES.ADMIN.DEPARTMENTS && !isAdmin) {
+        return false;
+      }
+
       // Hide Branches if user is not admin
       if (item.href === ROUTES.ADMIN.BRANCHES && !isAdmin) {
         return false;

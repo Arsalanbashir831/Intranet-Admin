@@ -16,8 +16,8 @@ export type EmployeeListResponse = {
 export type EmployeeDetailResponse = Employee;
 export type EmployeeCreateRequest = {
   emp_name: string;
-  branch_department_id?: number; // For regular employees (role 1, 2, 3)
-  manager_branch_departments?: number[]; // For managers (role 4)
+  branch_department_id?: number;
+  manager_branch_departments?: number[];
   email?: string | null;
   phone?: string | null;
   role?: number | null;
@@ -26,7 +26,9 @@ export type EmployeeCreateRequest = {
   profile_picture?: File | string | null; // Support both File and string
 };
 export type EmployeeCreateResponse = Employee;
-export type EmployeeUpdateRequest = Partial<EmployeeCreateRequest>;
+export type EmployeeUpdateRequest = Partial<EmployeeCreateRequest> & {
+  branch_department_ids?: number[]; // For managers in edit mode
+};
 export type EmployeeUpdateResponse = Employee;
 
 export async function listEmployees(
@@ -189,6 +191,7 @@ export async function updateEmployee(id: number | string, payload: EmployeeUpdat
     const apiEmployeeData = {
       ...employeeData,
       manager_branch_departments: employeeData.manager_branch_departments?.map(String),
+      branch_department_ids: employeeData.branch_department_ids?.map(String),
     };
     
     const url = managerScope 
@@ -211,6 +214,7 @@ export async function updateEmployee(id: number | string, payload: EmployeeUpdat
     const apiEmployeeData = {
       ...employeeData,
       manager_branch_departments: employeeData.manager_branch_departments?.map(String),
+      branch_department_ids: employeeData.branch_department_ids?.map(String),
     };
     
     const url = managerScope 
@@ -233,6 +237,7 @@ export async function updateEmployee(id: number | string, payload: EmployeeUpdat
     const apiPayload = {
       ...payload,
       manager_branch_departments: payload.manager_branch_departments?.map(String),
+      branch_department_ids: payload.branch_department_ids?.map(String),
     };
     
     const url = managerScope 

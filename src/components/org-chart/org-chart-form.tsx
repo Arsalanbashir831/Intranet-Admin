@@ -234,13 +234,18 @@ export function OrgChartForm({
 				selectedFiles[0] || (isRemovingPicture ? null : undefined),
 		};
 
-		// Add branch department fields based on role
+		// Add branch department fields based on role and mode
 		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
 		const isManagerRole = selectedRoleObj?.access_level === "manager";
 		
 		if (isManagerRole) {
-			// Manager: use manager_branch_departments array
-			payload.manager_branch_departments = branchDepartmentIds;
+			if (isEdit) {
+				// Edit mode: use branch_department_ids for managers
+				payload.branch_department_ids = branchDepartmentIds;
+			} else {
+				// Create mode: use manager_branch_departments for managers
+				payload.manager_branch_departments = branchDepartmentIds;
+			}
 		} else {
 			// Regular employee: use single branch_department_id
 			payload.branch_department_id = branchDepartmentIds[0];
