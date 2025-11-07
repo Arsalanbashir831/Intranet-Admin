@@ -24,6 +24,7 @@ import { useBranchDepartments, useSearchBranchDepartments } from "@/hooks/querie
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { toast } from "sonner";
+import type { EmployeeUpdateRequest } from "@/services/employees";
 export type OrgChartInitialValues = {
 	emp_name?: string;
 	email?: string | null;
@@ -239,10 +240,7 @@ export function OrgChartForm({
 		const isManagerRole = selectedRoleObj?.access_level === "manager";
 		
 		if (isManagerRole) {
-			if (isEdit) {
-				// Edit mode: use branch_department_ids for managers
-				payload.branch_department_ids = branchDepartmentIds;
-			} else {
+			if (!isEdit) {
 				// Create mode: use manager_branch_departments for managers
 				payload.manager_branch_departments = branchDepartmentIds;
 			}
@@ -253,7 +251,12 @@ export function OrgChartForm({
 
 		try {
 			if (isEdit && employeeId) {
-				await updateEmployee.mutateAsync(payload);
+				const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+				const isManagerRole = selectedRoleObj?.access_level === "manager";
+				const updatePayload: EmployeeUpdateRequest = isManagerRole
+					? { ...payload, branch_department_ids: branchDepartmentIds }
+					: payload;
+				await updateEmployee.mutateAsync(updatePayload);
 				toast.success("Employee updated successfully");
 			} else {
 				await createEmployee.mutateAsync(payload);

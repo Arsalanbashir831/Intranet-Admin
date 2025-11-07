@@ -412,7 +412,7 @@ export function KnowledgeBaseTable() {
                 Access Denied
               </div>
               <div className="text-sm text-muted-foreground">
-                You don't have permission to access the knowledge base. Please contact your administrator if you believe this is an error.
+              You don&apos;t have permission to access the knowledge base. Please contact your administrator if you believe this is an error.
               </div>
             </div>
           ) : (
