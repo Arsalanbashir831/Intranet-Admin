@@ -5,15 +5,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dropzone } from "@/components/ui/dropzone";
 import {
 	SelectableTags,
-	createSelectableItems,
-	createCustomSelectableItems,
 } from "@/components/ui/selectable-tags";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { ChevronDownIcon } from "lucide-react";
 import {
-	useDepartments,
-	useSearchDepartments,
-} from "@/hooks/queries/use-departments";
+	useBranchDepartments,
+	useSearchBranchDepartments,
+} from "@/hooks/queries/use-branches";
 import { useManagerScope } from "@/contexts/manager-scope-context";
 
 export type CompanyHubInitialData = {
@@ -58,53 +56,29 @@ export function CompanyHubForm({
 }: CompanyHubFormProps) {
 	// Get manager scope to filter departments
 	const { isManager, managedDepartments } = useManagerScope();
-	
-	// Load base datasets
-	const { data: departmentsData } = useDepartments();
 
 	/**
 	 * Adapters (async search) — normalize to SelectableItem[] only.
 	 * These match SelectableTags' updated expectation.
 	 */
-	// Create adapter functions for branch departments (similar to org-chart-form.tsx)
+	// Create adapter functions for branch departments using the branch departments API
 	const useAllBranchDepartments = () => {
-		const result = useDepartments(undefined, { pageSize: 100 });
+		const result = useBranchDepartments(undefined, { pageSize: 1000 });
 		const branchDeptItems = React.useMemo(() => {
-			// Handle both array format (new) and nested object format (old)
-			const results = Array.isArray(result.data) 
-				? result.data 
-				: (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
+			if (!result.data?.branch_departments?.results) return [];
 
 			const items: { id: string; label: string }[] = [];
-			for (const dept of results || []) {
-				const deptData = dept as {
-					dept_name?: string;
-					name?: string;
-					branch_departments?: unknown[];
-				};
-				const deptName = String(deptData.dept_name ?? deptData.name ?? "");
-				const branchDepartments = deptData.branch_departments as
-					| Array<{
-							id: number;
-							branch?: { branch_name?: string };
-							branch_name?: string;
-					  }>
-					| undefined;
-				if (Array.isArray(branchDepartments)) {
-					for (const bd of branchDepartments) {
-						const bdId = String(bd.id);
-						const branchName = String(
-							bd?.branch?.branch_name ?? bd?.branch_name ?? ""
-						);
-						
-						// Filter: If manager, only show their managed departments
-						if (isManager && !managedDepartments.includes(bd.id)) {
-							continue; // Skip this department
-						}
-						
-						items.push({ id: bdId, label: `${deptName} - ${branchName}` });
-					}
+			for (const bd of result.data.branch_departments.results) {
+				const bdId = String(bd.id);
+				const branchName = String(bd.branch?.branch_name ?? "");
+				const deptName = String(bd.department?.dept_name ?? "");
+				
+				// Filter: If manager, only show their managed departments
+				if (isManager && !managedDepartments.includes(bd.id)) {
+					continue; // Skip this department
 				}
+				
+				items.push({ id: bdId, label: `${deptName} - ${branchName}` });
 			}
 			return items;
 		}, [result.data, isManager, managedDepartments]);
@@ -116,42 +90,22 @@ export function CompanyHubForm({
 	};
 
 	const useSearchBranchDepartmentsAdapter = (query: string) => {
-		const result = useSearchDepartments(query, { pageSize: 100 });
+		const result = useSearchBranchDepartments(query, { pageSize: 1000 });
 		const branchDeptItems = React.useMemo(() => {
-			// Handle both array format (new) and nested object format (old)
-			const results = Array.isArray(result.data) 
-				? result.data 
-				: (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
+			if (!result.data?.branch_departments?.results) return [];
+
 			const items: { id: string; label: string }[] = [];
-			for (const dept of results || []) {
-				const deptData = dept as {
-					dept_name?: string;
-					name?: string;
-					branch_departments?: unknown[];
-				};
-				const deptName = String(deptData.dept_name ?? deptData.name ?? "");
-				const branchDepartments = deptData.branch_departments as
-					| Array<{
-							id: number;
-							branch?: { branch_name?: string };
-							branch_name?: string;
-					  }>
-					| undefined;
-				if (Array.isArray(branchDepartments)) {
-					for (const bd of branchDepartments) {
-						const bdId = String(bd.id);
-						const branchName = String(
-							bd?.branch?.branch_name ?? bd?.branch_name ?? ""
-						);
-						
-						// Filter: If manager, only show their managed departments
-						if (isManager && !managedDepartments.includes(bd.id)) {
-							continue; // Skip this department
-						}
-						
-						items.push({ id: bdId, label: `${deptName} - ${branchName}` });
-					}
+			for (const bd of result.data.branch_departments.results) {
+				const bdId = String(bd.id);
+				const branchName = String(bd.branch?.branch_name ?? "");
+				const deptName = String(bd.department?.dept_name ?? "");
+				
+				// Filter: If manager, only show their managed departments
+				if (isManager && !managedDepartments.includes(bd.id)) {
+					continue; // Skip this department
 				}
+				
+				items.push({ id: bdId, label: `${deptName} - ${branchName}` });
 			}
 			return items;
 		}, [result.data, isManager, managedDepartments]);
@@ -319,7 +273,6 @@ export function CompanyHubForm({
 							}
 						}}
 						accept="image/*"
-						maxSize={10 * 1024 * 1024} // 10MB
 						multiple={false}
 						showPreview={true}
 						initialPreviewUrls={initialPreviewUrls}

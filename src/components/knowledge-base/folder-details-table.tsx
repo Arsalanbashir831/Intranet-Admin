@@ -19,30 +19,6 @@ import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/a
 import { useAuth } from "@/contexts/auth-context";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
-import { Badge } from "../ui/badge";
-
-// Types from the folder tree API response
-type FolderTreeFile = {
-  id: number;
-  folder: number;
-  name: string;
-  description: string;
-  file: string;
-  file_url: string;
-  inherits_parent_permissions: boolean;
-  permitted_branches: number[];
-  permitted_departments: number[];
-  permitted_employees: number[];
-  uploaded_by: number | null;
-  uploaded_at: string;
-  size: number;
-  content_type: string;
-  effective_permissions: {
-    branches: number[];
-    departments: number[];
-    employees: number[];
-  };
-};
 
 
 export type FolderItemRow = {
@@ -410,14 +386,32 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
 
   // Show error state
   if (error) {
+    // Check if it's a 403 Forbidden error
+    const isForbidden = error.message && (
+      error.message.toLowerCase().includes('access denied') ||
+      error.message.toLowerCase().includes('forbidden') ||
+      error.message.toLowerCase().includes("don't have permission")
+    );
+
     return (
-      <TableContextMenu onNewFolder={onNewFolder} onNewFile={onNewFile}>
-        <Card className="border-[#FFF6F6] p-5 shadow-none hover:bg-[#fffbfd]">
-          <div className="text-center py-8 text-red-600">
-            Error loading folder contents: {error.message}
-          </div>
-        </Card>
-      </TableContextMenu>
+      <Card className="border-[#FFF6F6] p-5 shadow-none">
+        <div className="text-center py-8">
+          {isForbidden ? (
+            <div className="space-y-2">
+              <div className="text-red-600 font-medium">
+                Access Denied
+              </div>
+              <div className="text-sm text-muted-foreground">
+                You don't have permission to access this folder. Please contact your administrator if you believe this is an error.
+              </div>
+            </div>
+          ) : (
+            <div className="text-red-600">
+              Error loading folder: {error.message}
+            </div>
+          )}
+        </div>
+      </Card>
     );
   }
 

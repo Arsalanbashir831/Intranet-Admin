@@ -55,7 +55,6 @@ export default function NewPollPage() {
         options: formData.options.filter((opt: { option_text: string }) => opt.option_text.trim()),
         permitted_branches: formData.permitted_branches?.map(Number) || [],
         permitted_departments: formData.permitted_departments?.map(Number) || [],
-        permitted_branch_departments: formData.permitted_branch_departments?.map(Number) || [],
       };
 
       await createPoll.mutateAsync(payload);

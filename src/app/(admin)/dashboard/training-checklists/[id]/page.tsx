@@ -50,6 +50,7 @@ export default function NewHirePlanEditPage() {
         title: att.title,
         body: att.detail || "",
         type: "training" as const,
+        deadline: (att as { deadline?: string }).deadline,
         files: [], // Existing files are handled separately
         existingFiles: att.files || [] as { id: number; attachment: number; file: string; uploaded_at: string }[], // Store existing files for reference
         deletedFileIds: [], // Initialize with empty array
@@ -131,6 +132,7 @@ export default function NewHirePlanEditPage() {
             title: item.title,
             detail: item.body,
             type: item.type,
+            deadline: item.deadline || null,
           });
 
           // Handle new files for this attachment
@@ -167,6 +169,7 @@ export default function NewHirePlanEditPage() {
             title: item.title,
             detail: item.body,
             type: item.type,
+            deadline: item.deadline || null,
           });
 
           // Upload files for new attachment

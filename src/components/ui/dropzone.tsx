@@ -12,7 +12,6 @@ export interface DropzoneProps {
   onClear?: () => void; // Callback when images are cleared
   onImageRemove?: (url: string, index: number) => void; // Callback when individual image is removed
   accept?: string;
-  maxSize?: number; // in bytes
   className?: string;
   disabled?: boolean;
   multiple?: boolean;
@@ -27,7 +26,6 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     onClear,
     onImageRemove,
     accept = "image/*",
-    maxSize,
     className,
     disabled = false,
     multiple = false,
@@ -76,28 +74,6 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
         'text/csv'
       ];
       return docTypes.includes(file.type);
-    };
-
-    // Helper function to get file icon based on type
-    const getFileIcon = (file: File | string) => {
-      if (typeof file === 'string') {
-        // For URLs, check extension
-        if (file.endsWith('.pdf')) return 'pdf';
-        if (file.endsWith('.doc') || file.endsWith('.docx')) return 'word';
-        if (file.endsWith('.xls') || file.endsWith('.xlsx')) return 'excel';
-        if (file.endsWith('.txt')) return 'text';
-        return 'file';
-      }
-      
-      // For File objects, check MIME type
-      if (file.type === 'application/pdf') return 'pdf';
-      if (file.type === 'application/msword' || 
-          file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'word';
-      if (file.type === 'application/vnd.ms-excel' || 
-          file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') return 'excel';
-      if (file.type === 'text/plain') return 'text';
-      if (file.type === 'text/csv') return 'csv';
-      return 'file';
     };
 
     // Helper function to get file extension

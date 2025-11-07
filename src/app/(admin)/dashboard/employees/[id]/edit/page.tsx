@@ -35,25 +35,27 @@ export default function EditOrgChartPage() {
 		? data.employee
 		: (data as ApiEmployee | undefined);
 
-	// Get the branch department ID - check multiple possible fields
-	const branchDepartmentId = React.useMemo(() => {
+	// Get the branch department ID(s) - check multiple possible fields
+	// For managers, return array of IDs; for regular employees, return single ID as array
+	const branchDepartmentIds = React.useMemo(() => {
 		if (!apiEmployee) return undefined;
 		
 		// Try branch_department_ids array first (from API response)
-		if (Array.isArray((apiEmployee as typeof apiEmployee & { branch_department_ids?: number[] }).branch_department_ids) && 
-		    (apiEmployee as typeof apiEmployee & { branch_department_ids?: number[] }).branch_department_ids!.length > 0) {
-			return String((apiEmployee as typeof apiEmployee & { branch_department_ids?: number[] }).branch_department_ids![0]);
+		const branchDeptIds = (apiEmployee as typeof apiEmployee & { branch_department_ids?: number[] }).branch_department_ids;
+		if (Array.isArray(branchDeptIds) && branchDeptIds.length > 0) {
+			return branchDeptIds.map(id => String(id));
 		}
 		
 		// Try branch_departments array (from API response)
 		const branchDepartments = (apiEmployee as typeof apiEmployee & { branch_departments?: Array<{ id: number }> }).branch_departments;
-		if (Array.isArray(branchDepartments) && branchDepartments.length > 0 && branchDepartments[0].id) {
-			return String(branchDepartments[0].id);
+		if (Array.isArray(branchDepartments) && branchDepartments.length > 0) {
+			return branchDepartments.map(bd => String(bd.id));
 		}
 		
 		// Fallback to branch_department (if it exists as a single value)
-		if ((apiEmployee as typeof apiEmployee & { branch_department?: number }).branch_department) {
-			return String((apiEmployee as typeof apiEmployee & { branch_department?: number }).branch_department);
+		const singleBranchDept = (apiEmployee as typeof apiEmployee & { branch_department?: number }).branch_department;
+		if (singleBranchDept) {
+			return [String(singleBranchDept)];
 		}
 		
 		return undefined;
@@ -87,10 +89,8 @@ export default function EditOrgChartPage() {
 				role: roleId, // Use role_id converted to string
 				education: apiEmployee.education ?? undefined,
 				bio: apiEmployee.bio ?? undefined,
-				branch_department: branchDepartmentId, // Use branch_department_ids[0] or branch_departments[0].id
+				branch_department: branchDepartmentIds, // Use all branch_department_ids or branch_departments (array for managers)
 				profileImageUrl: apiEmployee.profile_picture ?? undefined,
-				address: (apiEmployee as typeof apiEmployee & { address?: string })?.address ?? undefined,
-				city: (apiEmployee as typeof apiEmployee & { city?: string })?.city ?? undefined,
 		  }
 		: undefined;
 

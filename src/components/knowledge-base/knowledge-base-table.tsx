@@ -272,7 +272,7 @@ export function KnowledgeBaseTable() {
             return (
               <Avatar key={index} className="size-5">
                 <AvatarImage src={item.profile_picture || undefined} alt={name} />
-                <AvatarFallback className="text-[8px]">
+                <AvatarFallback className="text-[8px] bg-primary/70 text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -308,9 +308,6 @@ export function KnowledgeBaseTable() {
         } else if (accessLevel === "Specific Departments") {
           return (
             <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-[#FFF1F1] text-[#D64545] border-0">
-                Departments
-              </Badge>
               {renderAvatarsWithCount(accessLevelDetails.departments)}
             </div>
           );
@@ -399,10 +396,30 @@ export function KnowledgeBaseTable() {
   ];
 
   if (error) {
+    // Check if it's a 403 Forbidden error
+    const isForbidden = error.message && (
+      error.message.toLowerCase().includes('access denied') ||
+      error.message.toLowerCase().includes('forbidden') ||
+      error.message.toLowerCase().includes("don't have permission")
+    );
+
     return (
       <Card className="border-[#FFF6F6] p-5 shadow-none">
-        <div className="text-center py-8 text-red-600">
-          Error loading folders: {error.message}
+        <div className="text-center py-8">
+          {isForbidden ? (
+            <div className="space-y-2">
+              <div className="text-red-600 font-medium">
+                Access Denied
+              </div>
+              <div className="text-sm text-muted-foreground">
+                You don't have permission to access the knowledge base. Please contact your administrator if you believe this is an error.
+              </div>
+            </div>
+          ) : (
+            <div className="text-red-600">
+              Error loading folders: {error.message}
+            </div>
+          )}
         </div>
       </Card>
     );

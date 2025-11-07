@@ -286,7 +286,6 @@ export function ExecutiveMemberForm({
 							}
 						}}
 						accept="image/*"
-						maxSize={800 * 400}
 						initialPreviewUrls={
 							initialValues?.profileImageUrl
 								? [initialValues.profileImageUrl]

@@ -6,6 +6,7 @@ import {
   listBranches,
   listAllBranches,
   updateBranch,
+  listBranchDepartments,
 } from "@/services/branches";
 import type { BranchCreateRequest, BranchUpdateRequest } from "@/services/branches";
 
@@ -113,5 +114,46 @@ export function useDeleteBranch() {
       qc.invalidateQueries({ queryKey: ["branches"], exact: false });
       qc.invalidateQueries({ queryKey: ["all-branches"], exact: false });
     },
+  });
+}
+
+// ---- Branch Departments Queries ----
+
+export function useBranchDepartments(
+  params?: Record<string, string | number | boolean>,
+  pagination?: { page?: number; pageSize?: number }
+) {
+  const keyParams = normalizeParams(params);
+  const keyPagination =
+    pagination && (pagination.page || pagination.pageSize)
+      ? { page: pagination.page ?? 1, pageSize: pagination.pageSize ?? 1000 }
+      : undefined;
+
+  return useQuery({
+    queryKey: ["branch-departments", keyParams, keyPagination],
+    queryFn: () => listBranchDepartments(keyParams, keyPagination),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useSearchBranchDepartments(
+  searchQuery: string,
+  pagination?: { page?: number; pageSize?: number }
+) {
+  const trimmed = (searchQuery ?? "").trim();
+  const keyPagination =
+    pagination && (pagination.page || pagination.pageSize)
+      ? { page: pagination.page ?? 1, pageSize: pagination.pageSize ?? 1000 }
+      : undefined;
+
+  return useQuery({
+    queryKey: ["branch-departments", "search", trimmed, keyPagination],
+    queryFn: () => listBranchDepartments(trimmed ? { search: trimmed } : undefined, keyPagination),
+    enabled: trimmed.length > 0,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   });
 }

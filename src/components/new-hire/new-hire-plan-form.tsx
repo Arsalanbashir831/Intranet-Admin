@@ -12,6 +12,7 @@ export type ChecklistItemData = {
   title: string; 
   body: string; 
   type: "task" | "training";
+  deadline?: string;
   files?: File[];
   deletedFileIds?: number[];
   existingFiles?: Array<{
@@ -211,7 +212,7 @@ export function NewHirePlanForm({ onFormDataChange, initialData }: NewHirePlanFo
           </div>
         </div>
 
-        <div className="grid gap-5 md:grid-cols">
+        <div className="grid gap-5 md:grid-cols-1">
           {/* <ChecklistCard 
             title="Tasks Checklist" 
             initial={taskItems} 

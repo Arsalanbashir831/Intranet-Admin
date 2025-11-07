@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useDepartments } from "@/hooks/queries/use-departments";
 import { useBranches } from "@/hooks/queries/use-branches";
 import { useBranchDepartments } from "@/hooks/queries/use-departments";
+import { useRoles } from "@/hooks/queries/use-roles";
 
 interface DepartmentFilterProps {
   value?: string;
@@ -158,6 +159,50 @@ interface SearchFilterProps {
   onValueChange: (value: string) => void;
   placeholder?: string;
   label?: string;
+}
+
+interface RoleFilterProps {
+  value?: string;
+  onValueChange: (value: string) => void;
+  placeholder?: string;
+}
+
+export function RoleFilter({ value, onValueChange, placeholder = "Select role" }: RoleFilterProps) {
+  const { data: rolesData, isLoading } = useRoles(undefined, { pageSize: 1000 });
+  
+  const roles = React.useMemo(() => {
+    if (!rolesData) return [];
+    const list = rolesData.roles?.results || [];
+    return (list as { id: number; name: string }[]).map(role => ({
+      id: role.id,
+      name: role.name
+    }));
+  }, [rolesData]);
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="role">Role</Label>
+      <Select value={value || undefined} onValueChange={onValueChange}>
+        <SelectTrigger id="role" className="w-full border-[#E4E4E4]">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {isLoading ? (
+            <SelectItem value="__loading__" disabled>Loading...</SelectItem>
+          ) : (
+            <>
+              <SelectItem value="__all__">All Roles</SelectItem>
+              {roles.map((role) => (
+                <SelectItem key={role.id} value={String(role.id)}>
+                  {role.name}
+                </SelectItem>
+              ))}
+            </>
+          )}
+        </SelectContent>
+      </Select>
+    </div>
+  );
 }
 
 export function SearchFilter({ 

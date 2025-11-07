@@ -13,12 +13,12 @@ import { useBranchDepartmentEmployees } from "@/hooks/queries/use-departments";
 import type { BranchDepartmentEmployee } from "@/services/departments";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/constants/routes";
+import { format } from "date-fns";
 
 export type DepartmentEmployeeRow = {
   id: string;
   name: string;
   email: string;
-  address: string;
   role: string;
   avatar?: string;
   dateOfJoining?: string;
@@ -83,7 +83,6 @@ export function DepartmentsDetailTable({
       id: String(emp.id),
       name: emp.emp_name || "N/A",
       email: emp.email || "N/A",
-      address: `${emp.address}${emp.city ? `, ${emp.city}` : ""}` || "N/A",
       role: emp.role || "N/A",
       avatar: emp.profile_picture || undefined,
       dateOfJoining: emp.hire_date || undefined,
@@ -128,15 +127,6 @@ export function DepartmentsDetailTable({
       ),
     },
     {
-      accessorKey: "address",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Address" />
-      ),
-      cell: ({ getValue }) => (
-        <span className="text-sm text-[#667085]">{String(getValue())}</span>
-      ),
-    },
-    {
       accessorKey: "role",
       header: ({ column }) => <CardTableColumnHeader column={column} title="Role" />,
       cell: ({ getValue }) => (
@@ -152,7 +142,7 @@ export function DepartmentsDetailTable({
         
         // Format the date for display
         try {
-          return <span className="text-sm text-[#667085]">{new Date(date).toLocaleDateString()}</span>;
+          return <span className="text-sm text-[#667085]">{format(new Date(date), "dd/MM/yyyy")}</span>;
         } catch {
           return <span className="text-sm text-[#667085]">{date}</span>;
         }
@@ -192,9 +182,8 @@ export function DepartmentsDetailTable({
         sortOptions={[
           { label: "Employee Name", value: "name" },
           { label: "Employee Email", value: "email" },
-          { label: "Address", value: "address" },
           { label: "Role", value: "role" },
-          { label: "Date of Joining", value: "dateOfJoining" }, // Add this new sort option
+          { label: "Date of Joining", value: "dateOfJoining" },
         ]}
         activeSort={sortedBy}
         onSortChange={(v) => setSortedBy(v)}
@@ -203,8 +192,8 @@ export function DepartmentsDetailTable({
       <CardTable<DepartmentEmployeeRow, unknown>
         columns={columns}
         data={data}
-        headerClassName="grid-cols-[1.4fr_1.6fr_1.6fr_0.8fr_1fr]" // Updated to accommodate 5 columns
-        rowClassName={() => "cursor-pointer hover:bg-[#FAFAFB] grid-cols-[1.4fr_1.6fr_1.6fr_0.8fr_1fr]"} // Updated to accommodate 5 columns
+        headerClassName="grid-cols-[1.4fr_1.6fr_0.8fr_1fr]"
+        rowClassName={() => "cursor-pointer hover:bg-[#FAFAFB] grid-cols-[1.4fr_1.6fr_0.8fr_1fr]"}
         onRowClick={(row) => {
           router.push(ROUTES.ADMIN.ORG_CHART_PROFILE_ID(String(row.original.id)));
         }

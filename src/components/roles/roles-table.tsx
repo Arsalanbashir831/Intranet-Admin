@@ -4,37 +4,34 @@ import * as React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { CardTable } from "@/components/card-table/card-table";
 import { CardTableColumnHeader } from "@/components/card-table/card-table-column-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
-import { useBranches, useDeleteBranch } from "@/hooks/queries/use-branches";
+import { useRoles, useDeleteRole } from "@/hooks/queries/use-roles";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import { ROUTES } from "@/constants/routes";
-import type { Branch } from "@/services/branches";
-import { EditBranchModal } from "./edit-branch-modal";
+import type { Role } from "@/services/roles";
+import { EditRoleModal } from "./edit-role-modal";
 
-export type BranchRow = {
+export type RoleRow = {
   id: string;
-  branch_name: string;
-  employee_count: number;
-  departments: string;
+  name: string;
+  access_level: "employee" | "manager" | "executive";
 };
 
-export function BranchesTable() {
+export function RolesTable() {
   const { user } = useAuth();
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [serverPagination, setServerPagination] = React.useState({ page: 1, pageSize: 10 });
   const [editModalOpen, setEditModalOpen] = React.useState(false);
-  const [selectedBranch, setSelectedBranch] = React.useState<Branch | null>(null);
+  const [selectedRole, setSelectedRole] = React.useState<Role | null>(null);
 
   const isSuperuser = user?.isSuperuser === true;
 
@@ -56,29 +53,27 @@ export function BranchesTable() {
     return Object.keys(params).length > 0 ? params : undefined;
   }, [debouncedSearchQuery]);
 
-  const { data: apiData, isLoading, error, isFetching } = useBranches(searchParams, serverPagination);
-  const deleteBranch = useDeleteBranch();
+  const { data: apiData, isLoading, error, isFetching } = useRoles(searchParams, serverPagination);
+  const deleteRole = useDeleteRole();
 
-  const data = React.useMemo<BranchRow[]>(() => {
-    // Handle the paginated response structure
+  const data = React.useMemo<RoleRow[]>(() => {
     if (!apiData) return [];
 
-    const branches = apiData.branches?.results || [];
+    const roles = apiData.roles?.results || [];
 
-    return branches.map((branch: Branch) => ({
-      id: String(branch.id),
-      branch_name: branch.branch_name,
-      employee_count: branch.employee_count,
-      departments: branch.departments?.map(d => d.dept_name).join(", ") || "--",
+    return roles.map((role: Role) => ({
+      id: String(role.id),
+      name: role.name,
+      access_level: role.access_level,
     }));
   }, [apiData]);
 
   const paginationInfo = React.useMemo(() => {
-    if (!apiData?.branches) return undefined;
+    if (!apiData?.roles) return undefined;
     return {
-      count: apiData.branches.count,
-      page: apiData.branches.page,
-      page_size: apiData.branches.page_size,
+      count: apiData.roles.count,
+      page: apiData.roles.page,
+      page_size: apiData.roles.page_size,
     };
   }, [apiData]);
 
@@ -88,46 +83,52 @@ export function BranchesTable() {
     setServerPagination({ page: 1, pageSize: serverPagination.pageSize });
   }, [serverPagination.pageSize]);
 
-  const handleEditClick = React.useCallback((e: React.MouseEvent, row: BranchRow) => {
+  const handleEditClick = React.useCallback((e: React.MouseEvent, row: RoleRow) => {
     e.stopPropagation();
-    // Find the branch from API data
-    const branch = apiData?.branches?.results?.find((b: Branch) => String(b.id) === row.id);
-    if (branch) {
-      setSelectedBranch(branch);
+    // Find the role from API data
+    const role = apiData?.roles?.results?.find((r: Role) => String(r.id) === row.id);
+    if (role) {
+      setSelectedRole(role);
       setEditModalOpen(true);
     }
   }, [apiData]);
 
   // Memoize the columns to prevent unnecessary re-renders
-  const columns = React.useMemo<ColumnDef<BranchRow>[]>(() => [
+  const columns = React.useMemo<ColumnDef<RoleRow>[]>(() => [
     {
-      accessorKey: "branch_name",
+      accessorKey: "name",
       header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Branch Name" />
+        <CardTableColumnHeader column={column} title="Role Name" />
       ),
       cell: ({ row }) => (
         <span className="text-sm font-medium text-[#1D1F2C]">
-          {row.original.branch_name}
+          {row.original.name}
         </span>
       ),
     },
     {
-      accessorKey: "employee_count",
+      accessorKey: "access_level",
       header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Employees" />
+        <CardTableColumnHeader column={column} title="Access Level" />
       ),
-      cell: ({ getValue }) => (
-        <span className="text-sm text-[#667085]">{String(getValue())}</span>
-      ),
-    },
-    {
-      accessorKey: "departments",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Departments" />
-      ),
-      cell: ({ getValue }) => (
-        <span className="text-sm text-[#667085]">{String(getValue())}</span>
-      ),
+      cell: ({ getValue }) => {
+        const accessLevel = getValue() as "employee" | "manager" | "executive";
+        const badgeColors = {
+          employee: "bg-gray-100 text-gray-800",
+          manager: "bg-green-100 text-green-800",
+          executive: "bg-blue-100 text-blue-800",
+        };
+        const displayText = {
+          employee: "Employee",
+          manager: "Manager",
+          executive: "Executive",
+        };
+        return (
+          <Badge variant="default" className={badgeColors[accessLevel]}>
+            {displayText[accessLevel]}
+          </Badge>
+        );
+      },
     },
     {
       id: "actions",
@@ -145,23 +146,42 @@ export function BranchesTable() {
             </Button>
             <span onClick={(e) => e.stopPropagation()}>
               <ConfirmPopover
-                title="Delete branch?"
-                description="This action cannot be undone. All associated departments will also be affected."
+                title="Delete role?"
+                description="This action cannot be undone."
                 confirmText="Delete"
                 onConfirm={async () => {
                   const id = row.original.id;
                   try {
                     setDeletingId(id);
-                    await deleteBranch.mutateAsync(id);
-                    toast.success("Branch deleted successfully");
+                    await deleteRole.mutateAsync(id);
+                    toast.success("Role deleted successfully");
                   } catch (err) {
-                    console.error(err);
-                    toast.error("Failed to delete branch");
+                    console.error("Error deleting role:", err);
+                    let errorMessage = "Failed to delete role. Please try again.";
+                    
+                    // Extract error message from API response
+                    if (err instanceof Error && err.message) {
+                      errorMessage = err.message;
+                    } else {
+                      const error = err as { response?: { data?: Record<string, unknown>; status?: number } };
+                      const dataErr = error?.response?.data;
+                      if (dataErr && typeof dataErr === "object") {
+                        if ("error" in dataErr && typeof dataErr.error === "string") {
+                          errorMessage = dataErr.error;
+                        } else if ("detail" in dataErr && typeof dataErr.detail === "string") {
+                          errorMessage = dataErr.detail;
+                        } else if ("message" in dataErr && typeof dataErr.message === "string") {
+                          errorMessage = dataErr.message;
+                        }
+                      }
+                    }
+                    
+                    toast.error(errorMessage);
                   } finally {
                     setDeletingId(null);
                   }
                 }}
-                disabled={deletingId === row.original.id || deleteBranch.isPending}
+                disabled={deletingId === row.original.id || deleteRole.isPending}
               >
                 <Button size="icon" variant="ghost" className="text-[#D64575]">
                   <Trash2 className="size-4" />
@@ -172,14 +192,14 @@ export function BranchesTable() {
         ) : null
       ),
     },
-  ], [isSuperuser, deletingId, deleteBranch.isPending, deleteBranch, handleEditClick]);
+  ], [isSuperuser, deletingId, deleteRole.isPending, deleteRole, handleEditClick]);
 
   // Show loading state only on initial load (no search query and no existing data)
   if (isLoading && !debouncedSearchQuery && !data.length) {
     return (
       <Card className="border-[#FFF6F6] p-5 shadow-none">
         <div className="flex items-center justify-center py-8">
-          <div className="text-sm text-[#667085]">Loading branches...</div>
+          <div className="text-sm text-[#667085]">Loading roles...</div>
         </div>
       </Card>
     );
@@ -190,7 +210,7 @@ export function BranchesTable() {
     return (
       <Card className="border-[#FFF6F6] p-5 shadow-none">
         <div className="flex items-center justify-center py-8">
-          <div className="text-sm text-red-600">Error loading branches: {error.message}</div>
+          <div className="text-sm text-red-600">Error loading roles: {error.message}</div>
         </div>
       </Card>
     );
@@ -198,21 +218,20 @@ export function BranchesTable() {
 
   return (
     <Card className={cn("border-[#FFF6F6] p-5 shadow-none", {
-      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
+      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery,
     })}>
       <CardTableToolbar
-        title='Branches'
+        title='Roles'
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
         showSortOptions={false}
         showFilters={false}
       />
-      <CardTable<BranchRow, unknown>
+      <CardTable<RoleRow, unknown>
         columns={columns}
         data={data}
-        headerClassName="grid-cols-[1fr_1fr_2fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1fr_1fr_2fr_0.8fr] cursor-pointer"}
-        onRowClick={(row) => router.push(ROUTES.ADMIN.BRANCHES_ID(row.original.id))}
+        headerClassName="grid-cols-[2fr_1fr_0.8fr]"
+        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[2fr_1fr_0.8fr]"}
         footer={(table) => (
           <CardTablePagination
             table={table}
@@ -223,10 +242,10 @@ export function BranchesTable() {
           />
         )}
       />
-      <EditBranchModal
+      <EditRoleModal
         open={editModalOpen}
         setOpen={setEditModalOpen}
-        branch={selectedBranch}
+        role={selectedRole}
       />
     </Card>
   );

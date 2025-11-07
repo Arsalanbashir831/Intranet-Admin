@@ -17,11 +17,9 @@ import {
 	useCreateEmployee,
 	useUpdateEmployee,
 } from "@/hooks/queries/use-employees";
-import {
-	useDepartments,
-	useSearchDepartments,
-} from "@/hooks/queries/use-departments";
+import { useRoles } from "@/hooks/queries/use-roles";
 import { useManagerScope } from "@/contexts/manager-scope-context";
+import { useBranchDepartments, useSearchBranchDepartments } from "@/hooks/queries/use-branches";
 
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -33,10 +31,8 @@ export type OrgChartInitialValues = {
 	role?: string | null;
 	education?: string | null;
 	bio?: string | null;
-	branch_department?: string; // id as string for UI select
+	branch_department?: string | string[]; // id(s) as string(s) for UI select - single for regular employees, array for managers
 	profileImageUrl?: string;
-	address?: string | null;
-	city?: string | null;
 };
 
 export function OrgChartForm({
@@ -55,52 +51,43 @@ export function OrgChartForm({
 	// Get manager scope to filter departments
 	const { isManager, managedDepartments } = useManagerScope();
 	
-	// Create adapter functions for async search
+	// Fetch roles from API
+	const { data: rolesData } = useRoles(undefined, { pageSize: 1000 });
+	
+	// Get available roles and filter out manager roles if user is a manager
+	const availableRoles = React.useMemo(() => {
+		if (!rolesData?.roles?.results) return [];
+		
+		return rolesData.roles.results.filter(role => {
+			// If user is a manager, filter out roles with access_level="manager"
+			if (isManager && role.access_level === "manager") {
+				return false;
+			}
+			return true;
+		});
+	}, [rolesData, isManager]);
+	
+	// Create adapter functions for async search using branch departments API
 	const useAllDepartments = () => {
-		const result = useDepartments(undefined, { pageSize: 100 }); // Get more departments
+		const result = useBranchDepartments(undefined, { pageSize: 1000 });
 		const branchDeptItems = React.useMemo(() => {
-			const departmentsPayload = (
-				result.data as { departments?: { results?: unknown[] } } | undefined
-			)?.departments;
-			const results = Array.isArray(departmentsPayload?.results)
-				? departmentsPayload.results
-				: Array.isArray(result.data)
-				? result.data
-				: (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
-
+			if (!result.data?.branch_departments?.results) return [];
+			
 			const items: { id: string; label: string }[] = [];
-			for (const dept of results || []) {
-				const deptData = dept as {
-					dept_name?: string;
-					name?: string;
-					branch_departments?: unknown[];
-				};
-				const deptName = String(deptData.dept_name ?? deptData.name ?? "");
-				const branchDepartments = deptData.branch_departments as
-					| Array<{
-							id: number;
-							branch?: { branch_name?: string };
-							branch_name?: string;
-					  }>
-					| undefined;
-				if (Array.isArray(branchDepartments)) {
-					for (const bd of branchDepartments) {
-						const bdId = String(bd.id);
-						const branchName = String(
-							bd?.branch?.branch_name ?? bd?.branch_name ?? ""
-						);
-						
-						// Filter: If manager, only show their managed departments
-						if (isManager && !managedDepartments.includes(bd.id)) {
-							continue; // Skip this department
-						}
-						
-						items.push({ id: bdId, label: `${deptName} - ${branchName}` });
-					}
+			for (const bd of result.data.branch_departments.results) {
+				const bdId = String(bd.id);
+				const branchName = String(bd.branch?.branch_name ?? "");
+				const deptName = String(bd.department?.dept_name ?? "");
+				
+				// Filter: If manager, only show their managed departments
+				if (isManager && !managedDepartments.includes(bd.id)) {
+					continue; // Skip this department
 				}
+				
+				items.push({ id: bdId, label: `${deptName} - ${branchName}` });
 			}
 			return items;
-		}, [result.data]);
+		}, [result.data, isManager, managedDepartments]);
 
 		return {
 			data: branchDeptItems,
@@ -109,49 +96,25 @@ export function OrgChartForm({
 	};
 
 	const useSearchDepartmentsAdapter = (query: string) => {
-		const result = useSearchDepartments(query, { pageSize: 100 });
+		const result = useSearchBranchDepartments(query, { pageSize: 1000 });
 		const branchDeptItems = React.useMemo(() => {
-			const departmentsPayload = (
-				result.data as { departments?: { results?: unknown[] } } | undefined
-			)?.departments;
-			const results = Array.isArray(departmentsPayload?.results)
-				? departmentsPayload.results
-				: Array.isArray(result.data)
-				? result.data
-				: (result.data as { departments?: { results?: unknown[] } } | undefined)?.departments?.results ?? [];
+			if (!result.data?.branch_departments?.results) return [];
+			
 			const items: { id: string; label: string }[] = [];
-			for (const dept of results || []) {
-				const deptData = dept as {
-					dept_name?: string;
-					name?: string;
-					branch_departments?: unknown[];
-				};
-				const deptName = String(deptData.dept_name ?? deptData.name ?? "");
-				const branchDepartments = deptData.branch_departments as
-					| Array<{
-							id: number;
-							branch?: { branch_name?: string };
-							branch_name?: string;
-					  }>
-					| undefined;
-				if (Array.isArray(branchDepartments)) {
-					for (const bd of branchDepartments) {
-						const bdId = String(bd.id);
-						const branchName = String(
-							bd?.branch?.branch_name ?? bd?.branch_name ?? ""
-						);
-						
-						// Filter: If manager, only show their managed departments
-						if (isManager && !managedDepartments.includes(bd.id)) {
-							continue; // Skip this department
-						}
-						
-						items.push({ id: bdId, label: `${deptName} - ${branchName}` });
-					}
+			for (const bd of result.data.branch_departments.results) {
+				const bdId = String(bd.id);
+				const branchName = String(bd.branch?.branch_name ?? "");
+				const deptName = String(bd.department?.dept_name ?? "");
+				
+				// Filter: If manager, only show their managed departments
+				if (isManager && !managedDepartments.includes(bd.id)) {
+					continue; // Skip this department
 				}
+				
+				items.push({ id: bdId, label: `${deptName} - ${branchName}` });
 			}
 			return items;
-		}, [result.data]);
+		}, [result.data, isManager, managedDepartments]);
 
 		return {
 			data: branchDeptItems,
@@ -166,12 +129,27 @@ export function OrgChartForm({
 	// Branch department selection - single or multiple depending on role
 	const [selectedBranchDeptIds, setSelectedBranchDeptIds] = React.useState<
 		string[]
-	>(initialValues?.branch_department ? [initialValues.branch_department] : []);
+	>(() => {
+		if (!initialValues?.branch_department) return [];
+		// Support both single string and array of strings
+		if (Array.isArray(initialValues.branch_department)) {
+			return initialValues.branch_department;
+		}
+		return [initialValues.branch_department];
+	});
 
 	// Role selection state - store as string for Select component, convert to number for API
+	// Initialize with first available role if no initial value
 	const [selectedRole, setSelectedRole] = React.useState<string>(
-		initialValues?.role ? String(initialValues.role) : "1"
+		initialValues?.role ? String(initialValues.role) : ""
 	);
+	
+	// Set default role when roles are loaded
+	React.useEffect(() => {
+		if (!selectedRole && availableRoles.length > 0) {
+			setSelectedRole(String(availableRoles[0].id));
+		}
+	}, [availableRoles, selectedRole]);
 
 	// Rich text content state for education is plain string
 	const [educationHtml, setEducationHtml] = React.useState<string | undefined>(
@@ -191,13 +169,18 @@ export function OrgChartForm({
 	// Reinitialize if initialValues change
 	React.useEffect(() => {
 		if (initialValues?.branch_department) {
-			setSelectedBranchDeptIds([initialValues.branch_department]);
+			// Support both single string and array of strings
+			if (Array.isArray(initialValues.branch_department)) {
+				setSelectedBranchDeptIds(initialValues.branch_department);
+			} else {
+				setSelectedBranchDeptIds([initialValues.branch_department]);
+			}
 		} else {
 			setSelectedBranchDeptIds([]);
 		}
 		setEducationHtml(initialValues?.education ?? undefined);
 		setBioHtml(initialValues?.bio ?? undefined);
-		setSelectedRole(initialValues?.role ? String(initialValues.role) : "1");
+		setSelectedRole(initialValues?.role ? String(initialValues.role) : "");
 		// Clear selected files when initialValues change
 		setSelectedFiles([]);
 		setIsRemovingPicture(false);
@@ -210,12 +193,15 @@ export function OrgChartForm({
 
 	// When role changes, ensure only one department is selected if not Manager
 	React.useEffect(() => {
-		if (selectedRole !== "4" && selectedBranchDeptIds.length > 1) {
+		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+		const isManagerRole = selectedRoleObj?.access_level === "manager";
+		
+		if (!isManagerRole && selectedBranchDeptIds.length > 1) {
 			// If role is not Manager and multiple departments selected, keep only the first one
 			setSelectedBranchDeptIds([selectedBranchDeptIds[0]]);
 			toast.info("Only managers can be assigned to multiple departments. Keeping only one department.");
 		}
-	}, [selectedRole, selectedBranchDeptIds]);
+	}, [selectedRole, selectedBranchDeptIds, availableRoles]);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -225,14 +211,12 @@ export function OrgChartForm({
 		const empName = String(data.get("emp_name") || "").trim();
 		const email = String(data.get("email") || "").trim();
 		const phone = String(data.get("phone") || "").trim();
-		const address = String(data.get("address") || "").trim();
-		const city = String(data.get("city") || "").trim();
 
-		if (!empName || selectedBranchDeptIds.length === 0) {
-			toast.error("Name and at least one Branch/Department are required");
-			onSubmitComplete?.(false); // Notify parent that submission failed
-			return;
-		}
+		// if (!empName || selectedBranchDeptIds.length === 0) {
+		// 	toast.error("Name and at least one Branch/Department are required");
+		// 	onSubmitComplete?.(false); // Notify parent that submission failed
+		// 	return;
+		// }
 
 		// Convert selected branch department IDs to numbers
 		const branchDepartmentIds = selectedBranchDeptIds.map((id) => Number(id));
@@ -242,20 +226,26 @@ export function OrgChartForm({
 			emp_name: empName,
 			email: email || undefined,
 			phone: phone || undefined,
-			role: selectedRole ? Number(selectedRole) : undefined, // Convert to integer for API
+			role: selectedRole ? Number(selectedRole) : undefined, // Convert to integer for API (role ID)
 			education: educationHtml || undefined,
 			bio: bioHtml || undefined,
-			address: address || undefined,
-			city: city || undefined,
 			// Handle profile picture logic
 			profile_picture:
 				selectedFiles[0] || (isRemovingPicture ? null : undefined),
 		};
 
-		// Add branch department fields based on role
-		if (selectedRole === "4") {
-			// Manager: use manager_branch_departments array
-			payload.manager_branch_departments = branchDepartmentIds;
+		// Add branch department fields based on role and mode
+		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+		const isManagerRole = selectedRoleObj?.access_level === "manager";
+		
+		if (isManagerRole) {
+			if (isEdit) {
+				// Edit mode: use branch_department_ids for managers
+				payload.branch_department_ids = branchDepartmentIds;
+			} else {
+				// Create mode: use manager_branch_departments for managers
+				payload.manager_branch_departments = branchDepartmentIds;
+			}
 		} else {
 			// Regular employee: use single branch_department_id
 			payload.branch_department_id = branchDepartmentIds[0];
@@ -272,26 +262,62 @@ export function OrgChartForm({
 			onSubmitComplete?.(true); // Notify parent that submission succeeded
 			router.push(ROUTES.ADMIN.ORG_CHART);
 		} catch (error: unknown) {
-			const err = error as { response?: { data?: Record<string, unknown> } };
-			const dataErr = err?.response?.data;
-			const messages: string[] = [];
-			if (dataErr && typeof dataErr === "object") {
-				for (const key of Object.keys(dataErr)) {
-					const value = dataErr[key];
-					if (Array.isArray(value)) {
-						value.forEach((msg: unknown) =>
-							messages.push(`${key}: ${String(msg)}`)
-						);
-					} else if (typeof value === "string") {
-						messages.push(`${key}: ${value}`);
+			console.error("Error saving employee:", error);
+			
+			let errorMessage = "Failed to save. Please try again.";
+			
+			// First, check if it's an Error object (from API client transformation)
+			if (error instanceof Error && error.message) {
+				errorMessage = error.message;
+			}
+			// Otherwise, try to extract from Axios error response
+			else {
+				const err = error as { response?: { data?: Record<string, unknown>; status?: number } };
+				const dataErr = err?.response?.data;
+				
+				if (dataErr && typeof dataErr === "object") {
+					// Check for direct error field (common in custom error responses)
+					if ("error" in dataErr && typeof dataErr.error === "string") {
+						errorMessage = dataErr.error;
+					}
+					// Check for detail field (common in DRF responses)
+					else if ("detail" in dataErr && typeof dataErr.detail === "string") {
+						errorMessage = dataErr.detail;
+					}
+					// Check for message field
+					else if ("message" in dataErr && typeof dataErr.message === "string") {
+						errorMessage = dataErr.message;
+					}
+					// Check for non_field_errors (validation errors)
+					else if ("non_field_errors" in dataErr) {
+						const nfe = dataErr.non_field_errors;
+						if (Array.isArray(nfe)) {
+							errorMessage = nfe.join(". ");
+						} else if (typeof nfe === "string") {
+							errorMessage = nfe;
+						}
+					}
+					// Check for field-specific errors
+					else {
+						const messages: string[] = [];
+						for (const key of Object.keys(dataErr)) {
+							const value = dataErr[key];
+							if (Array.isArray(value)) {
+								value.forEach((msg: unknown) =>
+									messages.push(`${key}: ${String(msg)}`)
+								);
+							} else if (typeof value === "string") {
+								messages.push(`${key}: ${value}`);
+							}
+						}
+						if (messages.length > 0) {
+							errorMessage = messages.join(". ");
+						}
 					}
 				}
 			}
-			if (messages.length) {
-				messages.forEach((m) => toast.error(m));
-			} else {
-				toast.error("Failed to save. Please try again.");
-			}
+			
+			toast.error(errorMessage);
 			onSubmitComplete?.(false); // Notify parent that submission failed
 		}
 	};
@@ -320,34 +346,6 @@ export function OrgChartForm({
 						name="emp_name"
 						defaultValue={initialValues?.emp_name || ""}
 						placeholder="Employee Name"
-						className="border-[#E2E8F0]"
-					/>
-				</div>
-			</div>
-
-			<div className="grid grid-cols-12 items-center gap-4">
-				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
-					Address:
-				</Label>
-				<div className="col-span-12 md:col-span-10">
-					<Input
-						name="address"
-						defaultValue={initialValues?.address as string}
-						placeholder="Address"
-						className="border-[#E2E8F0]"
-					/>
-				</div>
-			</div>
-
-			<div className="grid grid-cols-12 items-center gap-4">
-				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
-					City:
-				</Label>
-				<div className="col-span-12 md:col-span-10">
-					<Input
-						name="city"
-						defaultValue={initialValues?.city as string}
-						placeholder="City"
 						className="border-[#E2E8F0]"
 					/>
 				</div>
@@ -394,11 +392,11 @@ export function OrgChartForm({
 							<SelectValue placeholder="Select role" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="1">Junior Staff</SelectItem>
-							<SelectItem value="2">Mid Senior Staff</SelectItem>
-							<SelectItem value="3">Senior Staff</SelectItem>
-							{/* Only admins can add managers */}
-							{!isManager && <SelectItem value="4">Manager</SelectItem>}
+							{availableRoles.map((role) => (
+								<SelectItem key={role.id} value={String(role.id)}>
+									{role.name}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 					{isManager && (
@@ -415,15 +413,18 @@ export function OrgChartForm({
 
 			<div className="grid grid-cols-12 items-center gap-4 border-t border-[#E9EAEB] pt-4">
 				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
-					Branch Department{selectedRole === "4" ? "s" : ""}:
+					Branch Department{availableRoles.find(r => String(r.id) === selectedRole)?.access_level === "manager" ? "s" : ""}:
 				</Label>
 				<div className="col-span-12 md:col-span-10">
 					<SelectableTags
 						items={[]} // Empty since we're using async hooks
 						selectedItems={selectedBranchDeptIds}
 						onSelectionChange={(ids) => {
-							// If role is not Manager (4), allow only one selection
-							if (selectedRole !== "4") {
+							const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+							const isManagerRole = selectedRoleObj?.access_level === "manager";
+							
+							// If role is not Manager, allow only one selection
+							if (!isManagerRole) {
 								const lastSelected = ids[ids.length - 1];
 								setSelectedBranchDeptIds(lastSelected ? [lastSelected] : []);
 							} else {
@@ -437,16 +438,23 @@ export function OrgChartForm({
 						useSearch={useSearchDepartmentsAdapter}
 						searchDebounce={300}
 					/>
-					{selectedRole !== "4" && (
-						<p className="mt-1 text-xs text-muted-foreground">
-							Only one department can be selected for this role. Select Manager role to manage multiple departments.
-						</p>
-					)}
-					{selectedRole === "4" && (
-						<p className="mt-1 text-xs text-muted-foreground">
-							Managers can be assigned to multiple departments. The first department will be used as their employee record location.
-						</p>
-					)}
+					{(() => {
+						const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+						const isManagerRole = selectedRoleObj?.access_level === "manager";
+						
+						if (!isManagerRole) {
+							return (
+								<p className="mt-1 text-xs text-muted-foreground">
+									Only one department can be selected for this role. Select Manager role to manage multiple departments.
+								</p>
+							);
+						}
+						return (
+							<p className="mt-1 text-xs text-muted-foreground">
+								Managers can be assigned to multiple departments. The first department will be used as their employee record location.
+							</p>
+						);
+					})()}
 				</div>
 			</div>
 
@@ -470,7 +478,6 @@ export function OrgChartForm({
 							}
 						}}
 						accept="image/*"
-						maxSize={800 * 400}
 						initialPreviewUrls={
 							initialValues?.profileImageUrl
 								? [initialValues.profileImageUrl]

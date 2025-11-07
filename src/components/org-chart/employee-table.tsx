@@ -17,11 +17,12 @@ import { ROUTES } from "@/constants/routes";
 import { useEmployees, useDeleteEmployee } from "@/hooks/queries/use-employees";
 import { useBranchDepartmentEmployees, useDepartmentEmployees } from "@/hooks/queries/use-departments";
 import { useManagerScope } from "@/contexts/manager-scope-context";
+import { useRoles } from "@/hooks/queries/use-roles";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
 import { FilterDrawer } from "@/components/card-table/filter-drawer";
-import { DepartmentFilter, BranchDepartmentFilter } from "@/components/card-table/filter-components";
+import { DepartmentFilter, BranchDepartmentFilter, RoleFilter } from "@/components/card-table/filter-components";
 
 export type EmployeeRow = {
   id: string;
@@ -44,6 +45,20 @@ export function EmployeeTable() {
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [filters, setFilters] = React.useState<Record<string, unknown>>({});
+  
+  // Fetch roles to map role IDs to names
+  const { data: rolesData } = useRoles(undefined, { pageSize: 1000 });
+  
+  // Create a map of role ID to role name
+  const roleMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    if (rolesData?.roles?.results) {
+      rolesData.roles.results.forEach(role => {
+        map.set(String(role.id), role.name);
+      });
+    }
+    return map;
+  }, [rolesData]);
 
   // Debounce search query to avoid too many API calls
   React.useEffect(() => {
@@ -69,6 +84,11 @@ export function EmployeeTable() {
     // Add branch department filter if selected (but not if it's the "All" option)
     if (filters.branchDepartment && filters.branchDepartment !== "__all__") {
       params.branch_department = String(filters.branchDepartment);
+    }
+    
+    // Add role filter if selected (but not if it's the "All" option)
+    if (filters.role && filters.role !== "__all__") {
+      params.role = String(filters.role);
     }
     
     return Object.keys(params).length > 0 ? params : undefined;
@@ -115,19 +135,19 @@ export function EmployeeTable() {
     if (shouldUseDepartmentFilter) {
       // For department employees, the data structure is different
       const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
-      employeesList = Array.isArray(employeesContainer?.results)
+      employeesList = (employeesContainer && Array.isArray(employeesContainer.results))
         ? employeesContainer.results
         : (Array.isArray(apiData) ? apiData : []);
     } else if (shouldUseBranchDepartmentFilter) {
       // For branch department employees, the data structure is different
       const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
-      employeesList = Array.isArray(employeesContainer?.results)
+      employeesList = (employeesContainer && Array.isArray(employeesContainer.results))
         ? employeesContainer.results
         : (Array.isArray(apiData) ? apiData : []);
     } else {
       // For regular employees query
       const employeesContainer = (apiData as { employees?: { results?: unknown[] } })?.employees;
-      employeesList = Array.isArray(employeesContainer?.results)
+      employeesList = (employeesContainer && Array.isArray(employeesContainer.results))
         ? employeesContainer.results
         : (Array.isArray(apiData) ? apiData : []);
     }
@@ -177,6 +197,10 @@ export function EmployeeTable() {
         return url; // Return as-is if it doesn't start with /
       };
 
+      // Map role ID to role name if available
+      const roleId = String(employee.role ?? "");
+      const roleName = roleMap.get(roleId) || roleId; // Use mapped name or fallback to ID/name
+      
       return {
         id: String(employee.id),
         name: String(employee.emp_name ?? ""),
@@ -184,12 +208,12 @@ export function EmployeeTable() {
         location: uniqueBranches.join(", ") || "--",
         email: String(employee.email ?? ""),
         department: uniqueDepartments.join(", ") || "--",
-        role: String(employee.role ?? ""),
+        role: roleName,
         reportingTo: firstManager?.employee?.emp_name ?? null,
         reportingAvatar: getAbsoluteUrl(firstManager?.employee?.profile_picture),
       };
     });
-  }, [apiData, shouldUseDepartmentFilter, shouldUseBranchDepartmentFilter]);
+  }, [apiData, shouldUseDepartmentFilter, shouldUseBranchDepartmentFilter, roleMap]);
   
   const { pinnedIds, togglePin } = usePinnedRows<EmployeeRow>(data);
 
@@ -361,6 +385,10 @@ export function EmployeeTable() {
           <BranchDepartmentFilter 
             value={(filters.branchDepartment as string) || "__all__"} 
             onValueChange={(value: string) => setFilters(prev => ({ ...prev, branchDepartment: value }))}
+          />
+          <RoleFilter 
+            value={(filters.role as string) || "__all__"} 
+            onValueChange={(value: string) => setFilters(prev => ({ ...prev, role: value }))}
           />
         </div>
       </FilterDrawer>

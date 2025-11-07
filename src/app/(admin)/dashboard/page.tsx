@@ -6,8 +6,11 @@ import { DefaultStatCards } from "@/components/dashboard/stat-cards";
 import { AverageAnnouncementChart } from "@/components/dashboard/average-announcement-chart";
 import { EmployeeRingChart } from "@/components/dashboard/employee-ring-chart";
 import { DepartmentsTable } from "@/components/departments/departments-table";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function AdminHomePage() {
+  const { user } = useAuth();
+  const isAdmin = user?.isAdmin === true;
   return (
     <>
       <PageHeader title="Dashboard" crumbs={[{ label: "Pages", href: "#" }, { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }]} />
@@ -23,7 +26,7 @@ export default function AdminHomePage() {
           </div>
         </div>
 
-        <DepartmentsTable className="border-[#D0D0D0]" />
+        {isAdmin && <DepartmentsTable className="border-[#D0D0D0]" />}
       </div>
     </>
   );

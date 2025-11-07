@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   createDepartment,
@@ -8,12 +9,10 @@ import {
   getDepartmentEmployees,
   updateDepartment,
 } from "@/services/departments";
+import { listAllBranches } from "@/services/branches";
 import type {
   DepartmentCreateRequest,
   DepartmentUpdateRequest,
-  Department,
-  BranchDepartment,
-  DepartmentListResponse,
 } from "@/services/departments";
 
 // Helpers
@@ -107,28 +106,37 @@ export function useBranchDepartmentEmployees(
 }
 
 export function useBranchDepartments(params?: Record<string, string | number | boolean>) {
-  // reuse the same list endpoint (page_size bump) while keeping params stable
-  const { data: departmentsData, isLoading, error } = useDepartments(
-    { ...(params ?? {}), page_size: 1000 },
-    undefined
-  );
-
-  // Maintain previous data during refetch (we already do via useDepartments)
-  const branchDepartments =
-    Array.isArray(departmentsData)
-      ? departmentsData
-      : (departmentsData as DepartmentListResponse | undefined)?.departments?.results || [];
-
-  const allBranchDepartments = branchDepartments.flatMap((dept: Department) => {
-    const deptName = dept.dept_name || (dept as Record<string, unknown>).name || "Unknown Department";
-    const bds = dept.branch_departments || [];
-    return bds.map((bd: BranchDepartment) => ({
-      id: bd.id,
-      branch:
-        bd.branch || { branch_name: (bd as Record<string, unknown>).branch_name || "Unknown Branch" },
-      department: { dept_name: deptName },
-    }));
+  // Fetch branches to get branch departments since departments no longer have branch_departments
+  const { data: branchesData, isLoading, error } = useQuery({
+    queryKey: ["all-branches-for-branch-departments", params],
+    queryFn: () => listAllBranches(params),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   });
+
+  // Flatten branch departments from branches
+  const allBranchDepartments = React.useMemo(() => {
+    if (!branchesData?.branches?.results) return [];
+    
+    const branchDepartments: Array<{
+      id: number;
+      branch: { branch_name: string };
+      department: { dept_name: string };
+    }> = [];
+    
+    branchesData.branches.results.forEach((branch) => {
+      branch.departments?.forEach((dept) => {
+        branchDepartments.push({
+          id: dept.branch_department_id,
+          branch: { branch_name: branch.branch_name },
+          department: { dept_name: dept.dept_name },
+        });
+      });
+    });
+    
+    return branchDepartments;
+  }, [branchesData]);
 
   return { data: allBranchDepartments, isLoading, error };
 }

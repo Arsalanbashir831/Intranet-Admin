@@ -68,6 +68,17 @@ export const useGetFolderTree = (employeeId?: number | string) => {
     queryKey: folderKeys.tree(employeeId),
     queryFn: () => getFolderTree(employeeId),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on 403 Forbidden errors
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorMessage = String(error.message).toLowerCase();
+        if (errorMessage.includes('access denied') || errorMessage.includes('forbidden') || errorMessage.includes("don't have permission")) {
+          return false;
+        }
+      }
+      // Retry up to 3 times for other errors
+      return failureCount < 3;
+    },
   });
 };
 

@@ -38,6 +38,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Training Checklists", href: ROUTES.ADMIN.NEW_HIRE_PLAN, iconSrc: "/icons/clipboard-text.svg", description: "Employee onboarding plans" },
   { label: "Departments", href: ROUTES.ADMIN.DEPARTMENTS, iconSrc: "/icons/user-hierarchy.svg", description: "Department management" },
   { label: "Branches", href: ROUTES.ADMIN.BRANCHES, iconSrc: "/icons/branch.svg", description: "Branch management" },
+  { label: "Roles", href: ROUTES.ADMIN.ROLES, iconSrc: "/icons/user-hierarchy.svg", description: "Role management" },
   { label: "Employees", href: ROUTES.ADMIN.ORG_CHART, iconSrc: "/icons/users.svg", description: "Organization structure" },
   // { label: "Executive Members", href: ROUTES.ADMIN.EXECUTIVE_MEMBERS, iconSrc: "/icons/users.svg", description: "Executive team management" },
 ];
@@ -52,8 +53,17 @@ export function AdminSidebar() {
   // Filter navigation items based on user permissions
   const visibleNavItems = useMemo(() => {
     return NAV_ITEMS.filter((item) => {
+      // Hide Departments if user is not admin
+      if (item.href === ROUTES.ADMIN.DEPARTMENTS && !isAdmin) {
+        return false;
+      }
+
       // Hide Branches if user is not admin
       if (item.href === ROUTES.ADMIN.BRANCHES && !isAdmin) {
+        return false;
+      }
+      // Hide Roles if user is not admin
+      if (item.href === ROUTES.ADMIN.ROLES && !isAdmin) {
         return false;
       }
       return true;

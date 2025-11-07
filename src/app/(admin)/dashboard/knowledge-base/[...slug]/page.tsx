@@ -19,30 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, ChevronDown, FolderPlus, FilePlus } from "lucide-react";
 
-// Define the folder tree file type locally since it's not exported
-type FolderTreeFile = {
-  id: number;
-  folder: number;
-  name: string;
-  description: string;
-  file: string;
-  file_url: string;
-  inherits_parent_permissions: boolean;
-  permitted_branches: number[];
-  permitted_departments: number[];
-  permitted_employees: number[];
-  uploaded_by: number | null;
-  uploaded_at: string;
-  size: number;
-  content_type: string;
-  effective_permissions: {
-    branches: number[];
-    departments: number[];
-    employees: number[];
-  };
-};
-
-
 export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promise<{ slug?: string[] }> }) {
   const router = useRouter();
   const { user } = useAuth();
