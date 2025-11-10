@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "api.lordevs.com",
       },
+      {
+        protocol: "https",
+        hostname: "api.cartwrightking.work",
+      },
       // Optional: allow any numeric IP on http (use with caution)
       {
         protocol: "http",

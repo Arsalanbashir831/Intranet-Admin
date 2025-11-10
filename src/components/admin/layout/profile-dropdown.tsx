@@ -27,6 +27,10 @@ export function ProfileDropdown({ name, avatarSrc }: ProfileDropdownProps) {
   const displayName = name || user?.name || "User";
   const displayAvatar = avatarSrc || user?.avatar;
 
+  console.log(user);
+
+  console.log(displayAvatar);
+
   const handleLogout = () => {
     logoutMutation.mutate();
   };

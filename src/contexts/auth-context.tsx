@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { ROUTES } from "@/constants/routes";
 import { getAuthTokens, clearAuthCookies } from "@/lib/cookies";
 import { getMe } from "@/services/auth";
-import { getBaseUrl } from "@/lib/utils";
 
 // Define types for the user based on the me API response
 interface User {
@@ -54,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					try {
 						const meData = await getMe();
 						const employeeProfilePictureUrl = meData?.employee?.profile_picture
-							? `${getBaseUrl()}${meData?.employee?.profile_picture}`
+							? `${meData?.employee?.profile_picture}`
 							: undefined;
 
 						setUser({
@@ -90,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 							// Try to get user details again with new token
 							const meData = await getMe();
 							const employeeProfilePictureUrl = meData?.employee?.profile_picture
-								? `${getBaseUrl()}${meData?.employee?.profile_picture}`
+								? `${meData?.employee?.profile_picture}`
 								: undefined;
 
 							setUser({
@@ -148,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				try {
 					const meData = await getMe();
 					const employeeProfilePictureUrl = meData?.employee?.profile_picture || undefined
-						? `${getBaseUrl()}${meData?.employee?.profile_picture}`
+						? `${meData?.employee?.profile_picture}`
 						: undefined;
 
 					setUser({
@@ -178,7 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 						// Get user details with new token
 						const meData = await getMe();
 						const employeeProfilePictureUrl = meData?.employee?.profile_picture
-							? `${getBaseUrl()}${meData?.employee?.profile_picture}`
+							? `${meData?.employee?.profile_picture}`
 							: undefined;
 
 						setUser({
