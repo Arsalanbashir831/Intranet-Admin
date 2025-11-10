@@ -5,13 +5,19 @@ import type { Poll, PollApiResponse, PollListResponse, PollCreateRequest } from 
 
 export async function listPolls(
   params?: Record<string, string | number | boolean>,
-  pagination?: { page?: number; pageSize?: number }
+  pagination?: { page?: number; pageSize?: number },
+  managerScope?: boolean
 ) {
   const url = API_ROUTES.POLLS.LIST;
   const queryParams: Record<string, string> = {};
   
   // Always include expired polls
   queryParams.include_expired = "true";
+  
+  // Add manager scope parameter
+  if (managerScope) {
+    queryParams.manager_scope = 'true';
+  }
   
   // Add pagination parameters
   if (pagination) {

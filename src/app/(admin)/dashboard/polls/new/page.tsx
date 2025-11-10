@@ -84,14 +84,14 @@ export default function NewPollPage() {
         ]} 
         action={
           <div className="flex gap-2">
-            <Button 
+            {/* <Button 
               variant='outline' 
               className="border-primary"
               onClick={() => handleSave(true)}
               disabled={isSaving || isPublishing || !formData}
             >
               {isSaving ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save As Draft"}
-            </Button>
+            </Button> */}
             <Button 
               onClick={() => handleSave(false)}
               disabled={isSaving || isPublishing || !formData}

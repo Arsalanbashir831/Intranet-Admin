@@ -7,14 +7,17 @@ import {
   deletePoll,
 } from "@/services/polls";
 import type { PollCreateRequest } from "@/types/polls";
+import { useManagerScope } from "@/contexts/manager-scope-context";
 
 export function usePolls(
   params?: Record<string, string | number | boolean>,
   pagination?: { page?: number; pageSize?: number }
 ) {
+  const { isManager } = useManagerScope();
+  
   return useQuery({
-    queryKey: ["polls", params, pagination],
-    queryFn: () => listPolls(params, pagination),
+    queryKey: ["polls", params, pagination, isManager],
+    queryFn: () => listPolls(params, pagination, isManager),
     staleTime: 60_000,
     refetchOnWindowFocus: false,
     placeholderData: (previousData) => previousData,
