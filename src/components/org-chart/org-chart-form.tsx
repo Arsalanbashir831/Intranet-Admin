@@ -20,11 +20,11 @@ import {
 import { useRoles } from "@/hooks/queries/use-roles";
 import { useManagerScope } from "@/contexts/manager-scope-context";
 import { useBranchDepartments, useSearchBranchDepartments } from "@/hooks/queries/use-branches";
+import type { EmployeeCreateRequest, EmployeeUpdateRequest } from "@/services/employees";
 
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { toast } from "sonner";
-import type { EmployeeUpdateRequest } from "@/services/employees";
 export type OrgChartInitialValues = {
 	emp_name?: string;
 	email?: string | null;
@@ -223,7 +223,8 @@ export function OrgChartForm({
 		const branchDepartmentIds = selectedBranchDeptIds.map((id) => Number(id));
 
 		// Build payload based on role
-		const payload: import("@/services/employees").EmployeeCreateRequest = {
+		// Use EmployeeUpdateRequest for edit mode (includes branch_department_ids), EmployeeCreateRequest for create
+		const payload: EmployeeCreateRequest | EmployeeUpdateRequest = {
 			emp_name: empName,
 			email: email || undefined,
 			phone: phone || undefined,
@@ -240,9 +241,12 @@ export function OrgChartForm({
 		const isManagerRole = selectedRoleObj?.access_level === "manager";
 		
 		if (isManagerRole) {
-			if (!isEdit) {
+			if (isEdit) {
+				// Edit mode: use branch_department_ids for managers
+				(payload as EmployeeUpdateRequest).branch_department_ids = branchDepartmentIds;
+			} else {
 				// Create mode: use manager_branch_departments for managers
-				payload.manager_branch_departments = branchDepartmentIds;
+				(payload as EmployeeCreateRequest).manager_branch_departments = branchDepartmentIds;
 			}
 		} else {
 			// Regular employee: use single branch_department_id
@@ -256,10 +260,10 @@ export function OrgChartForm({
 				const updatePayload: EmployeeUpdateRequest = isManagerRole
 					? { ...payload, branch_department_ids: branchDepartmentIds }
 					: payload;
-				await updateEmployee.mutateAsync(updatePayload);
+				await updateEmployee.mutateAsync(updatePayload as EmployeeUpdateRequest);
 				toast.success("Employee updated successfully");
 			} else {
-				await createEmployee.mutateAsync(payload);
+				await createEmployee.mutateAsync(payload as EmployeeCreateRequest);
 				toast.success("Employee created successfully");
 			}
 			onSubmitComplete?.(true); // Notify parent that submission succeeded
