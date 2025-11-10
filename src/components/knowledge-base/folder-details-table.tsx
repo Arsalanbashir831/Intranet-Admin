@@ -93,6 +93,7 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
         file: folder.name,
         kind: "folder",
         createdByName: folder.created_by?.emp_name || "Admin",
+        createdByAvatar: process.env.NEXT_PUBLIC_API_BASE_URL + folder.created_by?.profile_picture || undefined,
         dateCreated: folder.created_at ? format(new Date(folder.created_at), "yyyy-MM-dd") : undefined,
         originalId: folder.id.toString(),
       });
@@ -101,12 +102,17 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
     // Add files
     currentFolder.files.forEach(file => {
       const extension = file.name.split('.').pop()?.toLowerCase() || "";
+      // Extract uploaded_by details if it's an object
+      const uploadedBy = typeof file.uploaded_by === 'object' && file.uploaded_by !== null 
+        ? file.uploaded_by 
+        : null;
       newRows.push({
         id: `file-${file.id}`,
         file: file.name,
         kind: "file",
         extension,
-        createdByName: "Admin", // Files don't have uploaded_by details in the API response
+        createdByName: uploadedBy?.emp_name || "Admin",
+        createdByAvatar: uploadedBy?.profile_picture || undefined,
         dateCreated: file.uploaded_at ? format(new Date(file.uploaded_at), "yyyy-MM-dd") : undefined,
         originalId: file.id.toString(),
         fileSize: file.size,

@@ -46,6 +46,15 @@ type CreatedByDetail = {
   is_admin?: boolean;
 };
 
+type UploadedByDetail = {
+  id: number;
+  emp_name: string;
+  email: string;
+  phone: string;
+  role: string;
+  profile_picture: string;
+};
+
 type FolderTreeFile = {
   id: number;
   folder: number;
@@ -57,7 +66,7 @@ type FolderTreeFile = {
   permitted_branches: number[];
   permitted_departments: number[];
   permitted_employees: number[];
-  uploaded_by: number | null;
+  uploaded_by: UploadedByDetail | number | null; // Support both object (from tree API) and number (from list API)
   uploaded_at: string;
   size: number;
   content_type: string;
@@ -130,7 +139,7 @@ const transformFolderToRow = (folder: FolderTreeItem): KnowledgeBaseRow => {
     id: folder.id.toString(),
     folder: folder.name,
     createdByName: folder.created_by?.emp_name || "Admin",
-    createdByAvatar: folder.created_by?.profile_picture || undefined,
+    createdByAvatar: process.env.NEXT_PUBLIC_API_BASE_URL + folder.created_by?.profile_picture || undefined,
     accessLevel: getAccessLevel(folder),
     accessLevelDetails: {
       employees: (folder.access_level.employees || []) as Array<{ id: number; emp_name: string; email: string; profile_picture?: string }>,

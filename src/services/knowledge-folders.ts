@@ -72,6 +72,15 @@ export type CreatedByDetail = {
   is_admin?: boolean;
 };
 
+export type UploadedByDetail = {
+  id: number;
+  emp_name: string;
+  email: string;
+  phone: string;
+  role: string;
+  profile_picture: string;
+};
+
 export type FolderTreeFile = {
   id: number;
   folder: number;
@@ -83,7 +92,7 @@ export type FolderTreeFile = {
   permitted_branches: number[];
   permitted_departments: number[];
   permitted_employees: number[];
-  uploaded_by: number | null;
+  uploaded_by: UploadedByDetail | number | null; // Support both object (from tree API) and number (from list API)
   uploaded_at: string;
   size: number;
   content_type: string;
