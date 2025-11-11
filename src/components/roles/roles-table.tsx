@@ -61,7 +61,7 @@ export function RolesTable() {
 
     const roles = apiData.roles?.results || [];
 
-    return roles.map((role: Role) => ({
+    return roles.map((role) => ({
       id: String(role.id),
       name: role.name,
       access_level: role.access_level,

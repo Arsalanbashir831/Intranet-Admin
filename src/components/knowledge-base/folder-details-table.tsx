@@ -379,10 +379,11 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
   // Show error state
   if (error) {
     // Check if it's a 403 Forbidden error
-    const isForbidden = error.message && (
-      error.message.toLowerCase().includes('access denied') ||
-      error.message.toLowerCase().includes('forbidden') ||
-      error.message.toLowerCase().includes("don't have permission")
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const isForbidden = errorMessage && (
+      errorMessage.toLowerCase().includes('access denied') ||
+      errorMessage.toLowerCase().includes('forbidden') ||
+      errorMessage.toLowerCase().includes("don't have permission")
     );
 
     return (
@@ -399,7 +400,7 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
             </div>
           ) : (
             <div className="text-red-600">
-              Error loading folder: {error.message}
+              Error loading folder: {error instanceof Error ? error.message : String(error)}
             </div>
           )}
         </div>

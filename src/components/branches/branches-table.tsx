@@ -59,7 +59,7 @@ export function BranchesTable() {
 
     const branches = apiData.branches?.results || [];
 
-    return branches.map((branch: Branch) => ({
+    return branches.map((branch) => ({
       id: String(branch.id),
       branch_name: branch.branch_name,
       employee_count: branch.employee_count,

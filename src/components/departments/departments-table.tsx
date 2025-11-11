@@ -122,7 +122,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
       : (departmentsData as { departments?: { results?: Department[] } })
           ?.departments?.results || [];
 
-    return departments.map((dept: Department) => ({
+    return departments.map((dept) => ({
       id: String(dept.id),
       department: dept.dept_name,
     }));

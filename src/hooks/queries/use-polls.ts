@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   listPolls,
@@ -20,7 +20,7 @@ export function usePolls(
     queryFn: () => listPolls(params, pagination, isManager),
     staleTime: 60_000,
     refetchOnWindowFocus: false,
-    placeholderData: (previousData) => previousData,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -42,7 +42,7 @@ export function useCreatePoll() {
       queryClient.invalidateQueries({ queryKey: ["polls"] });
       toast.success("Poll created successfully");
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       console.error("Poll creation failed:", error);
       toast.error("Failed to create poll");
     },
@@ -59,7 +59,7 @@ export function useDeletePoll() {
       queryClient.invalidateQueries({ queryKey: ["polls"] });
       toast.success("Poll deleted successfully");
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       console.error("Poll deletion failed:", error);
       toast.error("Failed to delete poll");
     },

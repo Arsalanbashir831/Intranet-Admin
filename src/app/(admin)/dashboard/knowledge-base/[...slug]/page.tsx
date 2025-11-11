@@ -111,7 +111,7 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promis
         <PageHeader title="Knowledge Base" crumbs={crumbs} />
         <div className="px-4 md:px-12 py-4">
           <div className="text-center py-8 text-red-600">
-            Error loading folder: {treeError.message}
+            Error loading folder: {treeError instanceof Error ? treeError.message : "Unknown error"}
           </div>
         </div>
       </>

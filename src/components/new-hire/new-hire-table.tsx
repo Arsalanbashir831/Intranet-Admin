@@ -87,7 +87,7 @@ export function NewHireTable() {
     if (!checklistsData?.results) return [];
 
     return checklistsData.results.map(
-      (checklist: Checklist) => {
+      (checklist) => {
         // Use expanded employee data from assigned_to_details
         const assignedEmployees =
           checklist.assigned_to_details?.map((emp) => ({

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   getAllFolders,
@@ -37,7 +37,7 @@ export const useGetAllFolders = () => {
     queryKey: folderKeys.lists(),
     queryFn: getAllFolders,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    placeholderData: (previousData) => previousData, // Keep previous data while fetching
+    placeholderData: keepPreviousData, // Keep previous data while fetching
   });
 };
 
@@ -47,7 +47,7 @@ export const useSearchFolders = (params?: Record<string, string | number | boole
     queryFn: () => searchFolders(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
-    placeholderData: (previousData) => previousData, // Keep previous data while fetching
+    placeholderData: keepPreviousData, // Keep previous data while fetching
   });
 };
 
@@ -65,7 +65,7 @@ export const useGetFolderTree = (employeeId?: number | string) => {
     queryKey: folderKeys.tree(employeeId),
     queryFn: () => getFolderTree(employeeId),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: (failureCount, error) => {
+    retry: (failureCount: number, error: unknown) => {
       // Don't retry on 403 Forbidden errors
       if (error && typeof error === 'object' && 'message' in error) {
         const errorMessage = String(error.message).toLowerCase();

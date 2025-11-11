@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import {
   createChecklist,
   deleteChecklist,
@@ -37,7 +37,7 @@ export function useChecklists(
     queryFn: () => listChecklists(params, pagination),
     staleTime: 60_000,
     refetchOnWindowFocus: false,
-    placeholderData: (previousData) => previousData, // Keep previous data while fetching
+    placeholderData: keepPreviousData, // Keep previous data while fetching
   });
 }
 
