@@ -89,7 +89,35 @@ export async function getMe(): Promise<MeResponse> {
   return res.data;
 }
 
+export type ChangePasswordRequest = {
+  current_password: string;
+  new_password: string;
+};
+
+export type ChangePasswordResponse = {
+  message?: string;
+};
+
+export type ResetPasswordWithOTPRequest = { email: string; otp: string; new_password: string };
+
+export async function changePassword(
+  payload: ChangePasswordRequest
+): Promise<ChangePasswordResponse> {
+  const res = await apiCaller<ChangePasswordResponse>(
+    API_ROUTES.AUTH.CHANGE_PASSWORD,
+    "POST",
+    payload,
+    {},
+    "json"
+  );
+  return res.data;
+}
+
 export async function logout() {
   // No backend endpoint specified for logout in current routes.
   // If added later, call it here. For now this is a no-op placeholder.
+}
+
+export async function resetPasswordWithOTP(data: ResetPasswordWithOTPRequest) {
+  await apiCaller<void>(API_ROUTES.AUTH.RESET_PASSWORD, "POST", data, {}, "json");
 }

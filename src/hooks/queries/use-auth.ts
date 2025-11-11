@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { login, logout, refreshToken } from "@/services/auth";
-import type { LoginRequest } from "@/services/auth";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { login, logout, refreshToken, getMe, changePassword, resetPasswordWithOTP} from "@/services/auth";
+import type { LoginRequest, ChangePasswordRequest, ResetPasswordWithOTPRequest } from "@/services/auth";
 import { ROUTES } from "@/constants/routes";
 import { setAuthCookies, clearAuthCookies } from "@/lib/cookies";
 
@@ -99,5 +99,30 @@ export function useRefreshToken() {
 				window.location.href = ROUTES.AUTH.LOGIN;
 			}
 		},
+	});
+}
+
+export function useMe() {
+	return useQuery({
+		queryKey: ["me"],
+		queryFn: getMe,
+		staleTime: 60_000,
+		refetchOnWindowFocus: false,
+	});
+}
+
+export function useResetPasswordWithOTP() {
+	return useMutation({
+	  mutationFn: (data: ResetPasswordWithOTPRequest) => resetPasswordWithOTP(data),
+	  onError: (error) => {
+		console.error("Reset password failed:", error);
+		throw new Error("Failed to reset password. Please try again.");
+	  },
+	});
+  }
+
+export function useChangePassword() {
+	return useMutation({
+		mutationFn: (payload: ChangePasswordRequest) => changePassword(payload),
 	});
 }
