@@ -214,7 +214,7 @@ export function EmployeeRingChart() {
             <div className="text-[#666666] text-xs sm:text-sm mt-1">Staff as per department</div>
           </div>
           <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-            <SelectTrigger className="w-[140px] !h-8 rounded-[4px] text-xs border-black">
+            <SelectTrigger className="w-[140px] h-8! rounded-[4px] text-xs border-black">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -290,7 +290,7 @@ export function EmployeeRingChart() {
           <div className="text-[#666666] text-xs sm:text-sm mt-1">Staff as per department</div>
         </div>
         <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-          <SelectTrigger className="w-[140px] !h-8 rounded-[4px] text-xs border-black">
+          <SelectTrigger className="w-[140px] h-8! rounded-[4px] text-xs border-black">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
