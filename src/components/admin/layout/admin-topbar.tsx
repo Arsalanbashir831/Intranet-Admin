@@ -9,7 +9,7 @@ export function AdminTopbar() {
 
   return (
     <div className="sticky top-0 z-10 bg-background flex h-16 items-center gap-3 px-4">
-    <SidebarTrigger className={cn("md:-ml-8 z-[10] transition-all", isCollapsed && "md:-ml-0")} />
+    <SidebarTrigger className={cn("md:-ml-8 z-10 transition-all", isCollapsed && "md:ml-0")} />
     <div className="hidden flex-1 items-center md:flex transition-all">
       <TopbarSearch />
     </div>

@@ -15,7 +15,7 @@ import { useLogout } from "@/hooks/queries/use-auth";
 export function AdminFooterMenu() {
 	const { user } = useAuth();
 	const logoutMutation = useLogout();
-	console.log(user);
+
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -47,19 +47,6 @@ export function AdminFooterMenu() {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start" side="top" className="w-56">
-				{/* <DropdownMenuLabel>Workspace</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <Users className="mr-2 size-4" />
-            Manage Employees
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 size-4" />
-            Settings
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator /> */}
 				<DropdownMenuItem
 					className="text-red-600 focus:text-red-600"
 					onClick={() => logoutMutation.mutate()}>

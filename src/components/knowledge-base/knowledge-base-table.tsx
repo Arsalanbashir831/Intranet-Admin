@@ -201,7 +201,7 @@ export function KnowledgeBaseTable() {
 
           return (
             <div className="flex items-center gap-2">
-              <AvatarStack size={24} className="flex-shrink-0">
+              <AvatarStack size={24} className="shrink-0">
                 {avatarElements}
               </AvatarStack>
               {remainingCount > 0 && (

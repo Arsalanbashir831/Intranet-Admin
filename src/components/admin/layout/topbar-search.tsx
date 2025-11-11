@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useRouter } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { NAV_ITEMS } from "./admin-sidebar";
+import { NAV_ITEMS } from "@/constants/nav-items";
 
 export function TopbarSearch() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -101,7 +101,7 @@ export function TopbarSearch() {
                     <div className="flex items-center gap-2">
                       <div className="flex items-center justify-center bg-[#f3ebee] p-1 rounded-sm">
                         <span
-                          className="size-6 inline-block bg-current flex-shrink-0"
+                          className="size-6 inline-block bg-current shrink-0"
                           style={{
                             WebkitMaskImage: `url(${page.iconSrc})`,
                             maskImage: `url(${page.iconSrc})`,

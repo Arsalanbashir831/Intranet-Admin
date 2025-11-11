@@ -264,7 +264,7 @@ export function EmployeeProfileCard({
           ].map((item, index) => (
             <div key={index} className="flex items-center gap-3">
               {/* Icon from public/icons */}
-              <div className="w-10 h-10 rounded-full bg-[#F0F1F3] grid place-items-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-[#F0F1F3] grid place-items-center shrink-0">
                 <PublicIcon src={item.iconSrc} />
               </div>
 

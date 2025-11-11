@@ -27,10 +27,6 @@ export function ProfileDropdown({ name, avatarSrc }: ProfileDropdownProps) {
   const displayName = name || user?.name || "User";
   const displayAvatar = avatarSrc || user?.avatar;
 
-  console.log(user);
-
-  console.log(displayAvatar);
-
   const handleLogout = () => {
     logoutMutation.mutate();
   };
@@ -56,11 +52,6 @@ export function ProfileDropdown({ name, avatarSrc }: ProfileDropdownProps) {
           Profile
         </DropdownMenuItem>
         </Link>
-        {/* <DropdownMenuItem>
-          <Settings className="mr-2 size-4" />
-          Settings
-        </DropdownMenuItem> 
-        <DropdownMenuSeparator /> */}
         <DropdownMenuItem 
           className="text-red-600 focus:text-red-600"
           onClick={handleLogout}
