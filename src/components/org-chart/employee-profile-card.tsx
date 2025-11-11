@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
 import { useEmployee } from "@/hooks/queries/use-employees";
-import type { components } from "@/types/api";
+import type { Employee as ApiEmployeeType } from "@/types/employees";
 
 interface Employee {
   id: string;
@@ -28,8 +28,8 @@ interface EmployeeProfileCardProps {
   employeeId?: number | string;
 }
 
-// Types from OpenAPI
-type ApiEmployee = components["schemas"]["Employee"];
+// Types from domain-specific type files
+type ApiEmployee = ApiEmployeeType;
 
 // Small helper types for fields not captured in OpenAPI schema
 interface BranchRef {

@@ -10,9 +10,9 @@ import { useCreateFolder, useUpdateFolder, useGetFolder } from "@/hooks/queries/
 import { useDepartments } from "@/hooks/queries/use-departments";
 import { useAllBranches } from "@/hooks/queries/use-branches";
 import { useManagerScope } from "@/contexts/manager-scope-context";
-import { FolderCreateRequest } from "@/services/knowledge-folders";
+import type { FolderCreateRequest } from "@/types/knowledge";
 import { createCustomSelectableItems } from "@/components/ui/selectable-tags";
-import type { components } from "@/types/api";
+import type { KnowledgeFolder } from "@/types/knowledge";
 
 type AccessType = "all-employees" | "branch" | "department";
 
@@ -53,7 +53,7 @@ export function AddFolderModal({
   // Load folder data when in edit mode
   React.useEffect(() => {
     if (isEditMode && folderData?.folder) {
-      const folder = folderData.folder as components["schemas"]["KnowledgeFolder"] & {
+      const folder = folderData.folder as KnowledgeFolder & {
         permitted_branches?: number[];
         permitted_departments?: number[];
       };
@@ -165,7 +165,7 @@ export function AddFolderModal({
           <div className="flex flex-col items-start gap-6">
             <Label className="w-28 pt-1">Who can access</Label>
             <div className="flex-1 space-y-3 px-4 w-full">
-              <RadioGroup value={access} onValueChange={(v) => setAccess(v as AccessType)} className="space-y-2">
+              <RadioGroup value={access} onValueChange={(v: AccessType) => setAccess(v)} className="space-y-2">
                   {/* Only show "All employees" option for admins */}
                   {!isManager && (
                     <div className="flex items-start gap-3 px-4">

@@ -37,7 +37,7 @@ export function ConfirmPopover({
   };
 
   return (
-    <Popover open={open} onOpenChange={(v) => !disabled && setOpen(v)}>
+    <Popover open={open} onOpenChange={(v: boolean) => !disabled && setOpen(v)}>
       <PopoverTrigger asChild>
         <span aria-disabled={disabled}>{children}</span>
       </PopoverTrigger>

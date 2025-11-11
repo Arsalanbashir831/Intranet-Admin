@@ -16,7 +16,7 @@ import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import type { Branch } from "@/services/branches";
+import type { Branch } from "@/types/branches";
 import { EditBranchModal } from "./edit-branch-modal";
 
 export type BranchRow = {

@@ -21,9 +21,9 @@ import type {
   Poll,
   BranchDetail,
   DepartmentDetail,
-  BranchDepartmentDetail,
   EmployeeDetail,
 } from "@/types/polls";
+import { BranchDepartmentDetail } from "@/types/knowledge";
 
 type Voter = {
   id: number;

@@ -8,11 +8,13 @@ import { useState, useEffect } from "react";
 import { useUpdateBranch } from "@/hooks/queries/use-branches";
 import { useDepartments, useSearchDepartments } from "@/hooks/queries/use-departments";
 import { SelectableTags } from "@/components/ui/selectable-tags";
-import { toast } from "sonner";
-import type { Branch } from "@/services/branches";
-import type { Department } from "@/services/departments";
+import type { Branch } from "@/types/branches";
+import type { Department } from "@/types/departments";
 import { createBranchDepartment, deleteBranchDepartment } from "@/services/branches";
 import { useQueryClient } from "@tanstack/react-query";
+import { useFormSubmission } from "@/hooks/use-form-submission";
+import { validateRequired, validateMaxLength } from "@/lib/validation";
+import { useErrorHandler } from "@/hooks/use-error-handler";
 
 interface EditBranchModalProps {
   open: boolean;
@@ -27,7 +29,21 @@ export function EditBranchModal({ open, setOpen, branch }: EditBranchModalProps)
   // State for functionality
   const [branchName, setBranchName] = useState("");
   const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const handleError = useErrorHandler({
+    customMessages: {
+      409: "A branch with this name already exists",
+      403: "You don't have permission to perform this action",
+      404: "Branch not found",
+    },
+  });
+
+  const { isSubmitting, submit } = useFormSubmission({
+    onSuccess: () => {
+      setOpen(false);
+    },
+    successMessage: "Branch updated successfully.",
+  });
 
   // Initialize form values when modal opens or branch changes
   useEffect(() => {
@@ -93,20 +109,22 @@ export function EditBranchModal({ open, setOpen, branch }: EditBranchModalProps)
   const handleSubmit = async () => {
     if (!branch) return;
 
-    if (!branchName.trim()) {
-      toast.error("Branch name is required");
+    // Validation
+    const requiredError = validateRequired(branchName, "Branch name");
+    if (requiredError) {
+      handleError(new Error(requiredError));
       return;
     }
 
-    if (branchName.length > 100) {
-      toast.error("Branch name must be 100 characters or less");
+    const maxLengthError = validateMaxLength(branchName, 100, "Branch name");
+    if (maxLengthError) {
+      handleError(new Error(maxLengthError));
       return;
     }
 
-    setIsSubmitting(true);
-    try {
+    await submit(async () => {
       // First update branch name
-      const payload: import("@/services/branches").BranchUpdateRequest = {
+      const payload: import("@/types/branches").BranchUpdateRequest = {
         branch_name: branchName.trim(),
       };
       
@@ -139,28 +157,7 @@ export function EditBranchModal({ open, setOpen, branch }: EditBranchModalProps)
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["branches"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["branches", "detail", String(branch.id)] });
-      
-      toast.success("Branch updated successfully.");
-      setOpen(false);
-    } catch (error: unknown) {
-      console.error("Error updating branch:", error);
-      
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const err = error as { response?: { data?: Record<string, unknown>; status?: number } };
-      const status = err?.response?.status;
-
-      if (status === 409 || errorMessage.toLowerCase().includes("already exists") || errorMessage.toLowerCase().includes("duplicate")) {
-        toast.error("A branch with this name already exists");
-      } else if (status === 403 || errorMessage.toLowerCase().includes("access denied") || errorMessage.toLowerCase().includes("don't have permission")) {
-        toast.error("You don't have permission to perform this action");
-      } else if (status === 404 || errorMessage.toLowerCase().includes("not found")) {
-        toast.error("Branch not found");
-      } else {
-        toast.error(errorMessage || "Failed to update branch. Please try again.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   if (!branch) return null;

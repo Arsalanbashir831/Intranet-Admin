@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useCreateBranch } from "@/hooks/queries/use-branches";
-import { toast } from "sonner";
+import { useFormSubmission } from "@/hooks/use-form-submission";
+import { validateRequired, validateMaxLength } from "@/lib/validation";
+import { useErrorHandler } from "@/hooks/use-error-handler";
 
 interface NewBranchModalProps {
   open: boolean;
@@ -14,53 +16,46 @@ interface NewBranchModalProps {
 
 export function NewBranchModal({ open, setOpen }: NewBranchModalProps) {
   const createBranch = useCreateBranch();
+  const handleError = useErrorHandler({
+    customMessages: {
+      409: "A branch with this name already exists",
+      403: "You don't have permission to perform this action",
+    },
+  });
 
   // State for functionality
   const [branchName, setBranchName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!branchName.trim()) {
-      toast.error("Branch name is required");
-      return;
-    }
-
-    if (branchName.length > 100) {
-      toast.error("Branch name must be 100 characters or less");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const payload: import("@/services/branches").BranchCreateRequest = {
-        branch_name: branchName.trim(),
-      };
-      
-      await createBranch.mutateAsync(payload);
-      
-      toast.success("Branch created successfully.");
+  const { isSubmitting, submit } = useFormSubmission({
+    onSuccess: () => {
       setOpen(false);
       setBranchName("");
-    } catch (error: unknown) {
-      console.error("Error creating branch:", error);
-      
-      // The API client converts errors to Error objects with messages
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const err = error as { response?: { data?: Record<string, unknown>; status?: number } };
-      const status = err?.response?.status;
+    },
+    successMessage: "Branch created successfully.",
+    resetOnSuccess: true,
+    resetFn: () => setBranchName(""),
+  });
 
-      // Handle specific error cases - check both message and status
-      if (status === 409 || errorMessage.toLowerCase().includes("already exists") || errorMessage.toLowerCase().includes("duplicate")) {
-        toast.error("A branch with this name already exists");
-      } else if (status === 403 || errorMessage.toLowerCase().includes("access denied") || errorMessage.toLowerCase().includes("don't have permission")) {
-        toast.error("You don't have permission to perform this action");
-      } else {
-        // Use the error message if available, otherwise show generic message
-        toast.error(errorMessage || "Failed to create branch. Please try again.");
-      }
-    } finally {
-      setIsSubmitting(false);
+  const handleSubmit = async () => {
+    // Validation
+    const requiredError = validateRequired(branchName, "Branch name");
+    if (requiredError) {
+      handleError(new Error(requiredError));
+      return;
     }
+
+    const maxLengthError = validateMaxLength(branchName, 100, "Branch name");
+    if (maxLengthError) {
+      handleError(new Error(maxLengthError));
+      return;
+    }
+
+    await submit(async () => {
+      const payload: import("@/types/branches").BranchCreateRequest = {
+        branch_name: branchName.trim(),
+      };
+      await createBranch.mutateAsync(payload);
+    });
   };
 
   return (

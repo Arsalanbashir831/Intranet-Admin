@@ -1,157 +1,42 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
-import { components } from "@/types/api";
-
-// Types
-export type KnowledgeFolder = components["schemas"]["KnowledgeFolder"];
-export type PaginatedKnowledgeFolderList = components["schemas"]["PaginatedKnowledgeFolderList"];
-export type PatchedKnowledgeFolder = components["schemas"]["PatchedKnowledgeFolder"];
-
-export type FolderListParams = {
-  page?: number;
-};
-
-export type FolderCreateRequest = {
-  name: string;
-  description?: string;
-  parent?: number | null;
-  inherits_parent_permissions?: boolean;
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_branch_departments?: number[];
-  permitted_employees?: number[];
-};
-
-export type FolderUpdateRequest = FolderCreateRequest;
-export type FolderPatchRequest = PatchedKnowledgeFolder;
-
-// Response types
-export type FolderListResponse = {
-  folders: PaginatedKnowledgeFolderList;
-};
-
-// API wrapper type to match actual API response
-type FolderApiListResponse = {
-  folders: PaginatedKnowledgeFolderList;
-};
-
-export type FolderDetailResponse = {
-  folder: KnowledgeFolder;
-};
-
-export type FolderCreateResponse = {
-  folder: KnowledgeFolder;
-};
-
-export type FolderUpdateResponse = {
-  folder: KnowledgeFolder;
-};
-
-// Add new types for folder tree structure
-export type BranchDepartmentDetail = {
-  id: number;
-  branch: {
-    id: number;
-    branch_name: string;
-    location: string;
-  };
-  department: {
-    id: number;
-    dept_name: string;
-  };
-};
-
-export type CreatedByDetail = {
-  id: number;
-  emp_name: string;
-  email: string;
-  phone: string;
-  role: string;
-  profile_picture: string;
-  branch_department_ids: number[];
-  is_admin?: boolean;
-};
-
-export type UploadedByDetail = {
-  id: number;
-  emp_name: string;
-  email: string;
-  phone: string;
-  role: string;
-  profile_picture: string;
-};
-
-export type FolderTreeFile = {
-  id: number;
-  folder: number;
-  name: string;
-  description: string;
-  file: string;
-  file_url: string;
-  inherits_parent_permissions: boolean;
-  permitted_branches: number[];
-  permitted_departments: number[];
-  permitted_employees: number[];
-  uploaded_by: UploadedByDetail | number | null; // Support both object (from tree API) and number (from list API)
-  uploaded_at: string;
-  size: number;
-  content_type: string;
-  effective_permissions: {
-    branches: number[];
-    departments: number[];
-    employees: number[];
-  };
-};
-
-export type FolderTreeItem = {
-  id: number;
-  name: string;
-  description: string;
-  parent: number | null;
-  inherits_parent_permissions: boolean;
-  created_at: string;
-  created_by: CreatedByDetail;
-  access_level: {
-    branches: unknown[];
-    departments: unknown[];
-    branch_departments: BranchDepartmentDetail[];
-    employees: unknown[];
-  };
-  files: FolderTreeFile[];
-  folders: FolderTreeItem[]; // Recursive type for nested folders
-};
-
-export type FolderTreeResponse = {
-  folders: FolderTreeItem[];
-};
+import { buildQueryParams, numberArrayToStringArray } from "@/lib/service-utils";
+import type {
+  FolderCreateRequest,
+  FolderListParams,
+  FolderTreeItem,
+  KnowledgeFolder,
+  PaginatedKnowledgeFolderList,
+  PatchedKnowledgeFolder,
+} from "@/types/knowledge";
 
 // Service functions
-export async function getAllFolders(): Promise<FolderListResponse> {
+export async function getAllFolders(): Promise<{ folders: PaginatedKnowledgeFolderList }> {
   let page = 1;
   let totalCount = 0;
   const allFolders: KnowledgeFolder[] = [];
 
   do {
-    const res = await apiCaller<FolderApiListResponse>(
+    const res = await apiCaller<{ folders: PaginatedKnowledgeFolderList }>(
       `${API_ROUTES.KNOWLEDGE_BASE.FOLDERS.LIST}?page=${page}`,
       "GET"
     );
-    
+
     if (res.data?.folders?.results) {
       allFolders.push(...res.data.folders.results);
     }
-    
+
     totalCount = res.data?.folders?.count || 0;
     const currentPageSize = res.data?.folders?.results?.length || 0;
     const totalPages = Math.ceil(totalCount / (currentPageSize || 10));
-    
+
     if (page >= totalPages || totalCount === 0) {
       break;
     }
-    
+
     page++;
   } while (true);
-  
+
   return {
     folders: {
       count: totalCount,
@@ -162,42 +47,31 @@ export async function getAllFolders(): Promise<FolderListResponse> {
   };
 }
 
-export async function searchFolders(params?: Record<string, string | number | boolean>): Promise<FolderListResponse> {
-  const queryParams: Record<string, string> = {};
-  
-  // Add search parameters
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      queryParams[key] = String(value);
-    });
-  }
-  
-  const query = Object.keys(queryParams).length > 0 
-    ? `?${new URLSearchParams(queryParams)}` 
-    : "";
-    
-  const res = await apiCaller<FolderApiListResponse>(`${API_ROUTES.KNOWLEDGE_BASE.FOLDERS.LIST}${query}`, "GET");
-  
+export async function searchFolders(params?: Record<string, string | number | boolean>): Promise<{ folders: PaginatedKnowledgeFolderList }> {
+  const query = buildQueryParams(params);
+  const res = await apiCaller<{ folders: PaginatedKnowledgeFolderList }>(`${API_ROUTES.KNOWLEDGE_BASE.FOLDERS.LIST}${query ? `?${query}` : ""}`, "GET");
+
   return {
     folders: res.data?.folders || { count: 0, results: [], next: null, previous: null }
   };
 }
 
-export async function getFolders(params?: FolderListParams): Promise<FolderListResponse> {
-  const queryParams = new URLSearchParams();
+export async function getFolders(params?: FolderListParams): Promise<{ folders: PaginatedKnowledgeFolderList }> {
+  const queryParams: Record<string, number> = {};
   if (params?.page) {
-    queryParams.append('page', params.page.toString());
+    queryParams.page = params.page;
   }
-  
-  const url = `${API_ROUTES.KNOWLEDGE_BASE.FOLDERS.LIST}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-  const res = await apiCaller<FolderApiListResponse>(url, "GET");
-  
+
+  const query = buildQueryParams(queryParams);
+  const url = `${API_ROUTES.KNOWLEDGE_BASE.FOLDERS.LIST}${query ? `?${query}` : ''}`;
+  const res = await apiCaller<{ folders: PaginatedKnowledgeFolderList }>(url, "GET");
+
   return {
     folders: res.data?.folders || { count: 0, results: [], next: null, previous: null }
   };
 }
 
-export async function getFolder(id: number | string): Promise<FolderDetailResponse> {
+export async function getFolder(id: number | string): Promise<{ folder: KnowledgeFolder }> {
   const res = await apiCaller<KnowledgeFolder>(API_ROUTES.KNOWLEDGE_BASE.FOLDERS.DETAIL(id), "GET");
   return {
     folder: res.data!
@@ -209,26 +83,26 @@ export async function getFolderTree(employeeId?: number | string) {
   if (employeeId) {
     url += `?employee_id=${employeeId}`;
   }
-  
-  const res = await apiCaller<FolderTreeResponse>(url, "GET");
+
+  const res = await apiCaller<{ folders: FolderTreeItem[] }>(url, "GET");
   return res.data;
 }
 
-export async function createFolder(payload: FolderCreateRequest): Promise<FolderCreateResponse> {
+export async function createFolder(payload: FolderCreateRequest): Promise<{ folder: KnowledgeFolder }> {
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
+    permitted_branches: payload.permitted_branches ? numberArrayToStringArray(payload.permitted_branches) : undefined,
+    permitted_departments: payload.permitted_departments ? numberArrayToStringArray(payload.permitted_departments) : undefined,
+    permitted_branch_departments: payload.permitted_branch_departments ? numberArrayToStringArray(payload.permitted_branch_departments) : undefined,
+    permitted_employees: payload.permitted_employees ? numberArrayToStringArray(payload.permitted_employees) : undefined,
   };
 
   const res = await apiCaller<KnowledgeFolder>(
-    API_ROUTES.KNOWLEDGE_BASE.FOLDERS.CREATE, 
-    "POST", 
-    apiPayload, 
-    {}, 
+    API_ROUTES.KNOWLEDGE_BASE.FOLDERS.CREATE,
+    "POST",
+    apiPayload,
+    {},
     "json"
   );
   return {
@@ -236,21 +110,21 @@ export async function createFolder(payload: FolderCreateRequest): Promise<Folder
   };
 }
 
-export async function updateFolder(id: number | string, payload: FolderUpdateRequest): Promise<FolderUpdateResponse> {
+export async function updateFolder(id: number | string, payload: FolderCreateRequest): Promise<{ folder: KnowledgeFolder }> {
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
-    permitted_employees: payload.permitted_employees?.map(String),
+    permitted_branches: payload.permitted_branches ? numberArrayToStringArray(payload.permitted_branches) : undefined,
+    permitted_departments: payload.permitted_departments ? numberArrayToStringArray(payload.permitted_departments) : undefined,
+    permitted_branch_departments: payload.permitted_branch_departments ? numberArrayToStringArray(payload.permitted_branch_departments) : undefined,
+    permitted_employees: payload.permitted_employees ? numberArrayToStringArray(payload.permitted_employees) : undefined,
   };
 
   const res = await apiCaller<KnowledgeFolder>(
-    API_ROUTES.KNOWLEDGE_BASE.FOLDERS.UPDATE(id), 
-    "PUT", 
-    apiPayload, 
-    {}, 
+    API_ROUTES.KNOWLEDGE_BASE.FOLDERS.UPDATE(id),
+    "PUT",
+    apiPayload,
+    {},
     "json"
   );
   return {
@@ -258,7 +132,7 @@ export async function updateFolder(id: number | string, payload: FolderUpdateReq
   };
 }
 
-export async function patchFolder(id: number | string, payload: FolderPatchRequest): Promise<FolderUpdateResponse> {
+export async function patchFolder(id: number | string, payload: PatchedKnowledgeFolder): Promise<{ folder: KnowledgeFolder }> {
   // Create a clean payload for patching, excluding readonly fields
   const {
     created_at: _created_at,
@@ -266,20 +140,20 @@ export async function patchFolder(id: number | string, payload: FolderPatchReque
     effective_permissions: _effective_permissions,
     ...patchData
   } = payload;
-  
+
   // Handle array conversions if present
   const apiPayload = {
     ...patchData,
-    permitted_branches: patchData.permitted_branches?.map(String),
-    permitted_departments: patchData.permitted_departments?.map(String), 
-    permitted_employees: patchData.permitted_employees?.map(String),
+    permitted_branches: patchData.permitted_branches ? numberArrayToStringArray(patchData.permitted_branches) : undefined,
+    permitted_departments: patchData.permitted_departments ? numberArrayToStringArray(patchData.permitted_departments) : undefined,
+    permitted_employees: patchData.permitted_employees ? numberArrayToStringArray(patchData.permitted_employees) : undefined,
   };
-  
+
   const res = await apiCaller<KnowledgeFolder>(
-    API_ROUTES.KNOWLEDGE_BASE.FOLDERS.UPDATE(id), 
-    "PATCH", 
-    apiPayload, 
-    {}, 
+    API_ROUTES.KNOWLEDGE_BASE.FOLDERS.UPDATE(id),
+    "PATCH",
+    apiPayload,
+    {},
     "json"
   );
   return {

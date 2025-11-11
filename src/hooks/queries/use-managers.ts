@@ -6,7 +6,7 @@ import {
   listManagers, 
   updateManager
 } from "@/services/managers";
-import type { ManagerCreateRequest, ManagerUpdateRequest } from "@/services/managers";
+import type { ManagerCreateRequest, ManagerUpdateRequest } from "@/types/managers";
 
 export function useManagers(
   params?: Record<string, string | number | boolean>

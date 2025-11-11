@@ -6,7 +6,9 @@ import { Label } from "@/components/ui/label";
 import { AccessLevelSelect } from "./access-level-select";
 import { useState } from "react";
 import { useCreateRole } from "@/hooks/queries/use-roles";
-import { toast } from "sonner";
+import { useFormSubmission } from "@/hooks/use-form-submission";
+import { validateRequired, validateMaxLength } from "@/lib/validation";
+import { useErrorHandler } from "@/hooks/use-error-handler";
 
 interface NewRoleModalProps {
     open: boolean;
@@ -15,53 +17,52 @@ interface NewRoleModalProps {
 
 export function NewRoleModal({ open, setOpen }: NewRoleModalProps) {
     const createRole = useCreateRole();
+    const handleError = useErrorHandler({
+        customMessages: {
+            409: "A role with this name already exists",
+            403: "You don't have permission to perform this action",
+        },
+    });
 
     // State for functionality
     const [roleName, setRoleName] = useState("");
     const [accessLevel, setAccessLevel] = useState<"employee" | "manager" | "executive">("employee");
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = async () => {
-        if (!roleName.trim()) {
-            toast.error("Role name is required");
-            return;
-        }
-
-        if (roleName.length > 100) {
-            toast.error("Role name must be 100 characters or less");
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            const payload: import("@/services/roles").RoleCreateRequest = {
-                name: roleName.trim(),
-                access_level: accessLevel,
-            };
-
-            await createRole.mutateAsync(payload);
-
-            toast.success("Role created successfully.");
+    const { isSubmitting, submit } = useFormSubmission({
+        onSuccess: () => {
             setOpen(false);
             setRoleName("");
             setAccessLevel("employee");
-        } catch (error: unknown) {
-            console.error("Error creating role:", error);
+        },
+        successMessage: "Role created successfully.",
+        resetOnSuccess: true,
+        resetFn: () => {
+            setRoleName("");
+            setAccessLevel("employee");
+        },
+    });
 
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const err = error as { response?: { data?: Record<string, unknown>; status?: number } };
-            const status = err?.response?.status;
-
-            if (status === 409 || errorMessage.toLowerCase().includes("already exists") || errorMessage.toLowerCase().includes("duplicate")) {
-                toast.error("A role with this name already exists");
-            } else if (status === 403 || errorMessage.toLowerCase().includes("access denied") || errorMessage.toLowerCase().includes("don't have permission")) {
-                toast.error("You don't have permission to perform this action");
-            } else {
-                toast.error(errorMessage || "Failed to create role. Please try again.");
-            }
-        } finally {
-            setIsSubmitting(false);
+    const handleSubmit = async () => {
+        // Validation
+        const requiredError = validateRequired(roleName, "Role name");
+        if (requiredError) {
+            handleError(new Error(requiredError));
+            return;
         }
+
+        const maxLengthError = validateMaxLength(roleName, 100, "Role name");
+        if (maxLengthError) {
+            handleError(new Error(maxLengthError));
+            return;
+        }
+
+        await submit(async () => {
+            const payload: import("@/types/roles").RoleCreateRequest = {
+                name: roleName.trim(),
+                access_level: accessLevel,
+            };
+            await createRole.mutateAsync(payload);
+        });
     };
 
     return (

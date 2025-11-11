@@ -112,7 +112,7 @@ export function EmployeeSelector({
       type="Employee"
       value={value ?? ""}
       open={isOpen}
-      onOpenChange={(open) => {
+      onOpenChange={(open: boolean) => {
         // Prevent closing if user is actively searching
         if (!open && localSearchQuery.length > 0) {
           return; // Don't close while searching
@@ -167,12 +167,12 @@ export function EmployeeSelector({
         <ComboboxInput 
           placeholder={searchPlaceholder}
           value={localSearchQuery}
-          onValueChange={(searchValue) => {
+          onValueChange={(searchValue: string) => {
             setLocalSearchQuery(searchValue);
             setIsOpen(true); // Force open when typing
           }}
           onFocus={() => setIsOpen(true)} // Open when focused
-          onKeyDown={(e) => {
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             // Prevent closing on any key press
             if (e.key !== 'Escape') {
               setIsOpen(true);

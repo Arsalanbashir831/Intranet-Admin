@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { CompanyHubForm, type CompanyHubFormData } from "@/components/company-hub/company-hub-form";
 import { useCreateAnnouncement, useCreateAnnouncementAttachment } from "@/hooks/queries/use-announcements";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import type { AnnouncementCreateRequest } from "@/services/announcements";
+import type { AnnouncementCreateRequest } from "@/types/announcements";
 import { Loader2 } from "lucide-react";
 
 export default function CompanyHubPage() {

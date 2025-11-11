@@ -4,7 +4,6 @@ import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dropzone } from "@/components/ui/dropzone";
-import { SelectableTags } from "@/components/ui/selectable-tags";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
 	Select,
@@ -25,6 +24,7 @@ import { BranchDepartmentSelector } from "@/components/common/branch-department-
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { toast } from "sonner";
+import { extractErrorMessage } from "@/lib/error-handler";
 export type OrgChartInitialValues = {
 	emp_name?: string;
 	email?: string | null;
@@ -219,58 +219,8 @@ export function OrgChartForm({
 		} catch (error: unknown) {
 			console.error("Error saving employee:", error);
 			
-			let errorMessage = "Failed to save. Please try again.";
-			
-			// First, check if it's an Error object (from API client transformation)
-			if (error instanceof Error && error.message) {
-				errorMessage = error.message;
-			}
-			// Otherwise, try to extract from Axios error response
-			else {
-				const err = error as { response?: { data?: Record<string, unknown>; status?: number } };
-				const dataErr = err?.response?.data;
-				
-				if (dataErr && typeof dataErr === "object") {
-					// Check for direct error field (common in custom error responses)
-					if ("error" in dataErr && typeof dataErr.error === "string") {
-						errorMessage = dataErr.error;
-					}
-					// Check for detail field (common in DRF responses)
-					else if ("detail" in dataErr && typeof dataErr.detail === "string") {
-						errorMessage = dataErr.detail;
-					}
-					// Check for message field
-					else if ("message" in dataErr && typeof dataErr.message === "string") {
-						errorMessage = dataErr.message;
-					}
-					// Check for non_field_errors (validation errors)
-					else if ("non_field_errors" in dataErr) {
-						const nfe = dataErr.non_field_errors;
-						if (Array.isArray(nfe)) {
-							errorMessage = nfe.join(". ");
-						} else if (typeof nfe === "string") {
-							errorMessage = nfe;
-						}
-					}
-					// Check for field-specific errors
-					else {
-						const messages: string[] = [];
-						for (const key of Object.keys(dataErr)) {
-							const value = dataErr[key];
-							if (Array.isArray(value)) {
-								value.forEach((msg: unknown) =>
-									messages.push(`${key}: ${String(msg)}`)
-								);
-							} else if (typeof value === "string") {
-								messages.push(`${key}: ${value}`);
-							}
-						}
-						if (messages.length > 0) {
-							errorMessage = messages.join(". ");
-						}
-					}
-				}
-			}
+			// Use centralized error extraction
+			const errorMessage = extractErrorMessage(error);
 			
 			toast.error(errorMessage);
 			onSubmitComplete?.(false); // Notify parent that submission failed

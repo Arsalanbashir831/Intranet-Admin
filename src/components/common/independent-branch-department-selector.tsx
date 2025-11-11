@@ -6,11 +6,9 @@ import { SelectableTags } from "@/components/ui/selectable-tags";
 import { useBranchDepartments } from "@/hooks/queries/use-branches";
 import {
   useBranchesForSelector,
-  useSearchBranchesForSelector,
   useDepartmentsForSelector,
-  useSearchDepartmentsForSelector,
 } from "@/hooks/use-branch-department-selector";
-import { useDepartments, useSearchDepartments } from "@/hooks/queries/use-departments";
+import { useDepartments } from "@/hooks/queries/use-departments";
 import { createCustomSelectableItems } from "@/components/ui/selectable-tags";
 
 export type IndependentBranchDepartmentSelectorProps = {

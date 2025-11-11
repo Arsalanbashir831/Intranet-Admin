@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -11,7 +11,7 @@ import {
 // import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { useParams } from "next/navigation";
 import { useEmployee } from "@/hooks/queries/use-employees";
-import type { components } from "@/types/api";
+import type { Employee } from "@/types/employees";
 import { Loader2 } from "lucide-react";
 
 export default function EditOrgChartPage() {
@@ -21,7 +21,7 @@ export default function EditOrgChartPage() {
 	const { data, isLoading, isError } = useEmployee(String(id));
 	const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-	type ApiEmployee = components["schemas"]["Employee"];
+	type ApiEmployee = Employee;
 	const isDetailWrapper = (
 		value: unknown
 	): value is { employee: ApiEmployee } => {

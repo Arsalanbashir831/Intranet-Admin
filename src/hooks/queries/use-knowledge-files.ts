@@ -9,11 +9,8 @@ import {
   patchFile,
   deleteFile,
   bulkUploadFiles,
-  FileCreateRequest,
-  FileUpdateRequest,
-  FilePatchRequest,
-  FileListParams,
 } from "@/services/knowledge-files";
+import type { FileCreateRequest, FileUpdateRequest, FileListParams, PatchedKnowledgeFile } from "@/types/knowledge";
 
 // Query keys
 export const fileKeys = {
@@ -97,7 +94,7 @@ export const usePatchFile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number | string; data: FilePatchRequest }) =>
+    mutationFn: ({ id, data }: { id: number | string; data: PatchedKnowledgeFile }) =>
       patchFile(id, data),
     onSuccess: (data, variables) => {
       // Update the specific file in cache

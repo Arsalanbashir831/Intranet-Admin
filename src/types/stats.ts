@@ -46,41 +46,26 @@ export type StatsResponse = {
   recent_hires_last_30_days: number;
 };
 
-export type KnowledgeBaseStatsTotals = {
-  announcements: number;
-  type_policies: number;
-  type_announcement: number;
-  active_announcements: number;
-  inactive_announcements: number;
-  attachments: number;
-  folders: number;
-  files: number;
-};
-
-export type AnnouncementByType = {
-  type: string;
-  count: number;
-};
-
-export type TopEmployeeByAnnouncements = {
-  employee_id: number;
-  emp_name: string;
-  announcement_count: number;
-};
 
 export type KnowledgeBaseStatsResponse = {
-  totals: KnowledgeBaseStatsTotals;
-  announcements_by_type: AnnouncementByType[];
-  recent_announcements_last_30_days: number;
-  top_employees_by_announcements: TopEmployeeByAnnouncements[];
-};
-
-export type AnnouncementRateResponse = {
-  results: Array<{
-    period: string;
+  totals: {
+    announcements: number;
+    type_policies: number;
+    type_announcement: number;
+    active_announcements: number;
+    inactive_announcements: number;
+    attachments: number;
+    folders: number;
+    files: number;
+  };
+  announcements_by_type: {
+    type: string;
     count: number;
-  }>;
-  filter: string;
-  start_date: string;
-  end_date: string;
+  };
+  recent_announcements_last_30_days: number;
+  top_employees_by_announcements: {
+    employee_id: number;
+    emp_name: string;
+    announcement_count: number;
+  };
 };

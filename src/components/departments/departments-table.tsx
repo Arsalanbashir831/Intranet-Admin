@@ -16,7 +16,7 @@ import {
   useDepartments,
   useDeleteDepartment,
 } from "@/hooks/queries/use-departments";
-import type { Department } from "@/services/departments";
+import type { Department } from "@/types/departments";
 import { EditDepartmentModal } from "./edit-department-modal";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";

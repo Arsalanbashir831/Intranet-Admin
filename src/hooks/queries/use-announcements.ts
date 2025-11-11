@@ -15,7 +15,7 @@ import type {
   AnnouncementUpdateRequest,
   AnnouncementAttachmentCreateRequest,
   AnnouncementListResponse
-} from "@/services/announcements";
+} from "@/types/announcements";
 
 export function useAnnouncements(
   params?: Record<string, string | number | boolean>,

@@ -1,7 +1,7 @@
 "use client";
 
 import { DepartmentsTable } from "@/components/departments/departments-table";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 // import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES } from "@/constants/routes";
 import { Button } from "@/components/ui/button";

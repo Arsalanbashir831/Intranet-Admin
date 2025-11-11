@@ -13,7 +13,7 @@ import { listAllBranches } from "@/services/branches";
 import type {
   DepartmentCreateRequest,
   DepartmentUpdateRequest,
-} from "@/services/departments";
+} from "@/types/departments";
 
 // Helpers
 const normalizeParams = (params?: Record<string, string | number | boolean>) => {

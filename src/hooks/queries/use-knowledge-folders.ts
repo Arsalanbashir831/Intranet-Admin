@@ -10,11 +10,8 @@ import {
   patchFolder,
   deleteFolder,
   searchFolders,
-  FolderCreateRequest,
-  FolderUpdateRequest,
-  FolderPatchRequest,
-  FolderListParams,
 } from "@/services/knowledge-folders";
+import type { FolderCreateRequest, PatchedKnowledgeFolder, FolderListParams } from "@/types/knowledge";
 
 // Query keys
 export const folderKeys = {
@@ -106,7 +103,7 @@ export const useUpdateFolder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number | string; data: FolderUpdateRequest }) =>
+    mutationFn: ({ id, data }: { id: number | string; data: FolderCreateRequest }) =>
       updateFolder(id, data),
     onSuccess: (data, variables) => {
       // Update the specific folder in cache
@@ -128,7 +125,7 @@ export const usePatchFolder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number | string; data: FolderPatchRequest }) =>
+    mutationFn: ({ id, data }: { id: number | string; data: PatchedKnowledgeFolder }) =>
       patchFolder(id, data),
     onSuccess: (data, variables) => {
       // Update the specific folder in cache

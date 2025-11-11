@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useCreateDepartment } from "@/hooks/queries/use-departments";
-import { toast } from "sonner";
+import { useFormSubmission } from "@/hooks/use-form-submission";
+import { validateRequired } from "@/lib/validation";
+import { useErrorHandler } from "@/hooks/use-error-handler";
 
 interface NewDepartmentModalProps {
   open: boolean;
@@ -14,28 +16,32 @@ interface NewDepartmentModalProps {
 
 export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
   const createDepartment = useCreateDepartment();
+  const handleError = useErrorHandler();
 
   // State for functionality
   const [departmentName, setDepartmentName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!departmentName.trim()) return;
-
-    setIsSubmitting(true);
-    try {
-      // Create department (only name)
-      await createDepartment.mutateAsync({ dept_name: departmentName });
-      
-      toast.success("Department created successfully.");
+  const { isSubmitting, submit } = useFormSubmission({
+    onSuccess: () => {
       setOpen(false);
       setDepartmentName("");
-    } catch (error) {
-      console.error("Error creating department:", error);
-      toast.error("Failed to create department. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+    },
+    successMessage: "Department created successfully.",
+    resetOnSuccess: true,
+    resetFn: () => setDepartmentName(""),
+  });
+
+  const handleSubmit = async () => {
+    // Validation
+    const requiredError = validateRequired(departmentName, "Department name");
+    if (requiredError) {
+      handleError(new Error(requiredError));
+      return;
     }
+
+    await submit(async () => {
+      await createDepartment.mutateAsync({ dept_name: departmentName.trim() });
+    });
   };
 
   return (

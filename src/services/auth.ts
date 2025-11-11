@@ -1,60 +1,11 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
 import { setAuthCookies } from "@/lib/cookies";
-import type { components } from "@/types/api";
+import type { MeResponse } from "@/types/auth";
 
-// Define types for the me API response
-export type User = {
-  id: number;
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  is_active: boolean;
-  is_staff: boolean;
-  is_superuser: boolean;
-};
 
-export type Executive = {
-  id: number;
-  name: string;
-  address: string;
-  city: string;
-  phone: string;
-  email: string;
-  role: string;
-  education: string;
-  bio: string;
-  profile_picture: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type Employee = {
-  id: number;
-  emp_name: string;
-  profile_picture: string | null;
-  role: string;
-  branch_department_ids: number[];
-  isAdmin: boolean;
-  // Add employee fields as needed
-};
-
-export type MeResponse = {
-  user: User;
-  employee: Employee | null;
-  executive: Executive | null;
-};
-
-// Align with backend: obtain token expects username and password and returns access/refresh
-export type LoginRequest = { username: string; password: string };
-export type LoginResponse = { access: string; refresh: string };
-export type RefreshRequest = { refresh: string };
-export type RefreshResponse = components["schemas"]["TokenRefresh"];
-export type VerifyRequest = { token: string };
-
-export async function login(credentials: LoginRequest) {
-  const res = await apiCaller<LoginResponse>(API_ROUTES.AUTH.OBTAIN_TOKEN, "POST", credentials, {}, "json");
+export async function login(credentials: { username: string; password: string }) {
+  const res = await apiCaller<{ access: string; refresh: string; }>(API_ROUTES.AUTH.OBTAIN_TOKEN, "POST", credentials, {}, "json");
   const { access, refresh } = res.data;
   // Persist tokens immediately for subsequent requests
   setAuthCookies(access, refresh);
@@ -62,7 +13,7 @@ export async function login(credentials: LoginRequest) {
 }
 
 export async function refreshToken(refreshToken: string) {
-  const res = await apiCaller<RefreshResponse>(API_ROUTES.AUTH.REFRESH_TOKEN, "POST", { refresh: refreshToken }, {}, "json");
+  const res = await apiCaller<{ access: string; refresh: string; }>(API_ROUTES.AUTH.REFRESH_TOKEN, "POST", { refresh: refreshToken }, {}, "json");
   return res.data;
 }
 
@@ -75,12 +26,12 @@ export async function verifyToken(token?: string) {
     const { accessToken } = getAuthTokens();
     tokenToVerify = accessToken || undefined;
   }
-  
+
   if (!tokenToVerify) {
     throw new Error("No token available for verification");
   }
-  
-  await apiCaller<void>(API_ROUTES.AUTH.VERIFY_TOKEN, "POST", { token: tokenToVerify } as VerifyRequest, {}, "json");
+
+  await apiCaller<void>(API_ROUTES.AUTH.VERIFY_TOKEN, "POST", { token: tokenToVerify }, {}, "json");
 }
 
 // New function to get user profile information
@@ -89,21 +40,13 @@ export async function getMe(): Promise<MeResponse> {
   return res.data;
 }
 
-export type ChangePasswordRequest = {
-  current_password: string;
-  new_password: string;
-};
-
-export type ChangePasswordResponse = {
-  message?: string;
-};
-
-export type ResetPasswordWithOTPRequest = { email: string; otp: string; new_password: string };
-
 export async function changePassword(
-  payload: ChangePasswordRequest
-): Promise<ChangePasswordResponse> {
-  const res = await apiCaller<ChangePasswordResponse>(
+  payload: {
+    current_password: string;
+    new_password: string;
+  }
+): Promise<{ message?: string; }> {
+  const res = await apiCaller<{ message?: string; }>(
     API_ROUTES.AUTH.CHANGE_PASSWORD,
     "POST",
     payload,
@@ -118,6 +61,6 @@ export async function logout() {
   // If added later, call it here. For now this is a no-op placeholder.
 }
 
-export async function resetPasswordWithOTP(data: ResetPasswordWithOTPRequest) {
+export async function resetPasswordWithOTP(data: { email: string; otp: string; new_password: string }) {
   await apiCaller<void>(API_ROUTES.AUTH.RESET_PASSWORD, "POST", data, {}, "json");
 }

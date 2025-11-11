@@ -6,7 +6,7 @@ import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import { useMe } from "@/hooks/queries/use-auth";
-import type { Employee as ApiEmployee } from "@/services/auth";
+import type { EmployeeWithScope } from "@/types/manager-scope";
 
 interface Employee {
   id: string;
@@ -28,35 +28,11 @@ interface EmployeeProfileCardProps {
   employee?: Employee;
 }
 
-interface BranchRef {
-  id: number;
-  branch_name?: string;
-}
-interface DepartmentRef {
-  id: number;
-  dept_name?: string;
-}
-interface EmployeeRef {
-  id: number;
-  emp_name?: string;
-  profile_picture?: string;
-}
-interface ManagerRef {
-  id: number;
-  employee?: EmployeeRef;
-}
-interface BranchDepartmentRef {
-  id: number;
-  branch?: BranchRef;
-  department?: DepartmentRef;
-  manager?: ManagerRef | null;
-}
 
-type ExtendedEmployee = ApiEmployee & {
+type ExtendedEmployee = EmployeeWithScope & {
   email?: string;
   phone?: string | null;
   hire_date?: string;
-  branch_departments?: BranchDepartmentRef[];
   education?: string | null;
   bio?: string | null;
 };
@@ -142,7 +118,7 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
                   <AvatarFallback className="bg-gray-100 text-gray-600 font-medium">
                     {data.user.username
                       .split(" ")
-                      .map((n) => n[0])
+                      .map((n: string) => n[0])
                       .join("")
                       .toUpperCase() || "A"}
                   </AvatarFallback>

@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useUpdateDepartment } from "@/hooks/queries/use-departments";
-import { toast } from "sonner";
-import type { Department } from "@/services/departments";
+import { useFormSubmission } from "@/hooks/use-form-submission";
+import { validateRequired } from "@/lib/validation";
+import { useErrorHandler } from "@/hooks/use-error-handler";
+import type { Department } from "@/types/departments";
 
 interface EditDepartmentModalProps {
   open: boolean;
@@ -16,10 +18,17 @@ interface EditDepartmentModalProps {
 
 export function EditDepartmentModal({ open, setOpen, department }: EditDepartmentModalProps) {
   const updateDepartment = useUpdateDepartment(department?.id || "");
+  const handleError = useErrorHandler();
 
   // State for functionality
   const [departmentName, setDepartmentName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { isSubmitting, submit } = useFormSubmission({
+    onSuccess: () => {
+      setOpen(false);
+    },
+    successMessage: "Department updated successfully.",
+  });
 
   // Initialize form values when modal opens or department changes
   useEffect(() => {
@@ -31,23 +40,16 @@ export function EditDepartmentModal({ open, setOpen, department }: EditDepartmen
   const handleSubmit = async () => {
     if (!department) return;
 
-    if (!departmentName.trim()) {
-      toast.error("Department name is required");
+    // Validation
+    const requiredError = validateRequired(departmentName, "Department name");
+    if (requiredError) {
+      handleError(new Error(requiredError));
       return;
     }
 
-    setIsSubmitting(true);
-    try {
+    await submit(async () => {
       await updateDepartment.mutateAsync({ dept_name: departmentName.trim() });
-      toast.success("Department updated successfully.");
-      setOpen(false);
-    } catch (error) {
-      console.error("Error updating department:", error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      toast.error(errorMessage || "Failed to update department. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   if (!department) return null;

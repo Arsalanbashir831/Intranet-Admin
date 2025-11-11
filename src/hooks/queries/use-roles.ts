@@ -5,7 +5,7 @@ import {
   listRoles,
   updateRole,
 } from "@/services/roles";
-import type { RoleCreateRequest, RoleUpdateRequest } from "@/services/roles";
+import type { RoleCreateRequest, RoleUpdateRequest } from "@/types/roles";
 
 // Helper: make params stable in the query key
 const normalizeParams = (params?: Record<string, string | number | boolean>) => {

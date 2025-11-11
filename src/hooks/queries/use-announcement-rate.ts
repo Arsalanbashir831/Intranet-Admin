@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAnnouncementRate } from "@/services/knowledge-stats";
-import type { AnnouncementRateParams } from "@/services/knowledge-stats";
+import { AnnouncementRateParams } from "@/types/announcements";
 
 export function useAnnouncementRate(params: AnnouncementRateParams) {
   return useQuery({

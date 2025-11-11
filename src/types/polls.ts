@@ -1,3 +1,5 @@
+import { BranchDepartmentDetail } from "./knowledge";
+
 export type PollOption = {
   id: number;
   option_text: string;
@@ -32,19 +34,6 @@ export type BranchDetail = {
 export type DepartmentDetail = {
   id: number;
   dept_name: string;
-};
-
-export type BranchDepartmentDetail = {
-  id: number;
-  branch: {
-    id: number;
-    branch_name: string;
-    location: string;
-  };
-  department: {
-    id: number;
-    dept_name: string;
-  };
 };
 
 export type EmployeeDetail = {

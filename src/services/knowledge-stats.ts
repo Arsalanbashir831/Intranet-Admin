@@ -1,12 +1,7 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
-import { AnnouncementRateResponse } from "@/types/stats";
-
-export type AnnouncementRateParams = {
-  start_date: string;
-  end_date: string;
-  filter: string;
-};
+import { buildQueryParams } from "@/lib/service-utils";
+import type { AnnouncementRateParams, AnnouncementRateResponse } from "@/types/announcements";
 
 /**
  * Fetch announcement rate statistics
@@ -14,9 +9,8 @@ export type AnnouncementRateParams = {
  * @returns AnnouncementRateResponse - Statistics about announcement rates
  */
 export async function getAnnouncementRate(params: AnnouncementRateParams): Promise<AnnouncementRateResponse> {
-  // Build query string from params
-  const queryString = new URLSearchParams(params).toString();
-  const url = `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENT_STATS}?${queryString}`;
+  const query = buildQueryParams(params);
+  const url = `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENT_STATS}${query ? `?${query}` : ""}`;
   
   const res = await apiCaller<AnnouncementRateResponse>(url, "GET");
   return res.data;

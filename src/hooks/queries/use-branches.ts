@@ -8,7 +8,7 @@ import {
   updateBranch,
   listBranchDepartments,
 } from "@/services/branches";
-import type { BranchCreateRequest, BranchUpdateRequest } from "@/services/branches";
+import type { BranchCreateRequest, BranchUpdateRequest } from "@/types/branches";
 
 // Helper: make params stable in the query key
 const normalizeParams = (params?: Record<string, string | number | boolean>) => {

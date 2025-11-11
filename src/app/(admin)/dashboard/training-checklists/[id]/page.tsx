@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +16,13 @@ import {
 import type {
   ExecutiveTrainingChecklistEmployee,
   Attachment,
-  Employee,
   AttachmentStatus,
-} from "@/services/new-hire";
+} from "@/types/new-hire";
 import Image from "next/image";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pencil } from "lucide-react";
+import { Employee } from "@/types/employees";
 
 function getStatusConfig(status: AttachmentStatus) {
   const statusConfig = {
@@ -300,7 +300,7 @@ export default function NewHirePlanDetailPage() {
                             className="h-12 sm:h-14 flex items-center rounded-xl justify-start gap-2 border-gray-200 p-2 sm:p-3"
                             onClick={() => handleFileDownload(file.file)}
                           >
-                            <div className="bg-[#E5004E] p-1.5 sm:p-2 rounded-sm flex items-center justify-center flex-shrink-0">
+                            <div className="bg-[#E5004E] p-1.5 sm:p-2 rounded-sm flex items-center justify-center shrink-0">
                               <Image
                                 src="/icons/clipboard.svg"
                                 alt="clipboard"
@@ -382,7 +382,7 @@ export default function NewHirePlanDetailPage() {
   if (!isExecutive && checklist) {
     // Get all training attachments
     const trainingAttachments =
-      checklist.attachments?.filter((att) => att.type === "training") || [];
+      checklist.attachments?.filter((att: Attachment) => att.type === "training") || [];
 
     // Get assigned employees
     const assignedEmployees = checklist.assigned_to_details || [];
@@ -513,7 +513,7 @@ export default function NewHirePlanDetailPage() {
                                         handleFileDownload(file.file)
                                       }
                                     >
-                                      <div className="bg-[#E5004E] p-1.5 sm:p-2 rounded-sm flex items-center justify-center flex-shrink-0">
+                                      <div className="bg-[#E5004E] p-1.5 sm:p-2 rounded-sm flex items-center justify-center shrink-0">
                                         <Image
                                           src="/icons/clipboard.svg"
                                           alt="clipboard"

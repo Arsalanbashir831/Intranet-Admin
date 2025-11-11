@@ -1,6 +1,6 @@
 
 import { RecentAnnouncementsTable } from "@/components/announcements/recent-announcements-table";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 // import { ScrollArea } from "@/components/ui/scroll-area";
 import { ROUTES } from "@/constants/routes";

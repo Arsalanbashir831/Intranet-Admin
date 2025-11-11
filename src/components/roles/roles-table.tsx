@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
-import type { Role } from "@/services/roles";
+import type { Role } from "@/types/roles";
 import { EditRoleModal } from "./edit-role-modal";
 
 export type RoleRow = {

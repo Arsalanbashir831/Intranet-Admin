@@ -1,108 +1,26 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
 import { generatePaginationParams } from "@/lib/pagination-utils";
-import type { components } from "@/types/api";
-
-// Use generated types from OpenAPI
-export type Checklist = components["schemas"]["Checklist"];
-export type Attachment = components["schemas"]["Attachment"];
-export type AttachmentFile = components["schemas"]["AttachmentFile"];
-export type StatusEnum = components["schemas"]["StatusEnum"];
-export type AttachmentTypeEnum = components["schemas"]["AttachmentTypeEnum"];
-export type Employee = components["schemas"]["Employee"];
-
-// Response types for checklists
-export type ChecklistListResponse =
-  components["schemas"]["PaginatedChecklistList"];
-export type ChecklistDetailResponse = Checklist;
+import { buildQueryParams, numberArrayToStringArray } from "@/lib/service-utils";
+import type {
+  Checklist,
+  Attachment,
+  AttachmentFile,
+  PaginatedChecklistList,
+  PaginatedAttachmentList,
+  PaginatedAttachmentFileList,
+  ChecklistCreateRequest,
+  ChecklistUpdateRequest,
+  AttachmentCreateRequest,
+  AttachmentUpdateRequest,
+  AttachmentFileCreateRequest,
+  ExecutiveTrainingChecklistAttachment,
+  ExecutiveTrainingChecklistEmployee,
+  ExecutiveTrainingChecklistListResponse,
+} from "@/types/new-hire";
 
 // Request types for creating checklists
-export type ChecklistCreateRequest = {
-  title?: string | null;
-  detail?: string | null;
-  assigned_to: number[];
-  assigned_by: number | null;
-  status?: StatusEnum;
-};
 
-export type ChecklistCreateResponse = Checklist;
-
-// Request types for updating checklists
-export type ChecklistUpdateRequest = {
-  title?: string | null;
-  detail?: string | null;
-  assigned_to?: number[];
-  assigned_by?: number | null;
-  status?: StatusEnum;
-};
-
-export type ChecklistUpdateResponse = Checklist;
-
-// Response types for attachments
-export type AttachmentListResponse =
-  components["schemas"]["PaginatedAttachmentList"];
-export type AttachmentDetailResponse = Attachment;
-
-// Request types for creating attachments
-export type AttachmentCreateRequest = {
-  checklist: number;
-  title: string;
-  detail?: string | null;
-  type?: AttachmentTypeEnum;
-  deadline?: string | null;
-};
-
-export type AttachmentCreateResponse = Attachment;
-
-// Request types for updating attachments
-export type AttachmentUpdateRequest = {
-  title?: string;
-  detail?: string | null;
-  type?: AttachmentTypeEnum;
-  deadline?: string | null;
-};
-
-export type AttachmentUpdateResponse = Attachment;
-
-// Response types for attachment files
-export type AttachmentFileListResponse =
-  components["schemas"]["PaginatedAttachmentFileList"];
-export type AttachmentFileDetailResponse = AttachmentFile;
-
-// Request types for creating attachment files
-export type AttachmentFileCreateRequest = {
-  attachment: number;
-  file: File;
-};
-
-export type AttachmentFileCreateResponse = AttachmentFile;
-
-export type ExecutiveTrainingChecklistAttachment = {
-  id: number;
-  file: string;
-  uploaded_at: string;
-};
-
-export type AttachmentStatus = "to_do" | "in_progress" | "done";
-
-export type ExecutiveTrainingChecklistEmployee = {
-  employee_id: number;
-  employee_name: string;
-  employee_email: string;
-  avatar: string | null;
-  status: AttachmentStatus;
-  status_display: string;
-  updated_at: string;
-};
-
-export type ExecutiveTrainingChecklistListResponse = {
-  id: number;
-  title: string;
-  description: string;
-  deadline: string | null;
-  attachment: ExecutiveTrainingChecklistAttachment[];
-  employees: ExecutiveTrainingChecklistEmployee[];
-};
 
 // Checklist CRUD operations
 export async function listChecklists(
@@ -110,7 +28,9 @@ export async function listChecklists(
   pagination?: { page?: number; pageSize?: number }
 ) {
   const url = API_ROUTES.NEW_HIRE.CHECKLISTS.LIST;
-  const queryParams: Record<string, string> = {};
+  const queryParams: Record<string, string | number | boolean> = {
+    ...params,
+  };
 
   // Add pagination parameters
   if (pagination) {
@@ -121,24 +41,13 @@ export async function listChecklists(
     Object.assign(queryParams, paginationParams);
   }
 
-  // Add other parameters
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      queryParams[key] = String(value);
-    });
-  }
-
-  const query =
-    Object.keys(queryParams).length > 0
-      ? `?${new URLSearchParams(queryParams)}`
-      : "";
-
-  const res = await apiCaller<ChecklistListResponse>(`${url}${query}`, "GET");
+  const query = buildQueryParams(queryParams);
+  const res = await apiCaller<PaginatedChecklistList>(`${url}${query ? `?${query}` : ""}`, "GET");
   return res.data;
 }
 
 export async function getChecklist(id: number | string) {
-  const res = await apiCaller<ChecklistDetailResponse>(
+  const res = await apiCaller<Checklist>(
     API_ROUTES.NEW_HIRE.CHECKLISTS.DETAIL(id),
     "GET"
   );
@@ -149,10 +58,10 @@ export async function createChecklist(payload: ChecklistCreateRequest) {
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    assigned_to: payload.assigned_to.map(String),
+    assigned_to: numberArrayToStringArray(payload.assigned_to),
   };
 
-  const res = await apiCaller<ChecklistCreateResponse>(
+  const res = await apiCaller<Checklist>(
     API_ROUTES.NEW_HIRE.CHECKLISTS.CREATE,
     "POST",
     apiPayload,
@@ -169,10 +78,10 @@ export async function updateChecklist(
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    assigned_to: payload.assigned_to?.map(String),
+    assigned_to: payload.assigned_to ? numberArrayToStringArray(payload.assigned_to) : undefined,
   };
 
-  const res = await apiCaller<ChecklistUpdateResponse>(
+  const res = await apiCaller<Checklist>(
     API_ROUTES.NEW_HIRE.CHECKLISTS.UPDATE(id),
     "PATCH",
     apiPayload,
@@ -192,7 +101,9 @@ export async function listAttachments(
   pagination?: { page?: number; pageSize?: number }
 ) {
   const url = API_ROUTES.NEW_HIRE.ATTACHMENTS.LIST;
-  const queryParams: Record<string, string> = {};
+  const queryParams: Record<string, string | number | boolean> = {
+    ...params,
+  };
 
   // Add pagination parameters
   if (pagination) {
@@ -203,24 +114,13 @@ export async function listAttachments(
     Object.assign(queryParams, paginationParams);
   }
 
-  // Add other parameters
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      queryParams[key] = String(value);
-    });
-  }
-
-  const query =
-    Object.keys(queryParams).length > 0
-      ? `?${new URLSearchParams(queryParams)}`
-      : "";
-
-  const res = await apiCaller<AttachmentListResponse>(`${url}${query}`, "GET");
+  const query = buildQueryParams(queryParams);
+  const res = await apiCaller<PaginatedAttachmentList>(`${url}${query ? `?${query}` : ""}`, "GET");
   return res.data;
 }
 
 export async function getAttachment(id: number | string) {
-  const res = await apiCaller<AttachmentDetailResponse>(
+  const res = await apiCaller<Attachment>(
     API_ROUTES.NEW_HIRE.ATTACHMENTS.DETAIL(id),
     "GET"
   );
@@ -228,7 +128,7 @@ export async function getAttachment(id: number | string) {
 }
 
 export async function createAttachment(payload: AttachmentCreateRequest) {
-  const res = await apiCaller<AttachmentCreateResponse>(
+  const res = await apiCaller<Attachment>(
     API_ROUTES.NEW_HIRE.ATTACHMENTS.CREATE,
     "POST",
     payload,
@@ -242,7 +142,7 @@ export async function updateAttachment(
   id: number | string,
   payload: AttachmentUpdateRequest
 ) {
-  const res = await apiCaller<AttachmentUpdateResponse>(
+  const res = await apiCaller<Attachment>(
     API_ROUTES.NEW_HIRE.ATTACHMENTS.UPDATE(id),
     "PATCH",
     payload,
@@ -262,7 +162,9 @@ export async function listAttachmentFiles(
   pagination?: { page?: number; pageSize?: number }
 ) {
   const url = API_ROUTES.NEW_HIRE.FILES.LIST;
-  const queryParams: Record<string, string> = {};
+  const queryParams: Record<string, string | number | boolean> = {
+    ...params,
+  };
 
   // Add pagination parameters
   if (pagination) {
@@ -273,27 +175,16 @@ export async function listAttachmentFiles(
     Object.assign(queryParams, paginationParams);
   }
 
-  // Add other parameters
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      queryParams[key] = String(value);
-    });
-  }
-
-  const query =
-    Object.keys(queryParams).length > 0
-      ? `?${new URLSearchParams(queryParams)}`
-      : "";
-
-  const res = await apiCaller<AttachmentFileListResponse>(
-    `${url}${query}`,
+  const query = buildQueryParams(queryParams);
+  const res = await apiCaller<PaginatedAttachmentFileList>(
+    `${url}${query ? `?${query}` : ""}`,
     "GET"
   );
   return res.data;
 }
 
 export async function getAttachmentFile(id: number | string) {
-  const res = await apiCaller<AttachmentFileDetailResponse>(
+  const res = await apiCaller<AttachmentFile>(
     API_ROUTES.NEW_HIRE.FILES.DETAIL(id),
     "GET"
   );
@@ -308,7 +199,7 @@ export async function createAttachmentFile(
   formData.append("attachment", String(payload.attachment));
   formData.append("file", payload.file);
 
-  const res = await apiCaller<AttachmentFileCreateResponse>(
+  const res = await apiCaller<AttachmentFile>(
     API_ROUTES.NEW_HIRE.FILES.CREATE,
     "POST",
     formData,
@@ -335,32 +226,23 @@ export async function listExecutiveTrainingChecklists(
   params?: Record<string, string | number | boolean>,
   pagination?: { page?: number; pageSize?: number }
 ) {
-  const queryParams: Record<string, string> = {};
-
-  // Add search and filter parameters
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      queryParams[key] = String(value);
-    });
-  }
+  const queryParams: Record<string, string | number | boolean> = {
+    ...params,
+  };
 
   // Add pagination parameters
   if (pagination) {
     if (pagination.page !== undefined) {
-      queryParams.page = String(pagination.page);
+      queryParams.page = pagination.page;
     }
     if (pagination.pageSize !== undefined) {
-      queryParams.page_size = String(pagination.pageSize);
+      queryParams.page_size = pagination.pageSize;
     }
   }
 
-  const query =
-    Object.keys(queryParams).length > 0
-      ? `?${new URLSearchParams(queryParams)}`
-      : "";
-
+  const query = buildQueryParams(queryParams);
   const res = await apiCaller<ExecutiveTrainingChecklistListResponse>(
-    `${API_ROUTES.NEW_HIRE.TRAINING_CHECKLIST.LIST}${query}`,
+    `${API_ROUTES.NEW_HIRE.TRAINING_CHECKLIST.LIST}${query ? `?${query}` : ""}`,
     "GET"
   );
   return res.data;

@@ -2,7 +2,7 @@
 
 import { KnowledgeBaseTable } from "@/components/knowledge-base/knowledge-base-table";
 import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { ROUTES } from "@/constants/routes";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 

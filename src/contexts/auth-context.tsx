@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 							name: meData?.employee?.emp_name || meData.user.username,
 							profilePicture: employeeProfilePictureUrl,
 							avatar: employeeProfilePictureUrl,
-							role: meData.employee?.role,
+							role: meData.employee?.role || undefined,
 							isManager: meData.employee?.role === "Manager",
 							managedDepartments: meData.employee?.branch_department_ids || [],
 							isAdmin: meData.employee !== null ? meData.employee.isAdmin : meData.user.is_superuser,
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 								name: meData?.employee?.emp_name || meData.user.username,
 								profilePicture: employeeProfilePictureUrl,
 								avatar: employeeProfilePictureUrl,
-								role: meData.employee?.role,
+								role: meData.employee?.role || undefined,
 								isManager: meData.employee?.role === "Manager",
 								managedDepartments: meData.employee?.branch_department_ids || [],
 								isAdmin: meData.employee !== null ? meData.employee.isAdmin : meData.user.is_superuser,
@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 						name: meData?.employee?.emp_name || meData.user.username,
 						profilePicture: employeeProfilePictureUrl,
 						avatar: employeeProfilePictureUrl,
-						role: meData.executive?.role,
+						role: meData.executive?.role || undefined,
 					});
 				} catch {
 					// Token verification failed, try to refresh
@@ -194,7 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 							name: meData?.employee?.emp_name || meData.user.username,
 							profilePicture: employeeProfilePictureUrl,
 							avatar: employeeProfilePictureUrl,
-							role: meData.employee?.role,
+							role: meData.employee?.role || undefined,
 							isManager: meData.employee?.role === "Manager",
 							managedDepartments: meData.employee?.branch_department_ids || [],
 							isAdmin: meData.employee !== null ? meData.employee.isAdmin : meData.user.is_superuser,

@@ -8,7 +8,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { Role } from "@/services/roles";
+import type { Role } from "@/types/roles";
 import { cn } from "@/lib/utils";
 
 export type AccessLevel = Role["access_level"];
@@ -29,7 +29,7 @@ export function AccessLevelSelect({
 	return (
 		<Select
 			value={value}
-			onValueChange={(val) => onChange(val as AccessLevel)}
+			onValueChange={(val: AccessLevel) => onChange(val)}
 			disabled={disabled}
 		>
 			<SelectTrigger className={cn("border-[#D5D7DA] w-full", triggerClassName)}>

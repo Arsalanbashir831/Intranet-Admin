@@ -1,71 +1,18 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
 import { generatePaginationParams } from "@/lib/pagination-utils";
-
-export type Branch = {
-  id: number;
-  branch_name: string;
-  employee_count: number;
-  departments: Array<{
-    id: number;
-    dept_name: string;
-    branch_department_id: number;
-    employee_count: number;
-    manager: null | {
-      id: number;
-      employee: {
-        id: number;
-        emp_name: string;
-        profile_picture?: string | null;
-        email: string;
-        role: string;
-      };
-      branch_department: {
-        id: number;
-        branch: {
-          id: number;
-          branch_name: string;
-        };
-        department: {
-          id: number;
-          dept_name: string;
-        };
-      };
-    };
-  }>;
-};
-
-export type BranchListResponse = {
-  branches: {
-    count: number;
-    page: number;
-    page_size: number;
-    results: Branch[];
-  };
-};
-export type BranchDetailResponse = {
-  branch: Branch;
-};
-export type BranchCreateRequest = {
-  branch_name: string;
-} & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
-export type BranchCreateResponse = {
-  branch: Branch;
-};
-export type BranchUpdateRequest = {
-  branch_name?: string;
-} & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
-export type BranchUpdateResponse = {
-  branch: Branch;
-};
+import { buildQueryParams } from "@/lib/service-utils";
+import type { Branch, BranchDepartmentListItem, BranchCreateRequest, BranchUpdateRequest } from "@/types/branches";
 
 export async function listBranches(
   params?: Record<string, string | number | boolean>,
   pagination?: { page?: number; pageSize?: number }
 ) {
   const url = API_ROUTES.BRANCHES.LIST;
-  const queryParams: Record<string, string> = {};
-  
+  const queryParams: Record<string, string | number | boolean> = {
+    ...params,
+  };
+
   // Add pagination parameters
   if (pagination) {
     const paginationParams = generatePaginationParams(
@@ -74,19 +21,9 @@ export async function listBranches(
     );
     Object.assign(queryParams, paginationParams);
   }
-  
-  // Add other parameters
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      queryParams[key] = String(value);
-    });
-  }
-  
-  const query = Object.keys(queryParams).length > 0 
-    ? `?${new URLSearchParams(queryParams)}` 
-    : "";
-    
-  const res = await apiCaller<BranchListResponse>(`${url}${query}`, "GET");
+
+  const query = buildQueryParams(queryParams);
+  const res = await apiCaller<{ branches: { count: number; page: number; page_size: number; results: Branch[]; } }>(`${url}${query ? `?${query}` : ""}`, "GET");
   return res.data;
 }
 
@@ -106,25 +43,25 @@ export async function listAllBranches(
   const allBranches: Branch[] = [];
   let page = 1;
   let totalCount = 0;
-  
+
   do {
     const response = await listBranches(params, { page, pageSize: 50 }); // Use larger page size for efficiency
-    
+
     if (response.branches.results.length > 0) {
       allBranches.push(...response.branches.results);
     }
-    
+
     totalCount = response.branches.count;
     const currentPageSize = response.branches.page_size;
     const totalPages = Math.ceil(totalCount / currentPageSize);
-    
+
     if (page >= totalPages) {
       break;
     }
-    
+
     page++;
   } while (true);
-  
+
   return {
     branches: {
       count: totalCount,
@@ -134,17 +71,17 @@ export async function listAllBranches(
 }
 
 export async function getBranch(id: number | string) {
-  const res = await apiCaller<BranchDetailResponse>(API_ROUTES.BRANCHES.DETAIL(id), "GET");
+  const res = await apiCaller<{ branch: Branch }>(API_ROUTES.BRANCHES.DETAIL(id), "GET");
   return res.data.branch;
 }
 
 export async function createBranch(payload: BranchCreateRequest) {
-  const res = await apiCaller<BranchCreateResponse>(API_ROUTES.BRANCHES.CREATE, "POST", payload, {}, "json");
+  const res = await apiCaller<{ branch: Branch }>(API_ROUTES.BRANCHES.CREATE, "POST", payload, {}, "json");
   return res.data.branch;
 }
 
 export async function updateBranch(id: number | string, payload: BranchUpdateRequest) {
-  const res = await apiCaller<BranchUpdateResponse>(API_ROUTES.BRANCHES.UPDATE(id), "PATCH", payload, {}, "json");
+  const res = await apiCaller<{ branch: Branch }>(API_ROUTES.BRANCHES.UPDATE(id), "PATCH", payload, {}, "json");
   return res.data.branch;
 }
 
@@ -152,74 +89,15 @@ export async function deleteBranch(id: number | string) {
   await apiCaller<void>(API_ROUTES.BRANCHES.DELETE(id), "DELETE");
 }
 
-// Branch Departments functions
-export type BranchDepartmentListItem = {
-  id: number;
-  branch: {
-    id: number;
-    branch_name: string;
-  };
-  department: {
-    id: number;
-    dept_name: string;
-  };
-  employee_count: number;
-  manager: null | {
-    id: number;
-    employee: {
-      id: number;
-      emp_name: string;
-      profile_picture?: string | null;
-      email: string;
-      role: string;
-      role_id: number;
-    };
-    branch_department: {
-      id: number;
-      branch: {
-        id: number;
-        branch_name: string;
-      };
-      department: {
-        id: number;
-        dept_name: string;
-      };
-    };
-  };
-};
-
-export type BranchDepartmentListResponse = {
-  branch_departments: {
-    count: number;
-    page: number;
-    page_size: number;
-    results: BranchDepartmentListItem[];
-  };
-};
-
-export type BranchDepartmentCreateRequest = {
-  branch_id: number;
-  department_id: number;
-};
-
-export type BranchDepartmentUpdateRequest = {
-  branch_id: number;
-  department_id: number;
-};
-
-export type BranchDepartmentResponse = {
-  id: number;
-  branch_id: number;
-  department_id: number;
-};
-
 export async function listBranchDepartments(
   params?: Record<string, string | number | boolean>,
   pagination?: { page?: number; pageSize?: number }
 ) {
   const url = API_ROUTES.BRANCH_DEPARTMENTS.LIST;
-  const queryParams: Record<string, string> = {};
-  
+  const queryParams: Record<string, string | number | boolean> = {
+    ...params,
+  };
+
   // Add pagination parameters
   if (pagination) {
     const paginationParams = generatePaginationParams(
@@ -228,29 +106,19 @@ export async function listBranchDepartments(
     );
     Object.assign(queryParams, paginationParams);
   }
-  
-  // Add other parameters
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      queryParams[key] = String(value);
-    });
-  }
-  
-  const query = Object.keys(queryParams).length > 0 
-    ? `?${new URLSearchParams(queryParams)}` 
-    : "";
-    
-  const res = await apiCaller<BranchDepartmentListResponse>(`${url}${query}`, "GET");
+
+  const query = buildQueryParams(queryParams);
+  const res = await apiCaller<{ branch_departments: { count: number; page: number; page_size: number; results: BranchDepartmentListItem[]; } }>(`${url}${query ? `?${query}` : ""}`, "GET");
   return res.data;
 }
 
-export async function createBranchDepartment(payload: BranchDepartmentCreateRequest) {
-  const res = await apiCaller<BranchDepartmentResponse>(API_ROUTES.BRANCH_DEPARTMENTS.CREATE, "POST", payload, {}, "json");
+export async function createBranchDepartment(payload: { branch_id: number; department_id: number }) {
+  const res = await apiCaller<{ id: number; branch_id: number; department_id: number; }>(API_ROUTES.BRANCH_DEPARTMENTS.CREATE, "POST", payload, {}, "json");
   return res.data;
 }
 
-export async function updateBranchDepartment(id: number | string, payload: BranchDepartmentUpdateRequest) {
-  const res = await apiCaller<BranchDepartmentResponse>(API_ROUTES.BRANCH_DEPARTMENTS.UPDATE(id), "PATCH", payload, {}, "json");
+export async function updateBranchDepartment(id: number | string, payload: { branch_id: number; department_id: number }) {
+  const res = await apiCaller<{ id: number; branch_id: number; department_id: number; }>(API_ROUTES.BRANCH_DEPARTMENTS.UPDATE(id), "PATCH", payload, {}, "json");
   return res.data;
 }
 

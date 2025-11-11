@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { ROUTES } from "@/constants/routes";
 import * as React from "react";
 import { DepartmentsDetailTable } from "@/components/departments/departments-detail-table";

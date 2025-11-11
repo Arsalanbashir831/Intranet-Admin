@@ -22,7 +22,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
-import type { components } from "@/types/api";
+import type { Checklist } from "@/types/new-hire";
 import { FilterDrawer } from "@/components/card-table/filter-drawer";
 import { DepartmentFilter } from "@/components/card-table/filter-components";
 import {
@@ -94,7 +94,7 @@ export function NewHireTable() {
     if (!checklistsData?.results) return [];
 
     return checklistsData.results.map(
-      (checklist: components["schemas"]["Checklist"]) => {
+      (checklist: Checklist) => {
         // Use expanded employee data from assigned_to_details
         const assignedEmployees =
           checklist.assigned_to_details?.map((emp) => ({

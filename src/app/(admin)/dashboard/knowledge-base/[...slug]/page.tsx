@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { ROUTES } from "@/constants/routes";
 import { FolderDetailsTable } from "@/components/knowledge-base/folder-details-table";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 import { AddFileModal } from "@/components/knowledge-base/add-file-modal";
 import { useRouter } from "next/navigation";
 import { useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";
-import type { FolderTreeItem } from "@/services/knowledge-folders";
+import type { FolderTreeItem } from "@/types/knowledge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import {

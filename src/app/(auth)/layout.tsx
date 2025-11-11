@@ -4,7 +4,7 @@ import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/contexts/auth-context";
 import { AuthGuard } from "@/components/auth/auth-guard";
-import RightAuthAside from "@/components/auth/RightAuthAside";
+import RightAuthAside from "@/components/auth/right-auth-aside";
 import Image from "next/image";
 
 export default function AuthLayout({

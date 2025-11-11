@@ -10,11 +10,11 @@ export async function getManagerScope(): Promise<ManagerScope> {
     `${API_ROUTES.AUTH.ME}?include_scope=true`,
     "GET"
   );
-  
+
   if (!res.data.manager_scope) {
     throw new Error("Manager scope not available");
   }
-  
+
   return res.data.manager_scope;
 }
 

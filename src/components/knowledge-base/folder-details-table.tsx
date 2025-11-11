@@ -14,7 +14,7 @@ import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { useDeleteFolder, useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";
 import { useDeleteFile } from "@/hooks/queries/use-knowledge-files";
-import type { FolderTreeItem } from "@/services/knowledge-folders";
+import type { FolderTreeItem } from "@/types/knowledge";
 import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
 import { useAuth } from "@/contexts/auth-context";
 import { format } from "date-fns";

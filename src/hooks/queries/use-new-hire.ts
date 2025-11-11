@@ -24,7 +24,8 @@ import type {
   AttachmentCreateRequest,
   AttachmentUpdateRequest,
   AttachmentFileCreateRequest,
-} from "@/services/new-hire";
+} from "@/types/new-hire";
+
 
 // Checklist hooks
 export function useChecklists(

@@ -1,15 +1,16 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { login, logout, refreshToken, getMe, changePassword, resetPasswordWithOTP} from "@/services/auth";
-import type { LoginRequest, ChangePasswordRequest, ResetPasswordWithOTPRequest } from "@/services/auth";
+import { login, logout, refreshToken, getMe, changePassword, resetPasswordWithOTP } from "@/services/auth";
+
 import { ROUTES } from "@/constants/routes";
 import { setAuthCookies, clearAuthCookies } from "@/lib/cookies";
+import { TokenRefresh } from "@/types/auth";
 
 export function useLogin() {
 	const qc = useQueryClient();
 
 	return useMutation({
-		mutationFn: (credentials: LoginRequest) => login(credentials),
-		onSuccess: async (data) => {
+		mutationFn: (credentials: { username: string; password: string }) => login(credentials),
+		onSuccess: async (data: TokenRefresh) => {
 			// Store tokens via cookies only
 			if (typeof window !== "undefined") {
 				setAuthCookies(data.access, data.refresh);
@@ -27,7 +28,7 @@ export function useLogin() {
 				window.location.assign(ROUTES.ADMIN.DASHBOARD);
 			}
 		},
-		onError: (error) => {
+		onError: (error: Error) => {
 			console.error("Login failed:", error);
 			// Let the error pass through as-is so the component can access response data
 			// The component will handle the error display logic
@@ -66,7 +67,7 @@ export function useLogout() {
 				window.location.href = ROUTES.AUTH.LOGIN;
 			}
 		},
-		onError: (error) => {
+		onError: (error: Error) => {
 			console.error("Logout failed:", error);
 			// Even if logout fails on server, clear local state
 			if (typeof window !== "undefined") {
@@ -85,13 +86,13 @@ export function useLogout() {
 export function useRefreshToken() {
 	return useMutation({
 		mutationFn: (refreshTokenValue: string) => refreshToken(refreshTokenValue),
-		onSuccess: (data) => {
+		onSuccess: (data: TokenRefresh) => {
 			// Update stored tokens (cookies-only)
 			if (typeof window !== "undefined") {
 				setAuthCookies(data.access, data.refresh || "");
 			}
 		},
-		onError: (error) => {
+		onError: (error: Error) => {
 			console.error("Token refresh failed:", error);
 			// If refresh fails, clear tokens and redirect to login
 			if (typeof window !== "undefined") {
@@ -113,16 +114,16 @@ export function useMe() {
 
 export function useResetPasswordWithOTP() {
 	return useMutation({
-	  mutationFn: (data: ResetPasswordWithOTPRequest) => resetPasswordWithOTP(data),
-	  onError: (error) => {
-		console.error("Reset password failed:", error);
-		throw new Error("Failed to reset password. Please try again.");
-	  },
+		mutationFn: (data: { email: string; otp: string; new_password: string }) => resetPasswordWithOTP(data),
+		onError: (error: Error) => {
+			console.error("Reset password failed:", error);
+			throw new Error("Failed to reset password. Please try again.");
+		},
 	});
-  }
+}
 
 export function useChangePassword() {
 	return useMutation({
-		mutationFn: (payload: ChangePasswordRequest) => changePassword(payload),
+		mutationFn: (payload: { current_password: string; new_password: string }) => changePassword(payload),
 	});
 }

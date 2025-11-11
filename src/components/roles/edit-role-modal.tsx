@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useUpdateRole } from "@/hooks/queries/use-roles";
-import { toast } from "sonner";
-import type { Role } from "@/services/roles";
+import { useFormSubmission } from "@/hooks/use-form-submission";
+import { validateRequired, validateMaxLength } from "@/lib/validation";
+import { useErrorHandler } from "@/hooks/use-error-handler";
+import type { Role } from "@/types/roles";
 import { AccessLevelSelect } from "./access-level-select";
 
 interface EditRoleModalProps {
@@ -17,11 +19,24 @@ interface EditRoleModalProps {
 
 export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
   const updateRole = useUpdateRole(role?.id || "");
+  const handleError = useErrorHandler({
+    customMessages: {
+      409: "A role with this name already exists",
+      403: "You don't have permission to perform this action",
+      404: "Role not found",
+    },
+  });
 
   // State for functionality
   const [roleName, setRoleName] = useState("");
   const [accessLevel, setAccessLevel] = useState<"employee" | "manager" | "executive">("employee");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { isSubmitting, submit } = useFormSubmission({
+    onSuccess: () => {
+      setOpen(false);
+    },
+    successMessage: "Role updated successfully.",
+  });
 
   // Initialize form values when modal opens or role changes
   useEffect(() => {
@@ -37,46 +52,26 @@ export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
   const handleSubmit = async () => {
     if (!role) return;
 
-    if (!roleName.trim()) {
-      toast.error("Role name is required");
+    // Validation
+    const requiredError = validateRequired(roleName, "Role name");
+    if (requiredError) {
+      handleError(new Error(requiredError));
       return;
     }
 
-    if (roleName.length > 100) {
-      toast.error("Role name must be 100 characters or less");
+    const maxLengthError = validateMaxLength(roleName, 100, "Role name");
+    if (maxLengthError) {
+      handleError(new Error(maxLengthError));
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      const payload: import("@/services/roles").RoleUpdateRequest = {
+    await submit(async () => {
+      const payload: import("@/types/roles").RoleUpdateRequest = {
         name: roleName.trim(),
         access_level: accessLevel,
       };
-      
       await updateRole.mutateAsync(payload);
-      
-      toast.success("Role updated successfully.");
-      setOpen(false);
-    } catch (error: unknown) {
-      console.error("Error updating role:", error);
-      
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const err = error as { response?: { data?: Record<string, unknown>; status?: number } };
-      const status = err?.response?.status;
-
-      if (status === 409 || errorMessage.toLowerCase().includes("already exists") || errorMessage.toLowerCase().includes("duplicate")) {
-        toast.error("A role with this name already exists");
-      } else if (status === 403 || errorMessage.toLowerCase().includes("access denied") || errorMessage.toLowerCase().includes("don't have permission")) {
-        toast.error("You don't have permission to perform this action");
-      } else if (status === 404 || errorMessage.toLowerCase().includes("not found")) {
-        toast.error("Role not found");
-      } else {
-        toast.error(errorMessage || "Failed to update role. Please try again.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   if (!role) return null;

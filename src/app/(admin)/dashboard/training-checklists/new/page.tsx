@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { NewHirePlanForm, type NewHirePlanFormData } from "@/components/new-hire/new-hire-plan-form";

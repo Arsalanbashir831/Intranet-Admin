@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ProfileCard } from "@/components/profile/profile-card";
 import { Button } from "@/components/ui/button";
 import { ChangePasswordDialog } from "@/components/profile/change-password-dialog";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { ROUTES } from "@/constants/routes";
 
 export default function ProfilePage() {

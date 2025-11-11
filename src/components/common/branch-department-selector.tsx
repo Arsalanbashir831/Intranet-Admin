@@ -42,7 +42,7 @@ export function BranchDepartmentSelector({
   initialBranchDepartmentIds,
 }: BranchDepartmentSelectorProps) {
   // Fetch all branch departments data
-  const { data: branchDepartmentsData, isLoading: isLoadingBranchDepartments } = useBranchDepartments(
+  const { data: branchDepartmentsData } = useBranchDepartments(
     undefined,
     { pageSize: 1000 }
   );

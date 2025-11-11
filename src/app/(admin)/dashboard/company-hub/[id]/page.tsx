@@ -1,7 +1,6 @@
 "use client";
-"use client";
 
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { CompanyHubForm, CompanyHubInitialData, CompanyHubFormData } from "@/components/company-hub/company-hub-form";

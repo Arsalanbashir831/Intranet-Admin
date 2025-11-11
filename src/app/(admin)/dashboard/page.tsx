@@ -1,6 +1,6 @@
 "use client";
 
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common";
 import { ROUTES } from "@/constants/routes";
 import { DefaultStatCards } from "@/components/dashboard/stat-cards";
 import { AverageAnnouncementChart } from "@/components/dashboard/average-announcement-chart";

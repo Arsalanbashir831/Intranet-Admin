@@ -1,84 +1,16 @@
 import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
 import { generatePaginationParams } from "@/lib/pagination-utils";
-import type { components } from "@/types/api";
-
-// Use generated types from OpenAPI
-type Announcement = components["schemas"]["Announcement"];
-type AnnouncementAttachment = components["schemas"]["AnnouncementAttachment"];
-type AnnouncementTypeEnum = components["schemas"]["AnnouncementTypeEnum"];
-
-export type AnnouncementListResponse = {
-  announcements: {
-    count: number;
-    page: number;
-    page_size: number;
-    results: Announcement[];
-  };
-};
-export type AnnouncementDetailResponse = Announcement;
-
-// Request types for creating announcements
-export type AnnouncementCreateRequest = {
-  title: string;
-  body: string;
-  type?: AnnouncementTypeEnum;
-  inherits_parent_permissions?: boolean;
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_branch_departments?: number[];
-};
-
-export type AnnouncementCreateResponse = Announcement;
-
-// Request types for updating announcements
-export type AnnouncementUpdateRequest = {
-  title?: string;
-  body?: string;
-  type?: AnnouncementTypeEnum;
-  inherits_parent_permissions?: boolean;
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_branch_departments?: number[];
-};
-
-export type AnnouncementUpdateResponse = Announcement;
-
-// Announcement attachment types
-export type AnnouncementAttachmentListResponse = {
-  attachments: {
-    count: number;
-    page: number;
-    page_size: number;
-    results: AnnouncementAttachment[];
-  };
-};
-export type AnnouncementAttachmentDetailResponse = AnnouncementAttachment;
-
-export type AnnouncementAttachmentCreateRequest = {
-  announcement: number;
-  name: string;
-  description?: string;
-  file: File;
-  inherits_parent_permissions?: boolean;
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_employees?: number[];
-};
-
-export type AnnouncementAttachmentCreateResponse = AnnouncementAttachment;
-
-export type AnnouncementAttachmentUpdateRequest = {
-  name?: string;
-  description?: string;
-  file?: File;
-  inherits_parent_permissions?: boolean;
-  permitted_branches?: number[];
-  permitted_departments?: number[];
-  permitted_employees?: number[];
-};
-
-export type AnnouncementAttachmentUpdateResponse = AnnouncementAttachment;
+import { buildQueryParams, numberArrayToStringArray } from "@/lib/service-utils";
+import type {
+  Announcement,
+  AnnouncementAttachment,
+  AnnouncementAttachmentCreateRequest,
+  AnnouncementAttachmentListResponse,
+  AnnouncementCreateRequest,
+  AnnouncementListResponse,
+  AnnouncementUpdateRequest,
+} from "@/types/announcements";
 
 // Announcement CRUD operations
 export async function listAnnouncements(
@@ -87,11 +19,13 @@ export async function listAnnouncements(
   managerScope?: boolean
 ) {
   const url = API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.LIST;
-  const queryParams: Record<string, string> = {};
+  const queryParams: Record<string, string | number | boolean> = {
+    ...params,
+  };
   
   // Add manager scope parameter
   if (managerScope) {
-    queryParams.manager_scope = 'true';
+    queryParams.manager_scope = true;
   }
   
   // Add pagination parameters
@@ -103,26 +37,21 @@ export async function listAnnouncements(
     Object.assign(queryParams, paginationParams);
   }
   
-  // Add other parameters
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      queryParams[key] = String(value);
-    });
-  }
-  
-  const query = Object.keys(queryParams).length > 0 
-    ? `?${new URLSearchParams(queryParams)}` 
-    : "";
-    
-  const res = await apiCaller<AnnouncementListResponse>(`${url}${query}`, "GET");
+  const query = buildQueryParams(queryParams);
+  const res = await apiCaller<AnnouncementListResponse>(`${url}${query ? `?${query}` : ""}`, "GET");
   return res.data;
 }
 
 export async function getAnnouncement(id: number | string, managerScope?: boolean) {
-  const url = managerScope 
-    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DETAIL(id)}?include_inactive=true&manager_scope=true`
-    : `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DETAIL(id)}?include_inactive=true`;
-  const res = await apiCaller<AnnouncementDetailResponse>(url, "GET");
+  const queryParams: Record<string, string | number | boolean> = {
+    include_inactive: true,
+  };
+  if (managerScope) {
+    queryParams.manager_scope = true;
+  }
+  const query = buildQueryParams(queryParams);
+  const url = `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DETAIL(id)}${query ? `?${query}` : ""}`;
+  const res = await apiCaller<Announcement>(url, "GET");
   return res.data;
 }
 
@@ -130,15 +59,14 @@ export async function createAnnouncement(payload: AnnouncementCreateRequest, man
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
+    permitted_branches: payload.permitted_branches ? numberArrayToStringArray(payload.permitted_branches) : undefined,
+    permitted_departments: payload.permitted_departments ? numberArrayToStringArray(payload.permitted_departments) : undefined,
+    permitted_branch_departments: payload.permitted_branch_departments ? numberArrayToStringArray(payload.permitted_branch_departments) : undefined,
   };
   
-  const url = managerScope 
-    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.CREATE}?manager_scope=true`
-    : API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.CREATE;
-  const res = await apiCaller<AnnouncementCreateResponse>(url, "POST", apiPayload, {}, "json");
+  const query = managerScope ? buildQueryParams({ manager_scope: true }) : "";
+  const url = `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.CREATE}${query ? `?${query}` : ""}`;
+  const res = await apiCaller<Announcement>(url, "POST", apiPayload, {}, "json");
   return res.data;
 }
 
@@ -146,22 +74,32 @@ export async function updateAnnouncement(id: number | string, payload: Announcem
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
-    permitted_branches: payload.permitted_branches?.map(String),
-    permitted_departments: payload.permitted_departments?.map(String),
-    permitted_branch_departments: payload.permitted_branch_departments?.map(String),
+    permitted_branches: payload.permitted_branches ? numberArrayToStringArray(payload.permitted_branches) : undefined,
+    permitted_departments: payload.permitted_departments ? numberArrayToStringArray(payload.permitted_departments) : undefined,
+    permitted_branch_departments: payload.permitted_branch_departments ? numberArrayToStringArray(payload.permitted_branch_departments) : undefined,
   };
   
-  const url = managerScope 
-    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)}?include_inactive=true&manager_scope=true`
-    : `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)}?include_inactive=true`;
-  const res = await apiCaller<AnnouncementUpdateResponse>(url, "PATCH", apiPayload, {}, "json");
+  const queryParams: Record<string, string | number | boolean> = {
+    include_inactive: true,
+  };
+  if (managerScope) {
+    queryParams.manager_scope = true;
+  }
+  const query = buildQueryParams(queryParams);
+  const url = `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.UPDATE(id)}${query ? `?${query}` : ""}`;
+  const res = await apiCaller<Announcement>(url, "PATCH", apiPayload, {}, "json");
   return res.data;
 }
 
 export async function deleteAnnouncement(id: number | string, managerScope?: boolean) {
-  const url = managerScope 
-    ? `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}?include_inactive=true&manager_scope=true`
-    : `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}?include_inactive=true`;
+  const queryParams: Record<string, string | number | boolean> = {
+    include_inactive: true,
+  };
+  if (managerScope) {
+    queryParams.manager_scope = true;
+  }
+  const query = buildQueryParams(queryParams);
+  const url = `${API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.DELETE(id)}${query ? `?${query}` : ""}`;
   await apiCaller<void>(url, "DELETE");
 }
 
@@ -171,20 +109,13 @@ export async function listAnnouncementAttachments(
   params?: Record<string, string | number | boolean>
 ) {
   const url = "/knowledge/announcement-attachments/";
-  const queryParams: Record<string, string> = {
-    announcement: String(announcementId)
+  const queryParams: Record<string, string | number | boolean> = {
+    announcement: announcementId,
+    ...params,
   };
   
-  // Add other parameters
-  if (params) {
-    Object.entries(params).forEach(([key, value]) => {
-      queryParams[key] = String(value);
-    });
-  }
-  
-  const query = `?${new URLSearchParams(queryParams)}`;
-    
-  const res = await apiCaller<AnnouncementAttachmentListResponse>(`${url}${query}`, "GET");
+  const query = buildQueryParams(queryParams);
+  const res = await apiCaller<AnnouncementAttachmentListResponse>(`${url}${query ? `?${query}` : ""}`, "GET");
   return res.data;
 }
 
@@ -222,7 +153,7 @@ export async function createAnnouncementAttachment(payload: AnnouncementAttachme
     });
   }
 
-  const res = await apiCaller<AnnouncementAttachmentCreateResponse>(
+  const res = await apiCaller<AnnouncementAttachment>(
     API_ROUTES.KNOWLEDGE_BASE.ANNOUNCEMENTS.ATTACHMENTS.UPLOAD, 
     "POST", 
     formData, 
