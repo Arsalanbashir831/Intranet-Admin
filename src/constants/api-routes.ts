@@ -4,6 +4,7 @@ export const API_ROUTES = {
         REFRESH_TOKEN: "/token/refresh/",
         VERIFY_TOKEN: "/token/verify/",
         ME: "/me/",
+        CHANGE_PASSWORD: "/change_password/",
     },
     STATS: '/stats/',
     BRANCHES: {
