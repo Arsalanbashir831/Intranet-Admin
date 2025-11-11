@@ -101,6 +101,10 @@ export const API_ROUTES = {
             CREATE: "/newhire/attachment-files/",
             DELETE: (id: number | string) => `/newhire/attachment-files/${id}/`,
         },
+        TRAINING_CHECKLIST: {
+            LIST: "/executives/training-checklists/",
+            DETAIL: (id: number | string) => `/executives/training-checklists/${id}/`,
+        },
     },
     EXECUTIVE_MEMBERS: {
         LIST: "/executives/executives/",

@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  createChecklist, 
-  deleteChecklist, 
-  getChecklist, 
+import {
+  createChecklist,
+  deleteChecklist,
+  getChecklist,
   listChecklists,
   updateChecklist,
   createAttachment,
@@ -14,14 +14,16 @@ import {
   createAttachmentFile,
   deleteAttachmentFile,
   getAttachmentFile,
-  listAttachmentFiles
+  listAttachmentFiles,
+  listExecutiveTrainingChecklists,
+  getExecutiveTrainingChecklist,
 } from "@/services/new-hire";
-import type { 
-  ChecklistCreateRequest, 
+import type {
+  ChecklistCreateRequest,
   ChecklistUpdateRequest,
   AttachmentCreateRequest,
   AttachmentUpdateRequest,
-  AttachmentFileCreateRequest 
+  AttachmentFileCreateRequest,
 } from "@/services/new-hire";
 
 // Checklist hooks
@@ -49,7 +51,7 @@ export function useChecklist(id: number | string) {
 
 export function useCreateChecklist() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (payload: ChecklistCreateRequest) => createChecklist(payload),
     onSuccess: () => {
@@ -60,9 +62,10 @@ export function useCreateChecklist() {
 
 export function useUpdateChecklist(id: number | string) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (payload: ChecklistUpdateRequest) => updateChecklist(id, payload),
+    mutationFn: (payload: ChecklistUpdateRequest) =>
+      updateChecklist(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["checklists"] });
       queryClient.invalidateQueries({ queryKey: ["checklist", id] });
@@ -73,7 +76,7 @@ export function useUpdateChecklist(id: number | string) {
 
 export function useDeleteChecklist() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: number | string) => deleteChecklist(id),
     onSuccess: () => {
@@ -114,23 +117,30 @@ export function useAttachment(id: number | string) {
 
 export function useCreateAttachment() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (payload: AttachmentCreateRequest) => createAttachment(payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["attachments"] });
-      queryClient.invalidateQueries({ queryKey: ["attachments", "checklist", variables.checklist] });
-      queryClient.invalidateQueries({ queryKey: ["checklists", variables.checklist] });
-      queryClient.invalidateQueries({ queryKey: ["checklist", variables.checklist] });
+      queryClient.invalidateQueries({
+        queryKey: ["attachments", "checklist", variables.checklist],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["checklists", variables.checklist],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["checklist", variables.checklist],
+      });
     },
   });
 }
 
 export function useUpdateAttachment(id: number | string) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (payload: AttachmentUpdateRequest) => updateAttachment(id, payload),
+    mutationFn: (payload: AttachmentUpdateRequest) =>
+      updateAttachment(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attachments"] });
       queryClient.invalidateQueries({ queryKey: ["attachments", id] });
@@ -144,7 +154,7 @@ export function useUpdateAttachment(id: number | string) {
 
 export function useDeleteAttachment() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: number | string) => deleteAttachment(id),
     onSuccess: () => {
@@ -187,13 +197,18 @@ export function useAttachmentFile(id: number | string) {
 
 export function useCreateAttachmentFile() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (payload: AttachmentFileCreateRequest) => createAttachmentFile(payload),
+    mutationFn: (payload: AttachmentFileCreateRequest) =>
+      createAttachmentFile(payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["attachment-files"] });
-      queryClient.invalidateQueries({ queryKey: ["attachment-files", "attachment", variables.attachment] });
-      queryClient.invalidateQueries({ queryKey: ["attachments", variables.attachment] });
+      queryClient.invalidateQueries({
+        queryKey: ["attachment-files", "attachment", variables.attachment],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["attachments", variables.attachment],
+      });
       // Also invalidate checklist queries since files are nested in checklist data
       queryClient.invalidateQueries({ queryKey: ["checklists"] });
       queryClient.invalidateQueries({ queryKey: ["checklist"] });
@@ -203,7 +218,7 @@ export function useCreateAttachmentFile() {
 
 export function useDeleteAttachmentFile() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: number | string) => deleteAttachmentFile(id),
     onSuccess: () => {
@@ -218,48 +233,73 @@ export function useDeleteAttachmentFile() {
 
 // Hook to track attachments to be deleted
 export function useAttachmentDeletions() {
-  const [deletedAttachmentIds, setDeletedAttachmentIds] = React.useState<number[]>([]);
-  
+  const [deletedAttachmentIds, setDeletedAttachmentIds] = React.useState<
+    number[]
+  >([]);
+
   const markForDeletion = (id: number) => {
-    setDeletedAttachmentIds(prev => [...prev, id]);
+    setDeletedAttachmentIds((prev) => [...prev, id]);
   };
-  
+
   const unmarkForDeletion = (id: number) => {
-    setDeletedAttachmentIds(prev => prev.filter(deletedId => deletedId !== id));
+    setDeletedAttachmentIds((prev) =>
+      prev.filter((deletedId) => deletedId !== id)
+    );
   };
-  
+
   const clearDeletions = () => {
     setDeletedAttachmentIds([]);
   };
-  
+
   return {
     deletedAttachmentIds,
     markForDeletion,
     unmarkForDeletion,
-    clearDeletions
+    clearDeletions,
   };
 }
 
 // Hook to track attachment files to be deleted
 export function useAttachmentFileDeletions() {
   const [deletedFileIds, setDeletedFileIds] = React.useState<number[]>([]);
-  
+
   const markForDeletion = (id: number) => {
-    setDeletedFileIds(prev => [...prev, id]);
+    setDeletedFileIds((prev) => [...prev, id]);
   };
-  
+
   const unmarkForDeletion = (id: number) => {
-    setDeletedFileIds(prev => prev.filter(deletedId => deletedId !== id));
+    setDeletedFileIds((prev) => prev.filter((deletedId) => deletedId !== id));
   };
-  
+
   const clearDeletions = () => {
     setDeletedFileIds([]);
   };
-  
+
   return {
     deletedFileIds,
     markForDeletion,
     unmarkForDeletion,
-    clearDeletions
+    clearDeletions,
   };
+}
+
+// Executive Training Checklist hooks
+export function useExecutiveTrainingChecklists(
+  params?: Record<string, string | number | boolean>,
+  pagination?: { page?: number; pageSize?: number }
+) {
+  return useQuery({
+    queryKey: ["executive-training-checklists", params, pagination],
+    queryFn: () => listExecutiveTrainingChecklists(params, pagination),
+    staleTime: 60_000, // Cache for 1 minute
+  });
+}
+
+export function useExecutiveTrainingChecklist(id: number | string) {
+  return useQuery({
+    queryKey: ["executive-training-checklist", String(id)],
+    queryFn: () => getExecutiveTrainingChecklist(id),
+    enabled: !!id,
+    staleTime: 60_000,
+  });
 }

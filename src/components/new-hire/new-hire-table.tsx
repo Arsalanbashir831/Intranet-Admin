@@ -13,7 +13,10 @@ import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { usePinnedRows } from "@/hooks/use-pinned-rows";
 import { AvatarStack } from "@/components/ui/avatar-stack";
-import { useChecklists, useDeleteChecklist } from "@/hooks/queries/use-new-hire";
+import {
+  useChecklists,
+  useDeleteChecklist,
+} from "@/hooks/queries/use-new-hire";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -27,13 +30,13 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
 export type NewHireRow = {
   id: string;
-  assignedTo: Array<{ id: string; name: string; avatar?: string; }>; // employee objects
+  assignedTo: Array<{ id: string; name: string; avatar?: string }>; // employee objects
   department: string;
   dateOfCreation: string;
   status: "Published" | "Draft";
@@ -45,7 +48,8 @@ export function NewHireTable() {
   const router = useRouter();
   const [sortedBy, setSortedBy] = React.useState<string>("dateOfCreation");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] =
+    React.useState<string>("");
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [filters, setFilters] = React.useState<Record<string, unknown>>({});
 
@@ -78,57 +82,81 @@ export function NewHireTable() {
     return Object.keys(params).length > 0 ? params : undefined;
   }, [debouncedSearchQuery, filters]);
 
-  const { data: checklistsData, isLoading, isFetching } = useChecklists(searchParams);
+  const {
+    data: checklistsData,
+    isLoading,
+    isFetching,
+  } = useChecklists(searchParams);
   const deleteChecklist = useDeleteChecklist();
 
   // Transform API data to table format
   const data = React.useMemo<NewHireRow[]>(() => {
     if (!checklistsData?.results) return [];
 
-    return checklistsData.results.map((checklist: components["schemas"]["Checklist"]) => {
-      // Use expanded employee data from assigned_to_details
-      const assignedEmployees = checklist.assigned_to_details?.map((emp) => ({
-        id: String(emp.id),
-        name: emp.emp_name,
-        avatar: emp.profile_picture || undefined,
-      })) || [];
+    return checklistsData.results.map(
+      (checklist: components["schemas"]["Checklist"]) => {
+        // Use expanded employee data from assigned_to_details
+        const assignedEmployees =
+          checklist.assigned_to_details?.map((emp) => ({
+            id: String(emp.id),
+            name: emp.emp_name,
+            avatar: emp.profile_picture || undefined,
+          })) || [];
 
-      // Get assigned by details
-      const assignedByDetails = checklist.assigned_by_details as { emp_name?: string; profile_picture?: string } | undefined;
+        // Get assigned by details
+        const assignedByDetails = checklist.assigned_by_details as
+          | { emp_name?: string; profile_picture?: string }
+          | undefined;
 
-      // Get department name from department_details (handling both string and object formats)
-      let departmentName = 'N/A';
-      if (typeof checklist.department_details === 'string') {
-        try {
-          // Try to parse if it's a JSON string
-          const parsed = JSON.parse(checklist.department_details);
-          departmentName = parsed.dept_name || parsed.name || checklist.department_details || 'N/A';
-        } catch {
-          // If parsing fails, use the string value directly
-          departmentName = checklist.department_details || 'N/A';
+        // Get department name from department_details (handling both string and object formats)
+        let departmentName = "N/A";
+        if (typeof checklist.department_details === "string") {
+          try {
+            // Try to parse if it's a JSON string
+            const parsed = JSON.parse(checklist.department_details);
+            departmentName =
+              parsed.dept_name ||
+              parsed.name ||
+              checklist.department_details ||
+              "N/A";
+          } catch {
+            // If parsing fails, use the string value directly
+            departmentName = checklist.department_details || "N/A";
+          }
+        } else if (
+          checklist.department_details &&
+          typeof checklist.department_details === "object"
+        ) {
+          // If it's already an object (as in the API response you provided)
+          departmentName =
+            (checklist.department_details as { dept_name?: string })
+              .dept_name || "N/A";
         }
-      } else if (checklist.department_details && typeof checklist.department_details === 'object') {
-        // If it's already an object (as in the API response you provided)
-        departmentName = (checklist.department_details as { dept_name?: string }).dept_name || 'N/A';
-      }
 
-      return {
-        id: String(checklist.id),
-        assignedTo: assignedEmployees,
-        department: departmentName,
-        dateOfCreation: format(new Date(checklist.created_at), 'M/d/yy'),
-        status: checklist.status === 'publish' ? 'Published' as const : 'Draft' as const,
-        assignedBy: assignedByDetails?.emp_name || 'Admin',
-        assignedByAvatar: assignedByDetails?.profile_picture || undefined,
-      };
-    });
+        return {
+          id: String(checklist.id),
+          assignedTo: assignedEmployees,
+          department: departmentName,
+          dateOfCreation: format(new Date(checklist.created_at), "M/d/yy"),
+          status:
+            checklist.status === "publish"
+              ? ("Published" as const)
+              : ("Draft" as const),
+          assignedBy: assignedByDetails?.emp_name || "Admin",
+          assignedByAvatar: assignedByDetails?.profile_picture || undefined,
+        };
+      }
+    );
   }, [checklistsData]);
 
   const { pinnedIds, togglePin, ordered } = usePinnedRows<NewHireRow>(data);
 
-  const handleRowClick = React.useCallback((row: NewHireRow) => {
-    router.push(ROUTES.ADMIN.NEW_HIRE_PLAN_EDIT_ID(row.id));
-  }, [router]);
+  const handleRowClick = React.useCallback(
+    (row: NewHireRow) => {
+      router.push(ROUTES.ADMIN.NEW_HIRE_PLAN_DETAIL_ID(row.id));
+    },
+    [router]
+  );
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearchQuery(value);
@@ -142,87 +170,126 @@ export function NewHireTable() {
   const handleDelete = async (id: string) => {
     try {
       await deleteChecklist.mutateAsync(Number(id));
-      toast.success('New hire plan deleted successfully');
+      toast.success("New hire plan deleted successfully");
     } catch (error) {
-      console.error('Failed to delete checklist:', error);
-      toast.error('Failed to delete new hire plan');
+      console.error("Failed to delete checklist:", error);
+      toast.error("Failed to delete new hire plan");
     }
   };
 
   // Memoize the columns to prevent unnecessary re-renders
-  const columns = React.useMemo<ColumnDef<NewHireRow>[]>(() => [
-    {
-      accessorKey: "assignedTo",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Assigned to" />,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          {row.original.assignedTo.length > 0 ?
-            <AvatarStack size={24} className="-space-x-2">
-              {row.original.assignedTo.map((employee, idx) => (
-                <Avatar key={idx} className="z-1">
-                  <AvatarImage src={employee.avatar} alt={employee.name} />
-                  <AvatarFallback className="text-[10px] border border-primary">{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-              ))}
-            </AvatarStack>
-            : <span className="text-sm text-[#667085]"> N/A </span>}
-          {row.original.assignedTo.length > 3 ? (
-            <span className="text-xs text-muted-foreground">+{row.original.assignedTo.length - 3}</span>
-          ) : null}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "dateOfCreation",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Date of Creation" />,
-      cell: ({ row }) => <span className="text-sm text-[#667085]">{row.original.dateOfCreation}</span>,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Status" />,
-      cell: ({ row }) => (
-        <Badge variant="secondary" className={row.original.status === "Published" ? "bg-emerald-50 text-emerald-700 border-0" : "bg-orange-50 text-orange-700 border-0"}>
-          {row.original.status}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "assignedBy",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Assigned by" />,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Avatar className="size-6">
-            <AvatarImage src={row.original.assignedByAvatar} alt={row.original.assignedBy} />
-            <AvatarFallback className="text-[10px] border border-primary">
-              {row.original.assignedBy === 'Admin' ? 'A' :
-                row.original.assignedBy
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm text-[#667085]">{row.original.assignedBy}</span>
-        </div>
-      ),
-    },
-    {
-      id: "actions",
-      header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="text-[#D64575]"
-            onClick={() => handleDelete(row.original.id)}
-            disabled={deleteChecklist.isPending}
+  const columns = React.useMemo<ColumnDef<NewHireRow>[]>(
+    () => [
+      {
+        accessorKey: "assignedTo",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Assigned to" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            {row.original.assignedTo.length > 0 ? (
+              <AvatarStack size={24} className="-space-x-2">
+                {row.original.assignedTo.map((employee, idx) => (
+                  <Avatar key={idx} className="z-1">
+                    <AvatarImage src={employee.avatar} alt={employee.name} />
+                    <AvatarFallback className="text-[10px] border border-primary">
+                      {employee.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+              </AvatarStack>
+            ) : (
+              <span className="text-sm text-[#667085]"> N/A </span>
+            )}
+            {row.original.assignedTo.length > 3 ? (
+              <span className="text-xs text-muted-foreground">
+                +{row.original.assignedTo.length - 3}
+              </span>
+            ) : null}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "dateOfCreation",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Date of Creation" />
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm text-[#667085]">
+            {row.original.dateOfCreation}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Status" />
+        ),
+        cell: ({ row }) => (
+          <Badge
+            variant="secondary"
+            className={
+              row.original.status === "Published"
+                ? "bg-emerald-50 text-emerald-700 border-0"
+                : "bg-orange-50 text-orange-700 border-0"
+            }
           >
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ], [pinnedIds, togglePin, deleteChecklist.isPending]);
+            {row.original.status}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "assignedBy",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Assigned by" />
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Avatar className="size-6">
+              <AvatarImage
+                src={row.original.assignedByAvatar}
+                alt={row.original.assignedBy}
+              />
+              <AvatarFallback className="text-[10px] border border-primary">
+                {row.original.assignedBy === "Admin"
+                  ? "A"
+                  : row.original.assignedBy
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-[#667085]">
+              {row.original.assignedBy}
+            </span>
+          </div>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <span className="text-sm font-medium text-[#727272]">Action</span>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-[#D64575]"
+              onClick={() => handleDelete(row.original.id)}
+              disabled={deleteChecklist.isPending}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [pinnedIds, togglePin, deleteChecklist.isPending]
+  );
 
   // Show loading state only on initial load (no search query and no existing data)
   if (isLoading && !debouncedSearchQuery && data.length === 0) {
@@ -236,11 +303,13 @@ export function NewHireTable() {
   }
 
   return (
-    <Card className={cn("border-[#FFF6F6] p-5 shadow-none", {
-      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
-    })}>
+    <Card
+      className={cn("border-[#FFF6F6] p-5 shadow-none", {
+        "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
+      })}
+    >
       <CardTableToolbar
-        title='Recent Training Checklists'
+        title="Recent Training Checklists"
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
         sortOptions={[
@@ -257,7 +326,9 @@ export function NewHireTable() {
         columns={columns}
         data={ordered}
         headerClassName="grid-cols-[1.2fr_1fr_0.8fr_1.2fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_0.8fr_1.2fr_0.8fr] cursor-pointer"}
+        rowClassName={() =>
+          "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_0.8fr_1.2fr_0.8fr] cursor-pointer"
+        }
         onRowClick={(row) => handleRowClick(row.original)}
         footer={(table) => <CardTablePagination table={table} />}
       />
@@ -274,16 +345,20 @@ export function NewHireTable() {
           <SelectFilter
             label="Status"
             value={(filters.status as string) || "__all__"}
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, status: value }))}
+            onValueChange={(value: string) =>
+              setFilters((prev) => ({ ...prev, status: value }))
+            }
             options={[
               { value: "__all__", label: "All Statuses" },
               { value: "publish", label: "Published" },
-              { value: "draft", label: "Draft" }
+              { value: "draft", label: "Draft" },
             ]}
           />
           <DepartmentFilter
             value={(filters.department as string) || "__all__"}
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
+            onValueChange={(value: string) =>
+              setFilters((prev) => ({ ...prev, department: value }))
+            }
           />
         </div>
       </FilterDrawer>
@@ -296,7 +371,7 @@ function SelectFilter({
   label,
   value,
   onValueChange,
-  options
+  options,
 }: {
   label: string;
   value: string;
@@ -307,7 +382,10 @@ function SelectFilter({
     <div className="space-y-2">
       <Label htmlFor={`filter-${label.toLowerCase()}`}>{label}</Label>
       <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger id={`filter-${label.toLowerCase()}`} className="w-full border-[#E4E4E4]">
+        <SelectTrigger
+          id={`filter-${label.toLowerCase()}`}
+          className="w-full border-[#E4E4E4]"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
