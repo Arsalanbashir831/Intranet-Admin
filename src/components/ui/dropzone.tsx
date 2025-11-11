@@ -360,9 +360,6 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                       <div key={index} className="relative group">
                         <div 
                           className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
-                          onClick={() => {
-                            console.log("Cannot open attachment due to parsing error");
-                          }}
                         >
                           <FileIcon className="size-8 text-gray-400 mb-1" />
                           <div className="text-xs text-center truncate w-full px-1">
@@ -543,7 +540,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                         <div 
                           className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
                           onClick={() => {
-                            console.log("Cannot open file due to parsing error");
+                            // File parsing error - cannot open file
                           }}
                         >
                           <FileIcon className="size-8 text-gray-400 mb-1" />
@@ -582,7 +579,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                         <div 
                           className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
                           onClick={() => {
-                            console.log("Cannot open file due to parsing error");
+                            // File parsing error - cannot open file
                           }}
                         >
                           <FileIcon className="size-8 text-gray-400 mb-1" />

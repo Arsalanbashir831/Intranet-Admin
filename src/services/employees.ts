@@ -2,23 +2,7 @@ import apiCaller from "@/lib/api-caller";
 import { API_ROUTES } from "@/constants/api-routes";
 import { generatePaginationParams } from "@/lib/pagination-utils";
 import { buildQueryParams, numberArrayToStringArray } from "@/lib/service-utils";
-import type { Employee } from "@/types/employees";
-
-export type EmployeeCreateRequest = {
-  emp_name: string;
-  branch_department_id?: number;
-  manager_branch_departments?: number[];
-  email?: string | null;
-  phone?: string | null;
-  role?: number | null;
-  education?: string | null;
-  bio?: string | null;
-  profile_picture?: File | string | null; // Support both File and string
-};
-
-export type EmployeeUpdateRequest = Partial<EmployeeCreateRequest> & {
-  branch_department_ids?: number[]; // For managers in edit mode
-};
+import type { Employee, EmployeeCreateRequest, EmployeeUpdateRequest } from "@/types/employees";
 
 export async function listEmployees(
   params?: Record<string, string | number | boolean>,
@@ -206,9 +190,9 @@ export async function updateEmployee(id: number | string, payload: EmployeeUpdat
     // Then delete the profile picture using dedicated endpoint
     try {
       await deleteEmployeeProfilePicture(id);
-    } catch (error) {
-      // If delete fails (e.g., no picture to delete), continue
-      console.warn('Profile picture deletion failed:', error);
+    } catch {
+      // If delete fails (e.g., no picture to delete), continue silently
+      // Error is non-critical as the main update operation succeeded
     }
 
     return res.data;

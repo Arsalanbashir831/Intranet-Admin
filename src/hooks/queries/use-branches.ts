@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData  } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createBranch,
   deleteBranch,
@@ -9,13 +9,7 @@ import {
   listBranchDepartments,
 } from "@/services/branches";
 import type { BranchCreateRequest, BranchUpdateRequest } from "@/types/branches";
-
-// Helper: make params stable in the query key
-const normalizeParams = (params?: Record<string, string | number | boolean>) => {
-  if (!params) return undefined;
-  const entries = Object.entries(params).sort(([a], [b]) => (a > b ? 1 : -1));
-  return Object.fromEntries(entries);
-};
+import { normalizeParams, defaultQueryOptions } from "@/lib/query-utils";
 
 // ---- Queries ----
 
@@ -32,9 +26,7 @@ export function useBranches(
   return useQuery({
     queryKey: ["branches", keyParams, keyPagination],
     queryFn: () => listBranches(keyParams, keyPagination),
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -43,9 +35,7 @@ export function useAllBranches(params?: Record<string, string | number | boolean
   return useQuery({
     queryKey: ["all-branches", keyParams],
     queryFn: () => listAllBranches(keyParams),
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -63,9 +53,7 @@ export function useSearchBranches(
     queryKey: ["branches", "search", trimmed, keyPagination],
     queryFn: () => listBranches(trimmed ? { search: trimmed } : undefined, keyPagination),
     enabled: trimmed.length > 0,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -74,9 +62,7 @@ export function useBranch(id: number | string) {
     queryKey: ["branches", "detail", String(id)],
     queryFn: () => getBranch(id),
     enabled: !!id,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -132,9 +118,7 @@ export function useBranchDepartments(
   return useQuery({
     queryKey: ["branch-departments", keyParams, keyPagination],
     queryFn: () => listBranchDepartments(keyParams, keyPagination),
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -152,8 +136,6 @@ export function useSearchBranchDepartments(
     queryKey: ["branch-departments", "search", trimmed, keyPagination],
     queryFn: () => listBranchDepartments(trimmed ? { search: trimmed } : undefined, keyPagination),
     enabled: trimmed.length > 0,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }

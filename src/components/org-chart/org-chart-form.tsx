@@ -18,7 +18,7 @@ import {
 } from "@/hooks/queries/use-employees";
 import { useRoles } from "@/hooks/queries/use-roles";
 import { useManagerScope } from "@/contexts/manager-scope-context";
-import type { EmployeeCreateRequest, EmployeeUpdateRequest } from "@/services/employees";
+import type { EmployeeCreateRequest, EmployeeUpdateRequest } from "@/types/employees";
 import { BranchDepartmentSelector } from "@/components/common/branch-department-selector";
 
 import { useRouter } from "next/navigation";
@@ -170,54 +170,55 @@ export function OrgChartForm({
 		// Convert selected branch department IDs to numbers
 		const branchDepartmentIds = selectedBranchDeptIds.map((id) => Number(id));
 
-		// Build payload based on role
-		// Use EmployeeUpdateRequest for edit mode (includes branch_department_ids), EmployeeCreateRequest for create
-		const payload: EmployeeCreateRequest | EmployeeUpdateRequest = {
+		// Get role info
+		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+		const isManagerRole = selectedRoleObj?.access_level === "manager";
+
+		// Base fields for both create and update
+		const baseFields = {
 			emp_name: empName,
 			email: email || undefined,
 			phone: phone || undefined,
-			role: selectedRole ? Number(selectedRole) : undefined, // Convert to integer for API (role ID)
+			role: selectedRole ? Number(selectedRole) : undefined,
 			education: educationHtml || undefined,
 			bio: bioHtml || undefined,
-			// Handle profile picture logic
-			profile_picture:
-				selectedFiles[0] || (isRemovingPicture ? null : undefined),
+			profile_picture: selectedFiles[0] || (isRemovingPicture ? null : undefined),
 		};
-
-		// Add branch department fields based on role and mode
-		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-		const isManagerRole = selectedRoleObj?.access_level === "manager";
-		
-		if (isManagerRole) {
-			if (isEdit) {
-				// Edit mode: use branch_department_ids for managers
-				(payload as EmployeeUpdateRequest).branch_department_ids = branchDepartmentIds;
-			} else {
-				// Create mode: use manager_branch_departments for managers
-				(payload as EmployeeCreateRequest).manager_branch_departments = branchDepartmentIds;
-			}
-		} else {
-			// Regular employee: use single branch_department_id
-			payload.branch_department_id = branchDepartmentIds[0];
-		}
 
 		try {
 			if (isEdit && employeeId) {
-				const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-				const isManagerRole = selectedRoleObj?.access_level === "manager";
-				const updatePayload: EmployeeUpdateRequest = isManagerRole
-					? { ...payload, branch_department_ids: branchDepartmentIds }
-					: payload;
-				await updateEmployee.mutateAsync(updatePayload as EmployeeUpdateRequest);
+				// Build update payload
+				const updatePayload: EmployeeUpdateRequest = {
+					...baseFields,
+				};
+				
+				if (isManagerRole && branchDepartmentIds.length > 0) {
+					updatePayload.branch_department_ids = branchDepartmentIds;
+				} else if (branchDepartmentIds.length > 0) {
+					updatePayload.branch_department_id = branchDepartmentIds[0];
+				}
+				
+				await updateEmployee.mutateAsync(updatePayload);
 				toast.success("Employee updated successfully");
 			} else {
-				await createEmployee.mutateAsync(payload as EmployeeCreateRequest);
+				// Build create payload
+				const createPayload: EmployeeCreateRequest = {
+					...baseFields,
+				};
+				
+				if (isManagerRole && branchDepartmentIds.length > 0) {
+					createPayload.manager_branch_departments = branchDepartmentIds;
+				} else if (branchDepartmentIds.length > 0) {
+					createPayload.branch_department_id = branchDepartmentIds[0];
+				}
+				
+				await createEmployee.mutateAsync(createPayload);
 				toast.success("Employee created successfully");
 			}
 			onSubmitComplete?.(true); // Notify parent that submission succeeded
 			router.push(ROUTES.ADMIN.ORG_CHART);
 		} catch (error: unknown) {
-			console.error("Error saving employee:", error);
+			// Error is handled by error handler and toast notification
 			
 			// Use centralized error extraction
 			const errorMessage = extractErrorMessage(error);

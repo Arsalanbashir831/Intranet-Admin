@@ -265,7 +265,7 @@ export function KnowledgeBaseTable() {
         const folderCreatedByAdmin = row.original.originalData.created_by?.is_admin === true;
         const currentUserIsAdmin = user?.isAdmin;
 
-        console.log(currentUserIsAdmin, folderCreatedByAdmin);
+        // Access control check: admin can edit/delete any folder, non-admin can only edit/delete non-admin folders
 
         // If folder was created by admin, only admins can edit/delete it
         // If folder was created by manager, both admins and managers can edit/delete it

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createRole,
   deleteRole,
@@ -6,13 +6,7 @@ import {
   updateRole,
 } from "@/services/roles";
 import type { RoleCreateRequest, RoleUpdateRequest } from "@/types/roles";
-
-// Helper: make params stable in the query key
-const normalizeParams = (params?: Record<string, string | number | boolean>) => {
-  if (!params) return undefined;
-  const entries = Object.entries(params).sort(([a], [b]) => (a > b ? 1 : -1));
-  return Object.fromEntries(entries);
-};
+import { normalizeParams, defaultQueryOptions } from "@/lib/query-utils";
 
 // ---- Queries ----
 
@@ -29,9 +23,7 @@ export function useRoles(
   return useQuery({
     queryKey: ["roles", keyParams, keyPagination],
     queryFn: () => listRoles(keyParams, keyPagination),
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -49,9 +41,7 @@ export function useSearchRoles(
     queryKey: ["roles", "search", trimmed, keyPagination],
     queryFn: () => listRoles(trimmed ? { search: trimmed } : undefined, keyPagination),
     enabled: trimmed.length > 0,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 

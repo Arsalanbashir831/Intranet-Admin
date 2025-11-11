@@ -207,15 +207,10 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
             link.click();
             document.body.removeChild(link);
           } catch (error) {
-            console.error('Download failed:', error);
-            // Fallback: open in new tab
+            // Fallback: open in new tab if download fails
             window.open(file.file_url, '_blank', 'noopener,noreferrer');
           }
-        } else {
-          console.error('File not found or no file_url available');
         }
-      } else {
-        console.error('Current folder data not available');
       }
     }
   };
@@ -306,15 +301,6 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
               const folderCreatedByAdmin = folder.created_by?.is_admin === true;
               const currentUserIsAdmin = user?.isAdmin;
               canEditDelete = currentUserIsAdmin || !folderCreatedByAdmin;
-
-              // Debug logging for folder access control
-              console.log('Folder access control:', {
-                folderName: row.original.file,
-                folderCreatedByAdmin,
-                currentUserIsAdmin,
-                canEditDelete,
-                folderCreator: folder.created_by?.emp_name
-              });
             }
           }
         } else if (row.original.kind === "file") {

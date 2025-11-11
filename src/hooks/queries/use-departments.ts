@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createDepartment,
   deleteDepartment,
@@ -14,13 +14,7 @@ import type {
   DepartmentCreateRequest,
   DepartmentUpdateRequest,
 } from "@/types/departments";
-
-// Helpers
-const normalizeParams = (params?: Record<string, string | number | boolean>) => {
-  if (!params) return undefined;
-  const entries = Object.entries(params).sort(([a], [b]) => (a > b ? 1 : -1));
-  return Object.fromEntries(entries);
-};
+import { normalizeParams, defaultQueryOptions } from "@/lib/query-utils";
 
 // ---- Queries ----
 
@@ -37,9 +31,7 @@ export function useDepartments(
   return useQuery({
     queryKey: ["departments", keyParams, keyPagination],
     queryFn: () => listDepartments(keyParams, keyPagination),
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -57,9 +49,7 @@ export function useSearchDepartments(
     queryKey: ["departments", "search", trimmed, keyPagination],
     queryFn: () => listDepartments(trimmed ? { search: trimmed } : undefined, keyPagination),
     enabled: trimmed.length > 0,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -78,9 +68,7 @@ export function useDepartmentEmployees(
     queryKey: ["department-employees", String(departmentId), keyPagination, keyParams],
     queryFn: () => getDepartmentEmployees(departmentId, keyPagination, keyParams),
     enabled: !!departmentId,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -99,9 +87,7 @@ export function useBranchDepartmentEmployees(
     queryKey: ["branch-department-employees", String(branchDepartmentId), keyPagination, keyParams],
     queryFn: () => getBranchDepartmentEmployees(branchDepartmentId, keyPagination, keyParams),
     enabled: !!branchDepartmentId,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -110,9 +96,7 @@ export function useBranchDepartments(params?: Record<string, string | number | b
   const { data: branchesData, isLoading, error } = useQuery({
     queryKey: ["all-branches-for-branch-departments", params],
     queryFn: () => listAllBranches(params),
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 
   // Flatten branch departments from branches
@@ -146,9 +130,7 @@ export function useDepartment(id: number | string) {
     queryKey: ["departments", "detail", String(id)],
     queryFn: () => getDepartment(id),
     enabled: !!id,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   createEmployee,
   deleteEmployee,
@@ -10,14 +10,8 @@ import {
   uploadEmployeeProfilePicture,
   deleteEmployeeProfilePicture,
 } from "@/services/employees";
-import type { EmployeeCreateRequest, EmployeeUpdateRequest } from "@/services/employees";
-
-/** Ensure params are stable in the query key (avoid refetches from key identity churn). */
-const normalizeParams = (params?: Record<string, string | number | boolean>) => {
-  if (!params) return undefined as undefined;
-  const entries = Object.entries(params).sort(([a], [b]) => (a > b ? 1 : -1));
-  return Object.fromEntries(entries) as Record<string, string | number | boolean>;
-};
+import type { EmployeeCreateRequest, EmployeeUpdateRequest } from "@/types/employees";
+import { normalizeParams, defaultQueryOptions } from "@/lib/query-utils";
 
 /** Consistent detail key (stringify id). */
 const employeeDetailKey = (id: number | string) => ["employees", String(id)] as const;
@@ -34,9 +28,7 @@ export function useEmployees(
   return useQuery({
     queryKey: ["employees", keyParams, managerScope],
     queryFn: () => listEmployees(keyParams, undefined, managerScope),
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData, // keep prior page while fetching
+    ...defaultQueryOptions,
   });
 }
 
@@ -45,9 +37,7 @@ export function useAllEmployees(params?: Record<string, string | number | boolea
   return useQuery({
     queryKey: ["all-employees", keyParams],
     queryFn: () => listAllEmployees(keyParams),
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
+    ...defaultQueryOptions,
   });
 }
 
@@ -61,10 +51,9 @@ export function useSearchEmployees(
   return useQuery({
     queryKey: ["search-employees", trimmed, keyParams],
     queryFn: () => searchEmployees(trimmed, keyParams),
-    enabled: trimmed.length > 0,          // only fetch if there's a query
-    staleTime: 30_000,                    // slightly fresher for search
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,    // avoid blinking when typing
+    enabled: trimmed.length > 0,
+    ...defaultQueryOptions,
+    staleTime: 30_000, // Override: slightly fresher for search
   });
 }
 
@@ -74,9 +63,7 @@ export function useEmployee(id: number | string, managerScope?: boolean) {
     queryKey: [...key, managerScope],
     queryFn: () => getEmployee(id, managerScope),
     enabled: !!id,
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData, // keeps old detail while refreshing
+    ...defaultQueryOptions,
   });
 }
 
