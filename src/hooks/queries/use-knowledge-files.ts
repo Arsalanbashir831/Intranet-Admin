@@ -94,8 +94,34 @@ export const usePatchFile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number | string; data: PatchedKnowledgeFile }) =>
-      patchFile(id, data),
+    mutationFn: ({ id, data }: { id: number | string; data: FileUpdateRequest | PatchedKnowledgeFile }) => {
+      // Convert to PatchedKnowledgeFile - handle type differences
+      const patchData: PatchedKnowledgeFile = {
+        folder: data.folder,
+        name: data.name,
+        description: data.description,
+        inherits_parent_permissions: data.inherits_parent_permissions,
+        // Convert string[] to number[] if needed (FileUpdateRequest uses string[], PatchedKnowledgeFile uses number[])
+        permitted_branches: data.permitted_branches 
+          ? (typeof data.permitted_branches[0] === 'string' 
+              ? (data.permitted_branches as string[]).map(Number).filter(n => !isNaN(n))
+              : data.permitted_branches as number[])
+          : undefined,
+        permitted_departments: data.permitted_departments
+          ? (typeof data.permitted_departments[0] === 'string'
+              ? (data.permitted_departments as string[]).map(Number).filter(n => !isNaN(n))
+              : data.permitted_departments as number[])
+          : undefined,
+        permitted_employees: data.permitted_employees
+          ? (typeof data.permitted_employees[0] === 'string'
+              ? (data.permitted_employees as string[]).map(Number).filter(n => !isNaN(n))
+              : data.permitted_employees as number[])
+          : undefined,
+        // Only include file if it's a string (URL), not a File object
+        file: data.file && typeof data.file === 'string' ? data.file : undefined,
+      };
+      return patchFile(id, patchData);
+    },
     onSuccess: (data, variables) => {
       // Update the specific file in cache
       queryClient.setQueryData(fileKeys.detail(variables.id), data);
