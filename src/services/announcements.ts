@@ -24,6 +24,8 @@ export type AnnouncementCreateRequest = {
   body: string;
   type?: AnnouncementTypeEnum;
   inherits_parent_permissions?: boolean;
+  permitted_branches?: number[];
+  permitted_departments?: number[];
   permitted_branch_departments?: number[];
 };
 
@@ -35,6 +37,8 @@ export type AnnouncementUpdateRequest = {
   body?: string;
   type?: AnnouncementTypeEnum;
   inherits_parent_permissions?: boolean;
+  permitted_branches?: number[];
+  permitted_departments?: number[];
   permitted_branch_departments?: number[];
 };
 
@@ -126,6 +130,8 @@ export async function createAnnouncement(payload: AnnouncementCreateRequest, man
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
+    permitted_branches: payload.permitted_branches?.map(String),
+    permitted_departments: payload.permitted_departments?.map(String),
     permitted_branch_departments: payload.permitted_branch_departments?.map(String),
   };
   
@@ -140,6 +146,8 @@ export async function updateAnnouncement(id: number | string, payload: Announcem
   // Convert number arrays to string arrays for API compatibility
   const apiPayload = {
     ...payload,
+    permitted_branches: payload.permitted_branches?.map(String),
+    permitted_departments: payload.permitted_departments?.map(String),
     permitted_branch_departments: payload.permitted_branch_departments?.map(String),
   };
   

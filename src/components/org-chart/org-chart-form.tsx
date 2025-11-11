@@ -19,8 +19,8 @@ import {
 } from "@/hooks/queries/use-employees";
 import { useRoles } from "@/hooks/queries/use-roles";
 import { useManagerScope } from "@/contexts/manager-scope-context";
-import { useBranchDepartments, useSearchBranchDepartments } from "@/hooks/queries/use-branches";
 import type { EmployeeCreateRequest, EmployeeUpdateRequest } from "@/services/employees";
+import { BranchDepartmentSelector } from "@/components/common/branch-department-selector";
 
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -68,60 +68,7 @@ export function OrgChartForm({
 		});
 	}, [rolesData, isManager]);
 	
-	// Create adapter functions for async search using branch departments API
-	const useAllDepartments = () => {
-		const result = useBranchDepartments(undefined, { pageSize: 1000 });
-		const branchDeptItems = React.useMemo(() => {
-			if (!result.data?.branch_departments?.results) return [];
-			
-			const items: { id: string; label: string }[] = [];
-			for (const bd of result.data.branch_departments.results) {
-				const bdId = String(bd.id);
-				const branchName = String(bd.branch?.branch_name ?? "");
-				const deptName = String(bd.department?.dept_name ?? "");
-				
-				// Filter: If manager, only show their managed departments
-				if (isManager && !managedDepartments.includes(bd.id)) {
-					continue; // Skip this department
-				}
-				
-				items.push({ id: bdId, label: `${deptName} - ${branchName}` });
-			}
-			return items;
-		}, [result.data, isManager, managedDepartments]);
-
-		return {
-			data: branchDeptItems,
-			isLoading: result.isLoading,
-		};
-	};
-
-	const useSearchDepartmentsAdapter = (query: string) => {
-		const result = useSearchBranchDepartments(query, { pageSize: 1000 });
-		const branchDeptItems = React.useMemo(() => {
-			if (!result.data?.branch_departments?.results) return [];
-			
-			const items: { id: string; label: string }[] = [];
-			for (const bd of result.data.branch_departments.results) {
-				const bdId = String(bd.id);
-				const branchName = String(bd.branch?.branch_name ?? "");
-				const deptName = String(bd.department?.dept_name ?? "");
-				
-				// Filter: If manager, only show their managed departments
-				if (isManager && !managedDepartments.includes(bd.id)) {
-					continue; // Skip this department
-				}
-				
-				items.push({ id: bdId, label: `${deptName} - ${branchName}` });
-			}
-			return items;
-		}, [result.data, isManager, managedDepartments]);
-
-		return {
-			data: branchDeptItems,
-			isLoading: result.isLoading,
-		};
-	};
+	// Removed adapter functions - now using BranchDepartmentSelector component
 
 	// File upload state
 	const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
@@ -213,11 +160,12 @@ export function OrgChartForm({
 		const email = String(data.get("email") || "").trim();
 		const phone = String(data.get("phone") || "").trim();
 
-		// if (!empName || selectedBranchDeptIds.length === 0) {
-		// 	toast.error("Name and at least one Branch/Department are required");
-		// 	onSubmitComplete?.(false); // Notify parent that submission failed
-		// 	return;
-		// }
+		// Validation: Ensure at least one branch and department are selected
+		if (selectedBranchDeptIds.length === 0) {
+			toast.error("Please select at least one branch and department");
+			onSubmitComplete?.(false);
+			return;
+		}
 
 		// Convert selected branch department IDs to numbers
 		const branchDepartmentIds = selectedBranchDeptIds.map((id) => Number(id));
@@ -418,51 +366,50 @@ export function OrgChartForm({
 
 			{/* Reporting to not part of Employee schema here */}
 
-			<div className="grid grid-cols-12 items-center gap-4 border-t border-[#E9EAEB] pt-4">
-				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
-					Branch Department{availableRoles.find(r => String(r.id) === selectedRole)?.access_level === "manager" ? "s" : ""}:
-				</Label>
-				<div className="col-span-12 md:col-span-10">
-					<SelectableTags
-						items={[]} // Empty since we're using async hooks
-						selectedItems={selectedBranchDeptIds}
-						onSelectionChange={(ids) => {
-							const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-							const isManagerRole = selectedRoleObj?.access_level === "manager";
-							
-							// If role is not Manager, allow only one selection
-							if (!isManagerRole) {
-								const lastSelected = ids[ids.length - 1];
-								setSelectedBranchDeptIds(lastSelected ? [lastSelected] : []);
-							} else {
-								// Manager can select multiple
-								setSelectedBranchDeptIds(ids);
-							}
-						}}
-						searchPlaceholder="Search branch departments..."
-						emptyMessage="No branch departments found."
-						useAllItems={useAllDepartments}
-						useSearch={useSearchDepartmentsAdapter}
-						searchDebounce={300}
-					/>
-					{(() => {
+			<div className="border-t border-[#E9EAEB] pt-4">
+				<BranchDepartmentSelector
+					value={selectedBranchDeptIds}
+					onChange={(ids) => {
 						const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
 						const isManagerRole = selectedRoleObj?.access_level === "manager";
 						
-						if (!isManagerRole) {
-							return (
-								<p className="mt-1 text-xs text-muted-foreground">
-									Only one department can be selected for this role. Select Manager role to manage multiple departments.
-								</p>
-							);
+						// If role is not Manager, allow only one selection
+						if (!isManagerRole && ids.length > 1) {
+							const lastSelected = ids[ids.length - 1];
+							setSelectedBranchDeptIds(lastSelected ? [lastSelected] : []);
+						} else {
+							setSelectedBranchDeptIds(ids);
 						}
+					}}
+					allowMultiple={availableRoles.find(r => String(r.id) === selectedRole)?.access_level === "manager"}
+					branchLabel="Branch:"
+					departmentLabel="Department:"
+					branchPlaceholder="Select branch(es)..."
+					departmentPlaceholder="Select department(s)..."
+					managedDepartments={isManager ? managedDepartments : undefined}
+					initialBranchDepartmentIds={initialValues?.branch_department 
+						? Array.isArray(initialValues.branch_department) 
+							? initialValues.branch_department 
+							: [initialValues.branch_department]
+						: undefined}
+				/>
+				{(() => {
+					const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+					const isManagerRole = selectedRoleObj?.access_level === "manager";
+					
+					if (!isManagerRole) {
 						return (
-							<p className="mt-1 text-xs text-muted-foreground">
-								Managers can be assigned to multiple departments. The first department will be used as their employee record location.
+							<p className="mt-1 text-xs text-muted-foreground ml-[16.666667%] md:ml-0">
+								Only one branch and department can be selected for this role. Select Manager role to manage multiple departments.
 							</p>
 						);
-					})()}
-				</div>
+					}
+					return (
+						<p className="mt-1 text-xs text-muted-foreground ml-[16.666667%] md:ml-0">
+							Managers can be assigned to multiple branches and departments. The first department will be used as their employee record location.
+						</p>
+					);
+				})()}
 			</div>
 
 			<div className="grid grid-cols-12 items-start gap-4 border-t border-[#E9EAEB] pt-4">

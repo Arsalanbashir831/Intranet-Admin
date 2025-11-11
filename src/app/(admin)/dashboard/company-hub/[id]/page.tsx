@@ -86,22 +86,28 @@ export default function CompanyHubEditPage() {
   const initialData = React.useMemo<CompanyHubInitialData | undefined>(() => {
     if (!announcement) return undefined;
     
-    // Type assertion for announcement with additional fields
-    const announcementWithBranchDepts = announcement as typeof announcement & {
+    // Type assertion to access all fields from API response
+    const announcementWithAllFields = announcement as typeof announcement & {
+      permitted_branches?: number[];
+      permitted_departments?: number[];
       permitted_branch_departments?: number[];
     };
     
     return {
       type: announcement.type === "policy" ? "policy" : "announcement",
       title: announcement.title,
-      // Map permitted_branch_departments from API response
-      selectedBranchDepartments: announcementWithBranchDepts.permitted_branch_departments?.map(String) || [],
+      // Map all three possible fields from API response
+      permittedBranches: announcementWithAllFields.permitted_branches?.map(String) || [],
+      permittedDepartments: announcementWithAllFields.permitted_departments?.map(String) || [],
+      permittedBranchDepartments: announcementWithAllFields.permitted_branch_departments?.map(String) || [],
+      // Keep for backward compatibility
+      selectedBranchDepartments: announcementWithAllFields.permitted_branch_departments?.map(String) || [],
       body: announcement.body,
     };
   }, [announcement]);
 
   const handleSubmit = async (isDraft: boolean = false) => {
-    if (!id || isSaving || isPublishing || !currentFormData) return;
+    if (!id || isSaving || isPublishing || !currentFormData || !announcement) return;
     
     try {
       // Set the appropriate loading state
@@ -111,15 +117,61 @@ export default function CompanyHubEditPage() {
         setIsPublishing(true);
       }
       
-      await updateAnnouncement.mutateAsync({
+      // Type assertion to access all fields from API response
+      const announcementWithAllFields = announcement as typeof announcement & {
+        permitted_branches?: number[];
+        permitted_departments?: number[];
+        permitted_branch_departments?: number[];
+      };
+      
+      // Build payload with conditional fields
+      const payload: {
+        title: string;
+        body: string;
+        type: "announcement" | "policy";
+        inherits_parent_permissions: boolean;
+        permitted_branches?: number[];
+        permitted_departments?: number[];
+        permitted_branch_departments?: number[];
+      } = {
         title: currentFormData.title || "",
         body: currentFormData.body || "",
         type: currentFormData.type === "policy" ? "policy" : "announcement",
-        inherits_parent_permissions: false, // Set to false as per new API structure
-        permitted_branch_departments: currentFormData.selectedBranchDepartments 
-          ? currentFormData.selectedBranchDepartments.map(Number) 
-          : [],
-      });
+        inherits_parent_permissions: false,
+      };
+
+      // Add conditional fields based on what's selected
+      // Check what was previously set to determine if we need to clear old fields
+      const hadBranchDepts = announcementWithAllFields.permitted_branch_departments?.length;
+      const hadBranches = announcementWithAllFields.permitted_branches?.length;
+      const hadDepartments = announcementWithAllFields.permitted_departments?.length;
+      
+      if (currentFormData.permittedBranchDepartments?.length) {
+        // Both branches and departments selected
+        payload.permitted_branch_departments = currentFormData.permittedBranchDepartments.map(Number);
+        // Clear old fields if they existed
+        if (hadBranches) payload.permitted_branches = [];
+        if (hadDepartments) payload.permitted_departments = [];
+      } else if (currentFormData.permittedBranches?.length) {
+        // Only branches selected
+        payload.permitted_branches = currentFormData.permittedBranches.map(Number);
+        // Clear old fields if they existed
+        if (hadBranchDepts) payload.permitted_branch_departments = [];
+        if (hadDepartments) payload.permitted_departments = [];
+      } else if (currentFormData.permittedDepartments?.length) {
+        // Only departments selected
+        payload.permitted_departments = currentFormData.permittedDepartments.map(Number);
+        // Clear old fields if they existed
+        if (hadBranchDepts) payload.permitted_branch_departments = [];
+        if (hadBranches) payload.permitted_branches = [];
+      } else {
+        // Nothing selected - clear all fields
+        if (hadBranchDepts) payload.permitted_branch_departments = [];
+        if (hadBranches) payload.permitted_branches = [];
+        if (hadDepartments) payload.permitted_departments = [];
+      }
+
+      await updateAnnouncement.mutateAsync(payload);
       
       // Upload new attachments if any files are selected
       if (currentFormData.attachedFiles && currentFormData.attachedFiles.length > 0) {
