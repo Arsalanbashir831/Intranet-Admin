@@ -199,7 +199,7 @@ export function EmployeeTable() {
 
       // Map role ID to role name if available
       const roleId = String(employee.role ?? "");
-      const roleName = roleMap.get(roleId) || roleId; // Use mapped name or fallback to ID/name
+      const roleName = roleMap.get(roleId) || roleId; // Use mapped name or fallback to ID/nams
       
       return {
         id: String(employee.id),
