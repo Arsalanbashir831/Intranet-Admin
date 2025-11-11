@@ -7,6 +7,8 @@ import { Pie, PieChart, Cell, ResponsiveContainer, Label } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAllBranches } from "@/hooks/queries/use-branches";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Branch } from "@/types/branches";
+import { DEPARTMENT_COLORS } from "@/constants/colors";
 
 type Slice = { name: string; value: number; color: string };
 type BranchData = {
@@ -15,84 +17,61 @@ type BranchData = {
   total: number;
 };
 
-// Extended color palette for departments to ensure uniqueness
-const DEPARTMENT_COLORS = [
-  "#FF94B8", // Pink
-  "#49C354", // Green
-  "#FBBD1C", // Yellow
-  "#237CFF", // Blue
-  "#48E8F8", // Light Blue
-  "#9B59B6", // Purple
-  "#E74C3C", // Red
-  "#3498DB", // Light Blue 2
-  "#F39C12", // Orange
-  "#1ABC9C", // Turquoise
-  "#D35400", // Dark Orange
-  "#34495E", // Dark Blue
-  "#FF6B6B", // Light Red
-  "#6C5CE7", // Dark Purple
-  "#A29BFE", // Light Purple
-  "#00B894", // Dark Green
-  "#0984E3", // Bright Blue
-  "#E84393", // Magenta
-  "#FD79A8", // Light Pink
-  "#FDCB6E", // Light Orange
-];
 
 export function EmployeeRingChart() {
   const { data, isLoading, isError } = useAllBranches({ page_size: 1000 });
   const [selectedBranch, setSelectedBranch] = React.useState("all");
-  
+
   // Process data for the chart
   const processedData = React.useMemo(() => {
     if (!data?.branches.results) return { all: null, branches: {} };
-    
+
     const allBranchesData: Slice[] = [];
     const branchMap: Record<string, BranchData> = {};
     const departmentSet = new Set<string>();
-    
+
     // Collect all unique department names first
-    data.branches.results.forEach(branch => {
+    data.branches.results.forEach((branch: Branch) => {
       branch.departments.forEach(dept => {
         departmentSet.add(dept.dept_name);
       });
     });
-    
+
     const uniqueDepartments = Array.from(departmentSet);
-    
+
     // Process all branches data
-    data.branches.results.forEach(branch => {
+    data.branches.results.forEach((branch: Branch) => {
       const branchDepartments: Slice[] = [];
       let branchTotal = 0;
-      
+
       // Create a map of department names to colors for this branch
       const branchDepartmentColors: Record<string, string> = {};
       branch.departments.forEach((dept) => {
         const deptIndex = uniqueDepartments.indexOf(dept.dept_name);
         branchDepartmentColors[dept.dept_name] = DEPARTMENT_COLORS[deptIndex % DEPARTMENT_COLORS.length];
       });
-      
+
       branch.departments.forEach((dept) => {
         const employeeCount = dept.employee_count || 0;
         const color = branchDepartmentColors[dept.dept_name];
-        
+
         // Add to branch data
         branchDepartments.push({
           name: dept.dept_name,
           value: employeeCount,
           color
         });
-        
+
         branchTotal += employeeCount;
       });
-      
+
       // Store branch data
       branchMap[branch.id.toString()] = {
         branch: branch.branch_name,
         data: branchDepartments,
         total: branchTotal
       };
-      
+
       // Add to all branches data
       branchDepartments.forEach(dept => {
         const existingDept = allBranchesData.find(d => d.name === dept.name);
@@ -103,7 +82,7 @@ export function EmployeeRingChart() {
         }
       });
     });
-    
+
     // Create "All Branches" data
     const allBranchesTotal = allBranchesData.reduce((sum, dept) => sum + dept.value, 0);
     const allBranches: BranchData = {
@@ -111,28 +90,28 @@ export function EmployeeRingChart() {
       data: allBranchesData,
       total: allBranchesTotal
     };
-    
+
     return { all: allBranches, branches: branchMap };
   }, [data]);
-  
+
   // Get current data based on selection
   const currentData = React.useMemo(() => {
     if (!processedData.all) return null;
-    
+
     if (selectedBranch === "all") {
       return processedData.all;
     }
-    
+
     return processedData.branches[selectedBranch] || null;
   }, [processedData, selectedBranch]);
-  
+
   const config = React.useMemo(() => {
     if (!currentData) return {};
     return Object.fromEntries(
       currentData.data.map((d) => [d.name, { label: d.name, color: d.color }])
     ) as ChartConfig;
   }, [currentData]);
-  
+
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [outerR, setOuterR] = React.useState(92);
   const [innerR, setInnerR] = React.useState(72);
@@ -153,7 +132,7 @@ export function EmployeeRingChart() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  
+
   // Loading state
   if (isLoading) {
     return (
@@ -186,7 +165,7 @@ export function EmployeeRingChart() {
       </Card>
     );
   }
-  
+
   // Error state
   if (isError || !currentData) {
     return (
@@ -203,7 +182,7 @@ export function EmployeeRingChart() {
       </Card>
     );
   }
-  
+
   // Empty state - show gray ring when no employees or no departments
   if (currentData.total === 0 || currentData.data.length === 0) {
     return (
@@ -221,7 +200,7 @@ export function EmployeeRingChart() {
               <SelectItem key="all" value="all" className="text-xs">
                 All Branches
               </SelectItem>
-              {data?.branches.results.map((branch) => (
+              {data?.branches.results.map((branch: Branch) => (
                 <SelectItem key={branch.id} value={branch.id.toString()} className="text-xs">
                   {branch.branch_name}
                 </SelectItem>
@@ -233,18 +212,18 @@ export function EmployeeRingChart() {
           <ChartContainer config={{}} className="mx-auto h-full min-h-[180px] sm:min-h-[260px] w-full">
             <ResponsiveContainer>
               <PieChart>
-                <Pie 
-                  data={[{ name: "No Data", value: 1 }]} 
-                  dataKey="value" 
-                  nameKey="name" 
-                  innerRadius={innerR} 
-                  outerRadius={outerR} 
+                <Pie
+                  data={[{ name: "No Data", value: 1 }]}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={innerR}
+                  outerRadius={outerR}
                   strokeWidth={6}
                   isAnimationActive={false}
                 >
                   <Cell fill="#E0E0E0" /> {/* Gray color for empty state */}
                   <Label
-                    content={({ viewBox }) => {
+                    content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
                       if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                         return (
                           <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
@@ -281,7 +260,7 @@ export function EmployeeRingChart() {
       </Card>
     );
   }
-  
+
   return (
     <Card className="p-4 shadow-none gap-0 border-[#D0D0D0] h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between">
@@ -297,7 +276,7 @@ export function EmployeeRingChart() {
             <SelectItem key="all" value="all" className="text-xs">
               All Branches
             </SelectItem>
-            {data?.branches.results.map((branch) => (
+            {data?.branches.results.map((branch: Branch) => (
               <SelectItem key={branch.id} value={branch.id.toString()} className="text-xs">
                 {branch.branch_name}
               </SelectItem>
@@ -315,7 +294,7 @@ export function EmployeeRingChart() {
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
                 <Label
-                  content={({ viewBox }) => {
+                  content={({ viewBox }: { viewBox: { cx: number; cy: number } }) => {
                     if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                       return (
                         <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">

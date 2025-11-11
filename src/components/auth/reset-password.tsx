@@ -64,7 +64,7 @@ export function ResetPassword() {
           setSuccess(true);
           toast.success("Password reset successfully!");
         },
-        onError: (error) => {
+        onError: (error: Error) => {
           const errorMessage =
             error instanceof Error
               ? error.message

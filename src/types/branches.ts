@@ -118,3 +118,16 @@ export type BranchUpdateRequest = {
   branch_name?: string;
 } & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;
 
+export type BranchRow = {
+  id: string;
+  branch_name: string;
+  employee_count: number;
+  departments: string;
+};
+
+export type BranchDepartmentRow = {
+  id: string;
+  department: string;
+  employee_count: number;
+  branch_department_id: string;
+};

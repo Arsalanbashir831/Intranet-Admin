@@ -133,7 +133,7 @@ export function OTPVerification() {
                   <InputOTPSlot
                     key={index}
                     index={index}
-                    className="w-14 h-14 sm:w-[80px] sm:h-[67px] !rounded-2xl sm:!rounded-3xl text-lg text-center border border-gray-300 focus:border-pink-500 focus:ring-pink-500"
+                    className="w-14 h-14 sm:w-[80px] sm:h-[67px] rounded-2xl! sm:rounded-3xl! text-lg text-center border border-gray-300 focus:border-pink-500 focus:ring-pink-500"
                   />
                 ))}
               </InputOTPGroup>

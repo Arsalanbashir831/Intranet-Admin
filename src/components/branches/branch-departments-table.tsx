@@ -10,13 +10,7 @@ import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { Badge } from "@/components/ui/badge";
 import { useBranch } from "@/hooks/queries/use-branches";
 import { ROUTES } from "@/constants/routes";
-
-export type BranchDepartmentRow = {
-  id: string;
-  department: string;
-  employee_count: number;
-  branch_department_id: string;
-};
+import type { BranchDepartmentRow } from "@/types/branches";
 
 interface BranchDepartmentsTableProps {
   branchId: string;

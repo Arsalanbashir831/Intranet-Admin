@@ -25,14 +25,7 @@ import { cn } from "@/lib/utils";
 import type { Checklist } from "@/types/new-hire";
 import { FilterDrawer } from "@/components/card-table/filter-drawer";
 import { DepartmentFilter } from "@/components/card-table/filter-components";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { SelectFilter } from "../common/select-filter";
 
 export type NewHireRow = {
   id: string;
@@ -257,9 +250,9 @@ export function NewHireTable() {
                 {row.original.assignedBy === "Admin"
                   ? "A"
                   : row.original.assignedBy
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
               </AvatarFallback>
             </Avatar>
             <span className="text-sm text-[#667085]">
@@ -363,39 +356,5 @@ export function NewHireTable() {
         </div>
       </FilterDrawer>
     </Card>
-  );
-}
-
-// Custom Select Filter Component
-function SelectFilter({
-  label,
-  value,
-  onValueChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onValueChange: (value: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={`filter-${label.toLowerCase()}`}>{label}</Label>
-      <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger
-          id={`filter-${label.toLowerCase()}`}
-          className="w-full border-[#E4E4E4]"
-        >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
   );
 }

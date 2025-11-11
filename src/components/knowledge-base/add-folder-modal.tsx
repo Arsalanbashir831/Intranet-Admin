@@ -16,8 +16,6 @@ import type { KnowledgeFolder } from "@/types/knowledge";
 
 type AccessType = "all-employees" | "branch" | "department";
 
-
-
 export function AddFolderModal({ 
   open, 
   onOpenChange, 

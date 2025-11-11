@@ -7,8 +7,6 @@ import { Dropzone } from "@/components/ui/dropzone";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { useBulkUploadFiles } from "@/hooks/queries/use-knowledge-files";
 
-
-
 interface AddFileModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -70,12 +68,12 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
       <div className="space-y-5 px-6 py-4">
         <div className="flex items-start gap-6">
           <Label className="w-28 pt-2">Select Files:</Label>
-          <Dropzone 
-            className="flex-1" 
-            accept="application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
-            multiple 
-            onFileSelect={handleSelect} 
-            showPreview={false} 
+          <Dropzone
+            className="flex-1"
+            accept="application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            multiple
+            onFileSelect={handleSelect}
+            showPreview={false}
           />
         </div>
 
@@ -84,8 +82,8 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
             {selected.map((f, idx) => (
               <div key={idx} className="flex items-center justify-between rounded border px-3 py-2 text-sm">
                 <span className="truncate pr-3">{f.name}</span>
-                <button 
-                  className="text-muted-foreground hover:text-foreground" 
+                <button
+                  className="text-muted-foreground hover:text-foreground"
                   onClick={() => setSelected((prev) => prev.filter((_, i) => i !== idx))}
                 >
                   Remove

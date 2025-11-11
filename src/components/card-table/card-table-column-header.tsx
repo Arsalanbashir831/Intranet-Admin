@@ -18,7 +18,7 @@ export function CardTableColumnHeader<TData>({ column, title }: Props<TData>) {
   return (
     <Button
       variant="ghost"
-      className="h-auto !p-0 text-sm font-medium text-[#727272] hover:text-primary"
+      className="h-auto p-0! text-sm font-medium text-[#727272] hover:text-primary"
       onClick={() => column.toggleSorting(direction === "asc")}
     >
       {title}

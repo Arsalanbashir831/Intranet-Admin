@@ -18,13 +18,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import type { Branch } from "@/types/branches";
 import { EditBranchModal } from "./edit-branch-modal";
-
-export type BranchRow = {
-  id: string;
-  branch_name: string;
-  employee_count: number;
-  departments: string;
-};
+import type { BranchRow } from "@/types/branches";
 
 export function BranchesTable() {
   const { user } = useAuth();
