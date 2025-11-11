@@ -3,22 +3,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dropzone } from "@/components/ui/dropzone";
-import {
-	SelectableTags,
-} from "@/components/ui/selectable-tags";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
-import { ChevronDownIcon } from "lucide-react";
-import {
-	useBranchDepartments,
-	useSearchBranchDepartments,
-} from "@/hooks/queries/use-branches";
 import { useManagerScope } from "@/contexts/manager-scope-context";
+import { IndependentBranchDepartmentSelector } from "@/components/common/independent-branch-department-selector";
+import { useBranchDepartments } from "@/hooks/queries/use-branches";
 
 export type CompanyHubInitialData = {
 	id?: string;
 	type?: "announcement" | "policy";
 	title?: string;
 	selectedBranchDepartments?: string[];
+	permittedBranches?: string[];
+	permittedDepartments?: string[];
+	permittedBranchDepartments?: string[];
 	body?: string;
 };
 
@@ -39,6 +36,9 @@ export type CompanyHubFormData = {
 	type: "announcement" | "policy";
 	title: string;
 	selectedBranchDepartments: string[];
+	permittedBranches?: string[];
+	permittedDepartments?: string[];
+	permittedBranchDepartments?: string[];
 	body: string;
 	attachedFiles: File[];
 };
@@ -57,64 +57,90 @@ export function CompanyHubForm({
 	// Get manager scope to filter departments
 	const { isManager, managedDepartments } = useManagerScope();
 
-	/**
-	 * Adapters (async search) — normalize to SelectableItem[] only.
-	 * These match SelectableTags' updated expectation.
-	 */
-	// Create adapter functions for branch departments using the branch departments API
-	const useAllBranchDepartments = () => {
-		const result = useBranchDepartments(undefined, { pageSize: 1000 });
-		const branchDeptItems = React.useMemo(() => {
-			if (!result.data?.branch_departments?.results) return [];
+	// Fetch branch departments data for conversion
+	const { data: branchDepartmentsData } = useBranchDepartments(undefined, { pageSize: 1000 });
 
-			const items: { id: string; label: string }[] = [];
-			for (const bd of result.data.branch_departments.results) {
-				const bdId = String(bd.id);
-				const branchName = String(bd.branch?.branch_name ?? "");
-				const deptName = String(bd.department?.dept_name ?? "");
-				
-				// Filter: If manager, only show their managed departments
-				if (isManager && !managedDepartments.includes(bd.id)) {
-					continue; // Skip this department
-				}
-				
-				items.push({ id: bdId, label: `${deptName} - ${branchName}` });
+	// Create mapping from branch_department_id to {branchId, departmentId}
+	const branchDepartmentIdToCombination = React.useMemo(() => {
+		const map = new Map<string, { branchId: number; departmentId: number }>();
+		if (!branchDepartmentsData?.branch_departments?.results) return map;
+
+		for (const bd of branchDepartmentsData.branch_departments.results) {
+			if (isManager && managedDepartments && !managedDepartments.includes(bd.id)) {
+				continue;
 			}
-			return items;
-		}, [result.data, isManager, managedDepartments]);
 
-		return {
-			data: branchDeptItems,
-			isLoading: result.isLoading,
-		};
-	};
-
-	const useSearchBranchDepartmentsAdapter = (query: string) => {
-		const result = useSearchBranchDepartments(query, { pageSize: 1000 });
-		const branchDeptItems = React.useMemo(() => {
-			if (!result.data?.branch_departments?.results) return [];
-
-			const items: { id: string; label: string }[] = [];
-			for (const bd of result.data.branch_departments.results) {
-				const bdId = String(bd.id);
-				const branchName = String(bd.branch?.branch_name ?? "");
-				const deptName = String(bd.department?.dept_name ?? "");
-				
-				// Filter: If manager, only show their managed departments
-				if (isManager && !managedDepartments.includes(bd.id)) {
-					continue; // Skip this department
-				}
-				
-				items.push({ id: bdId, label: `${deptName} - ${branchName}` });
+			if (bd.branch?.id && bd.department?.id) {
+				map.set(String(bd.id), {
+					branchId: bd.branch.id,
+					departmentId: bd.department.id,
+				});
 			}
-			return items;
-		}, [result.data, isManager, managedDepartments]);
+		}
+		return map;
+	}, [branchDepartmentsData, isManager, managedDepartments]);
 
-		return {
-			data: branchDeptItems,
-			isLoading: result.isLoading,
-		};
-	};
+	// Convert initial data to separate branches and departments
+	// Priority: permittedBranchDepartments > permittedBranches/permittedDepartments > selectedBranchDepartments
+	const initialBranches = React.useMemo(() => {
+		// If permittedBranchDepartments exists, convert from branch_department_ids
+		if (initialData?.permittedBranchDepartments?.length) {
+			const branchIds = new Set<string>();
+			for (const bdId of initialData.permittedBranchDepartments) {
+				const combo = branchDepartmentIdToCombination.get(String(bdId));
+				if (combo) {
+					branchIds.add(String(combo.branchId));
+				}
+			}
+			return Array.from(branchIds);
+		}
+		// If permittedBranches exists, use it directly
+		if (initialData?.permittedBranches?.length) {
+			return initialData.permittedBranches;
+		}
+		// Fallback to selectedBranchDepartments (for backward compatibility)
+		if (initialData?.selectedBranchDepartments?.length) {
+			const branchIds = new Set<string>();
+			for (const bdId of initialData.selectedBranchDepartments) {
+				const combo = branchDepartmentIdToCombination.get(bdId);
+				if (combo) {
+					branchIds.add(String(combo.branchId));
+				}
+			}
+			return Array.from(branchIds);
+		}
+		return [];
+	}, [initialData?.permittedBranchDepartments, initialData?.permittedBranches, initialData?.selectedBranchDepartments, branchDepartmentIdToCombination]);
+
+	const initialDepartments = React.useMemo(() => {
+		// If permittedBranchDepartments exists, convert from branch_department_ids
+		if (initialData?.permittedBranchDepartments?.length) {
+			const deptIds = new Set<string>();
+			for (const bdId of initialData.permittedBranchDepartments) {
+				const combo = branchDepartmentIdToCombination.get(String(bdId));
+				if (combo) {
+					deptIds.add(String(combo.departmentId));
+				}
+			}
+			return Array.from(deptIds);
+		}
+		// If permittedDepartments exists, use it directly
+		if (initialData?.permittedDepartments?.length) {
+			return initialData.permittedDepartments;
+		}
+		// Fallback to selectedBranchDepartments (for backward compatibility)
+		if (initialData?.selectedBranchDepartments?.length) {
+			const deptIds = new Set<string>();
+			for (const bdId of initialData.selectedBranchDepartments) {
+				const combo = branchDepartmentIdToCombination.get(bdId);
+				if (combo) {
+					deptIds.add(String(combo.departmentId));
+				}
+			}
+			return Array.from(deptIds);
+		}
+		return [];
+	}, [initialData?.permittedBranchDepartments, initialData?.permittedDepartments, initialData?.selectedBranchDepartments, branchDepartmentIdToCombination]);
 
 
 	// Attachments → special preview urls
@@ -148,9 +174,8 @@ export function CompanyHubForm({
 		initialData?.type ?? "announcement"
 	);
 	const [title, setTitle] = React.useState<string>(initialData?.title ?? "");
-	const [selectedBranchDepartments, setSelectedBranchDepartments] = React.useState<string[]>(
-		initialData?.selectedBranchDepartments ?? []
-	);
+	const [selectedBranches, setSelectedBranches] = React.useState<string[]>(initialBranches);
+	const [selectedDepartments, setSelectedDepartments] = React.useState<string[]>(initialDepartments);
 	const [body, setBody] = React.useState<string>(
 		initialData?.body ?? ""
 	);
@@ -161,25 +186,95 @@ export function CompanyHubForm({
 		if (!initialData) return;
 		if (initialData.type) setTypeValue(initialData.type);
 		if (typeof initialData.title === "string") setTitle(initialData.title);
-		if (Array.isArray(initialData.selectedBranchDepartments))
-			setSelectedBranchDepartments(initialData.selectedBranchDepartments);
+		
+		// Handle branches and departments from various sources
+		if (initialData.permittedBranchDepartments?.length) {
+			// Convert from branch_department_ids
+			const branchIds = new Set<string>();
+			const deptIds = new Set<string>();
+			for (const bdId of initialData.permittedBranchDepartments) {
+				const combo = branchDepartmentIdToCombination.get(String(bdId));
+				if (combo) {
+					branchIds.add(String(combo.branchId));
+					deptIds.add(String(combo.departmentId));
+				}
+			}
+			setSelectedBranches(Array.from(branchIds));
+			setSelectedDepartments(Array.from(deptIds));
+		} else if (initialData.permittedBranches?.length || initialData.permittedDepartments?.length) {
+			// Use direct branches/departments
+			setSelectedBranches(initialData.permittedBranches || []);
+			setSelectedDepartments(initialData.permittedDepartments || []);
+		} else if (Array.isArray(initialData.selectedBranchDepartments) && initialData.selectedBranchDepartments.length > 0) {
+			// Fallback to selectedBranchDepartments (backward compatibility)
+			const branchIds = new Set<string>();
+			const deptIds = new Set<string>();
+			for (const bdId of initialData.selectedBranchDepartments) {
+				const combo = branchDepartmentIdToCombination.get(bdId);
+				if (combo) {
+					branchIds.add(String(combo.branchId));
+					deptIds.add(String(combo.departmentId));
+				}
+			}
+			setSelectedBranches(Array.from(branchIds));
+			setSelectedDepartments(Array.from(deptIds));
+		}
+		
 		if (typeof initialData.body === "string")
 			setBody(initialData.body);
-	}, [initialData]);
+	}, [initialData, branchDepartmentIdToCombination]);
+
+	// Convert selected branches and departments to branch_department_ids and determine payload fields
+	const payloadFields = React.useMemo(() => {
+		const hasBranches = selectedBranches.length > 0;
+		const hasDepartments = selectedDepartments.length > 0;
+
+		// Convert branches and departments to branch_department_ids
+		const branchDeptIds: string[] = [];
+		if (hasBranches && hasDepartments && branchDepartmentsData?.branch_departments?.results) {
+			const branchIdSet = new Set(selectedBranches.map(Number));
+			const deptIdSet = new Set(selectedDepartments.map(Number));
+
+			for (const bd of branchDepartmentsData.branch_departments.results) {
+				if (isManager && managedDepartments && !managedDepartments.includes(bd.id)) {
+					continue;
+				}
+
+				if (
+					bd.branch?.id &&
+					branchIdSet.has(bd.branch.id) &&
+					bd.department?.id &&
+					deptIdSet.has(bd.department.id)
+				) {
+					branchDeptIds.push(String(bd.id));
+				}
+			}
+		}
+
+		return {
+			permittedBranches: hasBranches && !hasDepartments ? selectedBranches : undefined,
+			permittedDepartments: hasDepartments && !hasBranches ? selectedDepartments : undefined,
+			permittedBranchDepartments: hasBranches && hasDepartments ? branchDeptIds : undefined,
+			selectedBranchDepartments: branchDeptIds, // Keep for backward compatibility
+		};
+	}, [selectedBranches, selectedDepartments, branchDepartmentsData, isManager, managedDepartments]);
 
 	// Notify parent of changes
 	const currentFormData = React.useMemo<CompanyHubFormData>(
 		() => ({
 			type: typeValue,
 			title,
-			selectedBranchDepartments,
+			selectedBranchDepartments: payloadFields.selectedBranchDepartments,
+			permittedBranches: payloadFields.permittedBranches,
+			permittedDepartments: payloadFields.permittedDepartments,
+			permittedBranchDepartments: payloadFields.permittedBranchDepartments,
 			body,
 			attachedFiles,
 		}),
 		[
 			typeValue,
 			title,
-			selectedBranchDepartments,
+			payloadFields,
 			body,
 			attachedFiles,
 		]
@@ -187,7 +282,8 @@ export function CompanyHubForm({
 
 	React.useEffect(() => {
 		onFormDataChange?.(currentFormData);
-	}, [currentFormData, onFormDataChange]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentFormData]);
 
 
 	return (
@@ -281,28 +377,27 @@ export function CompanyHubForm({
 			</div>
 
 
-			<div className="grid grid-cols-12 items-center gap-4 border-b border-[#E9EAEB] pb-4">
-				<Label className="col-span-12 md:col-span-2 text-sm">
-					Branch Department Access:
-				</Label>
-				<div className="col-span-12 md:col-span-10">
-					<SelectableTags
-						items={[]} // Empty since we're using async hooks
-						selectedItems={selectedBranchDepartments}
-						onSelectionChange={setSelectedBranchDepartments}
-						placeholder="Select branch departments (empty = public access)"
-						searchPlaceholder="Search branch departments..."
-						emptyMessage="No branch departments found."
-						icon={<ChevronDownIcon size={12} className="text-[#535862]" />}
-						useSearch={useSearchBranchDepartmentsAdapter}
-						useAllItems={useAllBranchDepartments}
-					/>
-					{isManager && (
-						<p className="mt-1 text-xs text-muted-foreground">
-							As a manager, you can only assign announcements to your managed departments.
-						</p>
-					)}
-				</div>
+			<div className="border-b border-[#E9EAEB] pb-4">
+				<IndependentBranchDepartmentSelector
+					selectedBranches={selectedBranches}
+					selectedDepartments={selectedDepartments}
+					onBranchesChange={setSelectedBranches}
+					onDepartmentsChange={setSelectedDepartments}
+					allowMultiple={true}
+					branchLabel="Branch Access:"
+					departmentLabel="Department Access:"
+					branchPlaceholder="Select branches (empty = public access)"
+					departmentPlaceholder="Select departments (empty = public access)"
+					managedDepartments={isManager ? managedDepartments : undefined}
+				/>
+				{isManager && (
+					<p className="mt-1 text-xs text-muted-foreground ml-[16.666667%] md:ml-0">
+						As a manager, you can only assign announcements to your managed departments.
+					</p>
+				)}
+				<p className="mt-1 text-xs text-muted-foreground ml-[16.666667%] md:ml-0">
+					Select only branches, only departments, or both. If both are selected, branch-department combinations will be used.
+				</p>
 			</div>
 
 			<div className="grid grid-cols-12 items-start gap-4">

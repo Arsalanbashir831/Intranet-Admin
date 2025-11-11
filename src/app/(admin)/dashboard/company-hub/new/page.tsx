@@ -62,16 +62,26 @@ export default function CompanyHubPage() {
     }
 
     try {
+      // Build payload with conditional fields
       const payload: AnnouncementCreateRequest = {
         title: formData.title.trim(),
         body: formData.body,
         type: formData.type,
-        inherits_parent_permissions: false, // Set to false as per new API structure
-        // Convert string IDs to numbers for the API
-        permitted_branch_departments: formData.selectedBranchDepartments 
-          ? formData.selectedBranchDepartments.map(Number) 
-          : [],
+        inherits_parent_permissions: false,
       };
+
+      // Add conditional fields based on what's selected
+      // Only set the relevant field (others will be undefined/not sent)
+      if (formData.permittedBranchDepartments?.length) {
+        // Both branches and departments selected
+        payload.permitted_branch_departments = formData.permittedBranchDepartments.map(Number);
+      } else if (formData.permittedBranches?.length) {
+        // Only branches selected
+        payload.permitted_branches = formData.permittedBranches.map(Number);
+      } else if (formData.permittedDepartments?.length) {
+        // Only departments selected
+        payload.permitted_departments = formData.permittedDepartments.map(Number);
+      }
 
       // Create the announcement first
       const createdAnnouncement = await createAnnouncement.mutateAsync(payload);

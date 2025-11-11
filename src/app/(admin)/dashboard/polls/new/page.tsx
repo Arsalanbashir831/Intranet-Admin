@@ -46,16 +46,39 @@ export default function NewPollPage() {
     }
 
     try {
-      const payload = {
+      // Build payload with conditional fields
+      const payload: {
+        title: string;
+        subtitle: string;
+        question: string;
+        poll_type: "public" | "private";
+        expires_at: string;
+        options: { option_text: string }[];
+        permitted_branches?: number[];
+        permitted_departments?: number[];
+        permitted_branch_departments?: number[];
+        is_active?: boolean;
+      } = {
         title: formData.title.trim(),
         subtitle: formData.subtitle?.trim() || "",
         question: formData.question.trim(),
         poll_type: formData.poll_type,
         expires_at: formData.expires_at.toISOString(),
         options: formData.options.filter((opt: { option_text: string }) => opt.option_text.trim()),
-        permitted_branches: formData.permitted_branches?.map(Number) || [],
-        permitted_departments: formData.permitted_departments?.map(Number) || [],
+        is_active: !isDraft, // false for draft, true for publish
       };
+
+      // Add conditional fields based on what's selected
+      if (formData.permitted_branch_departments?.length) {
+        // Both branches and departments selected
+        payload.permitted_branch_departments = formData.permitted_branch_departments;
+      } else if (formData.permitted_branches?.length) {
+        // Only branches selected
+        payload.permitted_branches = formData.permitted_branches.map(Number);
+      } else if (formData.permitted_departments?.length) {
+        // Only departments selected
+        payload.permitted_departments = formData.permitted_departments.map(Number);
+      }
 
       await createPoll.mutateAsync(payload);
       toast.success(`Poll ${isDraft ? "saved as draft" : "published"} successfully`);
