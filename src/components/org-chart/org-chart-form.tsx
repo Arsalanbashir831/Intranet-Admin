@@ -30,7 +30,6 @@ export type OrgChartInitialValues = {
 	email?: string | null;
 	phone?: string | null;
 	role?: string | null;
-	education?: string | null;
 	bio?: string | null;
 	branch_department?: string | string[]; // id(s) as string(s) for UI select - single for regular employees, array for managers
 	profileImageUrl?: string;
@@ -99,11 +98,6 @@ export function OrgChartForm({
 		}
 	}, [availableRoles, selectedRole]);
 
-	// Rich text content state for education is plain string
-	const [educationHtml, setEducationHtml] = React.useState<string | undefined>(
-		initialValues?.education ?? undefined
-	);
-
 	// Rich text content state for bio
 	const [bioHtml, setBioHtml] = React.useState<string | undefined>(
 		initialValues?.bio ?? undefined
@@ -126,7 +120,6 @@ export function OrgChartForm({
 		} else {
 			setSelectedBranchDeptIds([]);
 		}
-		setEducationHtml(initialValues?.education ?? undefined);
 		setBioHtml(initialValues?.bio ?? undefined);
 		setSelectedRole(initialValues?.role ? String(initialValues.role) : "");
 		// Clear selected files when initialValues change
@@ -134,7 +127,6 @@ export function OrgChartForm({
 		setIsRemovingPicture(false);
 	}, [
 		initialValues?.branch_department,
-		initialValues?.education,
 		initialValues?.bio,
 		initialValues?.role,
 	]);
@@ -180,7 +172,6 @@ export function OrgChartForm({
 			email: email || undefined,
 			phone: phone || undefined,
 			role: selectedRole ? Number(selectedRole) : undefined,
-			education: educationHtml || undefined,
 			bio: bioHtml || undefined,
 			profile_picture: selectedFiles[0] || (isRemovingPicture ? null : undefined),
 		};
@@ -388,21 +379,6 @@ export function OrgChartForm({
 								? [initialValues.profileImageUrl]
 								: []
 						}
-					/>
-				</div>
-			</div>
-
-			<div className="grid grid-cols-12 items-start gap-4">
-				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
-					Qualification or Education
-				</Label>
-				<div className="col-span-12 md:col-span-10">
-					<RichTextEditor
-						content={educationHtml}
-						placeholder="Write Education"
-						minHeight="200px"
-						maxHeight="400px"
-						onChange={(html) => setEducationHtml(html)}
 					/>
 				</div>
 			</div>

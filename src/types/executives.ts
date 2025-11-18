@@ -11,7 +11,6 @@ export type Executive = {
   phone: string;
   email: string;
   role: string;
-  education: string;
   bio?: string;
   profile_picture?: string | null;
   readonly created_at: string;
@@ -33,7 +32,6 @@ export type PatchedExecutive = {
   phone?: string;
   email?: string;
   role?: string;
-  education?: string;
   bio?: string;
   profile_picture?: string | null;
   readonly created_at?: string;

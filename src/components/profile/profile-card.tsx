@@ -19,7 +19,6 @@ interface Employee {
   reportingTo: string;
   branch: string;
   status: string;
-  education: string;
   bio: string;
   profileImage: string;
 }
@@ -33,7 +32,6 @@ type ExtendedEmployee = EmployeeWithScope & {
   email?: string;
   phone?: string | null;
   hire_date?: string;
-  education?: string | null;
   bio?: string | null;
 };
 
@@ -62,7 +60,6 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
           : "--",
         branch: apiEmployee.branch_departments?.[0]?.branch?.branch_name || "",
         status: "Active Employee",
-        education: apiEmployee.education || "",
         bio: apiEmployee.bio || "",
         profileImage: apiEmployee.profile_picture || "",
       }
@@ -299,29 +296,6 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
             </div>
           ))}
         </div>
-
-        <section className="mt-2 sm:mt-2">
-          <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 pb-2 border-b border-[#E5E7EB]">
-            QUALIFICATION
-          </h3>
-          <div className="mt-4 sm:mt-5">
-            {resolvedEmployee.education &&
-            resolvedEmployee.education.includes("<") ? (
-              <div
-                className="text-[#535862] leading-relaxed prose prose-sm sm:prose-base focus:outline-none prose-p:leading-relaxed prose-pre:p-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 [&_ul_li_p]:inline [&_ol_li_p]:inline [&_ul_li_p]:m-0 [&_ol_li_p]:m-0"
-                dangerouslySetInnerHTML={{ __html: resolvedEmployee.education }}
-              />
-            ) : resolvedEmployee.education ? (
-              <div className="text-[#535862] leading-relaxed whitespace-pre-wrap">
-                {resolvedEmployee.education}
-              </div>
-            ) : (
-              <div className="text-[#6B7280]">
-                No qualifications and education information available
-              </div>
-            )}
-          </div>
-        </section>
       </Card>
     </div>
   );

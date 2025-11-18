@@ -9,7 +9,6 @@ export type Employee = {
   email: string;
   phone?: string | null;
   role?: string | null;
-  education?: string | null;
   bio?: string | null;
   profile_picture?: string | null;
   branch_department: number;
@@ -22,7 +21,6 @@ export type EmployeeCreateRequest = {
   email?: string | null;
   phone?: string | null;
   role?: number | null;
-  education?: string | null;
   bio?: string | null;
   profile_picture?: File | string | null; // Support both File and string
 } & Record<string, string | number | boolean | File | Blob | string[] | null | undefined>;

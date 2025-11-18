@@ -53,7 +53,6 @@ export type DepartmentEmployee = {
   phone: string;
   email: string;
   role: string;
-  education: string;
   bio: string;
   profile_picture: string | null;
   branch_department: {
@@ -117,7 +116,6 @@ export type BranchDepartmentEmployee = {
   phone: string;
   email: string;
   role: string;
-  education: string;
   bio: string;
   profile_picture: string | null;
   branch_department: {

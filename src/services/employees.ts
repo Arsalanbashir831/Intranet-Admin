@@ -112,7 +112,6 @@ export async function createEmployee(payload: EmployeeCreateRequest, managerScop
     if (payload.email) formData.append('email', payload.email);
     if (payload.phone) formData.append('phone', payload.phone);
     if (payload.role) formData.append('role', String(payload.role));
-    if (payload.education) formData.append('education', payload.education);
     if (payload.bio) formData.append('bio', payload.bio);
 
     if (payload.profile_picture instanceof File) {

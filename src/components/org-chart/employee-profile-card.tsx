@@ -18,7 +18,6 @@ interface Employee {
   reportingTo: string;
   branch: string;
   status: string;
-  education: string;
   bio: string;
   profileImage: string;
 }
@@ -132,9 +131,6 @@ export function EmployeeProfileCard({
         reportingTo: String(firstManager?.employee?.emp_name ?? "--"),
         branch: uniqueBranches.join(", ") || "--",
         status: "ACTIVE",
-        education: String(
-          (apiEmployee as unknown as { education?: string }).education ?? ""
-        ),
         bio: String((apiEmployee as unknown as { bio?: string }).bio ?? ""),
         profileImage: String(
           (apiEmployee as unknown as { profile_picture?: string })
@@ -278,19 +274,6 @@ export function EmployeeProfileCard({
             </div>
           ))}
         </div>
-
-        {/* Education Section */}
-        {resolved.education && (
-          <div className="mt-6 sm:mt-8">
-            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 pb-2 border-b border-[#E5E7EB]">
-              Qualification
-            </h3>
-            <div
-              className="mt-4 sm:mt-5 text-[#535862] leading-relaxed prose prose-sm sm:prose-base focus:outline-none prose-p:leading-relaxed prose-pre:p-0 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 [&_ul_li_p]:inline [&_ol_li_p]:inline [&_ul_li_p]:m-0 [&_ol_li_p]:m-0"
-              dangerouslySetInnerHTML={{ __html: resolved.education }}
-            />
-          </div>
-        )}
       </div>
     </Card>
   );

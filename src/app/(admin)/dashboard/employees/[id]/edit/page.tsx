@@ -87,7 +87,6 @@ export default function EditOrgChartPage() {
 				email: apiEmployee.email ?? undefined,
 				phone: apiEmployee.phone ?? undefined,
 				role: roleId, // Use role_id converted to string
-				education: apiEmployee.education ?? undefined,
 				bio: apiEmployee.bio ?? undefined,
 				branch_department: branchDepartmentIds, // Use all branch_department_ids or branch_departments (array for managers)
 				profileImageUrl: apiEmployee.profile_picture ?? undefined,

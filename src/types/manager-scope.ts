@@ -68,7 +68,6 @@ export interface EmployeeWithScope {
   address: string;
   city: string;
   phone: string;
-  education: string;
   bio: string;
   profile_picture: string;
 }
