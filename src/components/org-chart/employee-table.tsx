@@ -30,7 +30,7 @@ export type EmployeeRow = {
   avatar?: string;
   location: string; // Will show all branches separated by comma
   email: string;
-  department: string; // Will show all departments separated by comma
+  department: string; // Will show all departments separated by commaa
   role: string;
   reportingTo: string | null;
   reportingAvatar?: string;
