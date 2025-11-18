@@ -131,9 +131,16 @@ export function OrgChartForm({
 		initialValues?.role,
 	]);
 
+	// Track previous role to detect role changes
+	const prevRoleRef = React.useRef<string | undefined>(selectedRole);
+	
 	// When role changes, handle branch/department selection based on role type
 	React.useEffect(() => {
 		if (!selectedRole) return;
+		
+		// Only run if role actually changed
+		if (prevRoleRef.current === selectedRole) return;
+		prevRoleRef.current = selectedRole;
 		
 		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
 		if (!selectedRoleObj) return;
@@ -143,15 +150,22 @@ export function OrgChartForm({
 		
 		// If executive role is selected, clear branch/department selections
 		if (isExecutiveRole) {
-			if (selectedBranchDeptIds.length > 0) {
-				setSelectedBranchDeptIds([]);
-			}
-		} else if (!isManagerRole && selectedBranchDeptIds.length > 1) {
+			setSelectedBranchDeptIds((prev) => {
+				if (prev.length > 0) {
+					return [];
+				}
+				return prev;
+			});
+		} else if (!isManagerRole) {
 			// If role is not Manager and multiple departments selected, keep only the first one
-			setSelectedBranchDeptIds([selectedBranchDeptIds[0]]);
-			toast.info("Only managers can be assigned to multiple departments. Keeping only one department.");
+			setSelectedBranchDeptIds((prev) => {
+				if (prev.length > 1) {
+					toast.info("Only managers can be assigned to multiple departments. Keeping only one department.");
+					return [prev[0]];
+				}
+				return prev;
+			});
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedRole, availableRoles]);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
