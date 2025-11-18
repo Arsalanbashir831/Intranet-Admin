@@ -131,17 +131,28 @@ export function OrgChartForm({
 		initialValues?.role,
 	]);
 
-	// When role changes, ensure only one department is selected if not Manager
+	// When role changes, handle branch/department selection based on role type
 	React.useEffect(() => {
-		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-		const isManagerRole = selectedRoleObj?.access_level === "manager";
+		if (!selectedRole) return;
 		
-		if (!isManagerRole && selectedBranchDeptIds.length > 1) {
+		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+		if (!selectedRoleObj) return;
+		
+		const isManagerRole = selectedRoleObj.access_level === "manager";
+		const isExecutiveRole = selectedRoleObj.access_level === "executive";
+		
+		// If executive role is selected, clear branch/department selections
+		if (isExecutiveRole) {
+			if (selectedBranchDeptIds.length > 0) {
+				setSelectedBranchDeptIds([]);
+			}
+		} else if (!isManagerRole && selectedBranchDeptIds.length > 1) {
 			// If role is not Manager and multiple departments selected, keep only the first one
 			setSelectedBranchDeptIds([selectedBranchDeptIds[0]]);
 			toast.info("Only managers can be assigned to multiple departments. Keeping only one department.");
 		}
-	}, [selectedRole, selectedBranchDeptIds, availableRoles]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedRole, availableRoles]);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -152,8 +163,13 @@ export function OrgChartForm({
 		const email = String(data.get("email") || "").trim();
 		const phone = String(data.get("phone") || "").trim();
 
-		// Validation: Ensure at least one branch and department are selected
-		if (selectedBranchDeptIds.length === 0) {
+		// Get role info
+		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+		const isManagerRole = selectedRoleObj?.access_level === "manager";
+		const isExecutiveRole = selectedRoleObj?.access_level === "executive";
+
+		// Validation: Ensure at least one branch and department are selected (except for executives)
+		if (!isExecutiveRole && selectedBranchDeptIds.length === 0) {
 			toast.error("Please select at least one branch and department");
 			onSubmitComplete?.(false);
 			return;
@@ -161,10 +177,6 @@ export function OrgChartForm({
 
 		// Convert selected branch department IDs to numbers
 		const branchDepartmentIds = selectedBranchDeptIds.map((id) => Number(id));
-
-		// Get role info
-		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-		const isManagerRole = selectedRoleObj?.access_level === "manager";
 
 		// Base fields for both create and update
 		const baseFields = {
@@ -183,10 +195,13 @@ export function OrgChartForm({
 					...baseFields,
 				};
 				
-				if (isManagerRole && branchDepartmentIds.length > 0) {
-					updatePayload.branch_department_ids = branchDepartmentIds;
-				} else if (branchDepartmentIds.length > 0) {
-					updatePayload.branch_department_id = branchDepartmentIds[0];
+				// Only add branch/department fields if not executive
+				if (!isExecutiveRole) {
+					if (isManagerRole && branchDepartmentIds.length > 0) {
+						updatePayload.branch_department_ids = branchDepartmentIds;
+					} else if (branchDepartmentIds.length > 0) {
+						updatePayload.branch_department_id = branchDepartmentIds[0];
+					}
 				}
 				
 				await updateEmployee.mutateAsync(updatePayload);
@@ -197,10 +212,13 @@ export function OrgChartForm({
 					...baseFields,
 				};
 				
-				if (isManagerRole && branchDepartmentIds.length > 0) {
-					createPayload.manager_branch_departments = branchDepartmentIds;
-				} else if (branchDepartmentIds.length > 0) {
-					createPayload.branch_department_id = branchDepartmentIds[0];
+				// Only add branch/department fields if not executive
+				if (!isExecutiveRole) {
+					if (isManagerRole && branchDepartmentIds.length > 0) {
+						createPayload.manager_branch_departments = branchDepartmentIds;
+					} else if (branchDepartmentIds.length > 0) {
+						createPayload.branch_department_id = branchDepartmentIds[0];
+					}
 				}
 				
 				await createEmployee.mutateAsync(createPayload);
@@ -308,51 +326,63 @@ export function OrgChartForm({
 
 			{/* Reporting to not part of Employee schema here */}
 
-			<div className="border-t border-[#E9EAEB] pt-4">
-				<BranchDepartmentSelector
-					value={selectedBranchDeptIds}
-					onChange={(ids) => {
-						const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-						const isManagerRole = selectedRoleObj?.access_level === "manager";
-						
-						// If role is not Manager, allow only one selection
-						if (!isManagerRole && ids.length > 1) {
-							const lastSelected = ids[ids.length - 1];
-							setSelectedBranchDeptIds(lastSelected ? [lastSelected] : []);
-						} else {
-							setSelectedBranchDeptIds(ids);
-						}
-					}}
-					allowMultiple={availableRoles.find(r => String(r.id) === selectedRole)?.access_level === "manager"}
-					branchLabel="Branch:"
-					departmentLabel="Department:"
-					branchPlaceholder="Select branch(es)..."
-					departmentPlaceholder="Select department(s)..."
-					managedDepartments={isManager ? managedDepartments : undefined}
-					initialBranchDepartmentIds={initialValues?.branch_department 
-						? Array.isArray(initialValues.branch_department) 
-							? initialValues.branch_department 
-							: [initialValues.branch_department]
-						: undefined}
-				/>
-				{(() => {
-					const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
-					const isManagerRole = selectedRoleObj?.access_level === "manager";
-					
-					if (!isManagerRole) {
-						return (
-							<p className="mt-1 text-xs text-muted-foreground ml-[16.666667%] md:ml-0">
-								Only one branch and department can be selected for this role. Select Manager role to manage multiple departments.
-							</p>
-						);
-					}
-					return (
-						<p className="mt-1 text-xs text-muted-foreground ml-[16.666667%] md:ml-0">
-							Managers can be assigned to multiple branches and departments. The first department will be used as their employee record location.
-						</p>
-					);
-				})()}
-			</div>
+			{(() => {
+				const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+				const isExecutiveRole = selectedRoleObj?.access_level === "executive";
+				
+				// Don't show branch/department selector for executives
+				if (isExecutiveRole) {
+					return null;
+				}
+				
+				return (
+					<div className="border-t border-[#E9EAEB] pt-4">
+						<BranchDepartmentSelector
+							value={selectedBranchDeptIds}
+							onChange={(ids) => {
+								const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+								const isManagerRole = selectedRoleObj?.access_level === "manager";
+								
+								// If role is not Manager, allow only one selection
+								if (!isManagerRole && ids.length > 1) {
+									const lastSelected = ids[ids.length - 1];
+									setSelectedBranchDeptIds(lastSelected ? [lastSelected] : []);
+								} else {
+									setSelectedBranchDeptIds(ids);
+								}
+							}}
+							allowMultiple={availableRoles.find(r => String(r.id) === selectedRole)?.access_level === "manager"}
+							branchLabel="Branch:"
+							departmentLabel="Department:"
+							branchPlaceholder="Select branch(es)..."
+							departmentPlaceholder="Select department(s)..."
+							managedDepartments={isManager ? managedDepartments : undefined}
+							initialBranchDepartmentIds={initialValues?.branch_department 
+								? Array.isArray(initialValues.branch_department) 
+									? initialValues.branch_department 
+									: [initialValues.branch_department]
+								: undefined}
+						/>
+						{(() => {
+							const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
+							const isManagerRole = selectedRoleObj?.access_level === "manager";
+							
+							if (!isManagerRole) {
+								return (
+									<p className="mt-1 text-xs text-muted-foreground ml-[16.666667%] md:ml-0">
+										Only one branch and department can be selected for this role. Select Manager role to manage multiple departments.
+									</p>
+								);
+							}
+							return (
+								<p className="mt-1 text-xs text-muted-foreground ml-[16.666667%] md:ml-0">
+									Managers can be assigned to multiple branches and departments. The first department will be used as their employee record location.
+								</p>
+							);
+						})()}
+					</div>
+				);
+			})()}
 
 			<div className="grid grid-cols-12 items-start gap-4 border-t border-[#E9EAEB] pt-4">
 				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
