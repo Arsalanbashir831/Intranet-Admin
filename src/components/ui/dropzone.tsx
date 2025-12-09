@@ -18,6 +18,8 @@ export interface DropzoneProps {
   children?: React.ReactNode;
   showPreview?: boolean;
   initialPreviewUrls?: string[]; // pre-loaded previews (e.g., existing images in edit mode)
+  maxSize?: number; // Maximum file size in bytes
+  onError?: (error: string) => void;
 }
 
 export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
@@ -32,6 +34,8 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     children,
     showPreview = true,
     initialPreviewUrls = [],
+    maxSize,
+    onError,
     ...props
   }, ref) => {
     const [isDragOver, setIsDragOver] = React.useState(false);
@@ -95,10 +99,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
           const decodedUrl = decodeURIComponent(file);
           const urlParts = decodedUrl.split('/');
           const fileName = urlParts[urlParts.length - 1];
-          
+
           // If we have a query parameter or hash, remove it
           const fileNameWithoutQuery = fileName.split('?')[0].split('#')[0];
-          
+
           // If the file name is empty or just a GUID, we might want to use a more user-friendly name
           // But for now, we'll return what we have
           return fileNameWithoutQuery || 'Unknown File';
@@ -114,6 +118,19 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
       if (files && files.length > 0) {
+
+        // Validate file sizes
+        if (maxSize) {
+          const invalidFiles = Array.from(files).filter(file => file.size > maxSize);
+          if (invalidFiles.length > 0) {
+            onError?.(`File size exceeds the limit of ${maxSize < 1024 * 1024 ? `${Math.round(maxSize / 1024)}KB` : `${(maxSize / (1024 * 1024)).toFixed(0)}MB`}`);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+            return;
+          }
+        }
+
         onFileSelect?.(files);
 
         // Generate preview URLs for images and track all files
@@ -158,6 +175,16 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
 
       const files = e.dataTransfer.files;
       if (files.length > 0) {
+
+        // Validate file sizes
+        if (maxSize) {
+          const invalidFiles = Array.from(files).filter(file => file.size > maxSize);
+          if (invalidFiles.length > 0) {
+            onError?.(`File size exceeds the limit of ${maxSize < 1024 * 1024 ? `${Math.round(maxSize / 1024)}KB` : `${(maxSize / (1024 * 1024)).toFixed(0)}MB`}`);
+            return;
+          }
+        }
+
         onFileSelect?.(files);
 
         // Generate preview URLs for images and track all files
@@ -231,7 +258,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
           <div className="flex-1 rounded-md border border-[#E2E8F0] p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-muted-foreground">
-                {multiple 
+                {multiple
                   ? `${previewUrls.length} file${previewUrls.length !== 1 ? 's' : ''} selected`
                   : "1 file selected"
                 }
@@ -249,16 +276,16 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
               {previewUrls.map((url, index) => {
                 // Check if it's an image URL (blob or http/https)
                 const isImageUrl = url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://');
-                
+
                 // Check if it's a file data URL (from newly selected files)
                 const isFileDataUrl = url.startsWith('file://');
-                
+
                 // Check if it's a special attachment URL (containing original file name)
                 const isAttachmentUrl = url.startsWith('attachment://');
-                
+
                 // Check if it's an existing attachment URL (http/https but not blob)
                 const isExistingAttachment = (url.startsWith('http://') || url.startsWith('https://')) && !url.startsWith('blob:') && !url.startsWith('attachment://');
-                
+
                 if (isAttachmentUrl) {
                   // Render preview for existing attachments with original file names
                   try {
@@ -267,10 +294,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                     const fileUrl = fileInfo.url;
                     const fileName = fileInfo.name || 'Unknown File';
                     const fileExtension = fileName.split('.').pop()?.toUpperCase() || '';
-                    
+
                     // Determine if it's an image based on the actual file URL
                     const isImage = /\.(jpg|jpeg|png|gif|svg|webp)$/i.test(fileUrl);
-                    
+
                     if (isImage) {
                       // Render image preview for existing image attachments
                       return (
@@ -298,10 +325,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                               const urlToRemove = previewUrls[index];
                               const newUrls = previewUrls.filter((_, i) => i !== index);
                               setPreviewUrls(newUrls);
-                              
+
                               // Notify parent about removal
                               onImageRemove?.(urlToRemove, index);
-                              
+
                               // If all images are removed, notify parent
                               if (newUrls.length === 0) {
                                 onClear?.();
@@ -317,7 +344,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                       // Render document preview for existing document attachments
                       return (
                         <div key={index} className="relative group">
-                          <div 
+                          <div
                             className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
                             onClick={() => {
                               // Open file in new tab or download it
@@ -338,10 +365,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                               const urlToRemove = previewUrls[index];
                               const newUrls = previewUrls.filter((_, i) => i !== index);
                               setPreviewUrls(newUrls);
-                              
+
                               // Notify parent about removal
                               onImageRemove?.(urlToRemove, index);
-                              
+
                               // If all files are removed, notify parent
                               if (newUrls.length === 0) {
                                 onClear?.();
@@ -358,7 +385,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                     // Fallback for any parsing errors
                     return (
                       <div key={index} className="relative group">
-                        <div 
+                        <div
                           className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
                         >
                           <FileIcon className="size-8 text-gray-400 mb-1" />
@@ -374,10 +401,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                             const urlToRemove = previewUrls[index];
                             const newUrls = previewUrls.filter((_, i) => i !== index);
                             setPreviewUrls(newUrls);
-                            
+
                             // Notify parent about removal
                             onImageRemove?.(urlToRemove, index);
-                            
+
                             // If all files are removed, notify parent
                             if (newUrls.length === 0) {
                               onClear?.();
@@ -396,7 +423,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                   const isExistingImage = /\.(jpg|jpeg|png|gif|svg|webp)$/i.test(url);
                   const fileName = getFileName(url); // Use the helper function to get the correct file name
                   const fileExtension = getFileExtension(url);
-                  
+
                   if (isExistingImage) {
                     // Render image preview for existing image attachments
                     return (
@@ -424,10 +451,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                             const urlToRemove = previewUrls[index];
                             const newUrls = previewUrls.filter((_, i) => i !== index);
                             setPreviewUrls(newUrls);
-                            
+
                             // Notify parent about removal
                             onImageRemove?.(urlToRemove, index);
-                            
+
                             // If all images are removed, notify parent
                             if (newUrls.length === 0) {
                               onClear?.();
@@ -443,7 +470,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                     // Render document preview for existing document attachments
                     return (
                       <div key={index} className="relative group">
-                        <div 
+                        <div
                           className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
                           onClick={() => {
                             // Open file in new tab or download it
@@ -464,10 +491,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                             const urlToRemove = previewUrls[index];
                             const newUrls = previewUrls.filter((_, i) => i !== index);
                             setPreviewUrls(newUrls);
-                            
+
                             // Notify parent about removal
                             onImageRemove?.(urlToRemove, index);
-                            
+
                             // If all files are removed, notify parent
                             if (newUrls.length === 0) {
                               onClear?.();
@@ -507,15 +534,15 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                           const urlToRemove = previewUrls[index];
                           const newUrls = previewUrls.filter((_, i) => i !== index);
                           setPreviewUrls(newUrls);
-                          
+
                           // Only revoke blob URLs, not absolute URLs
                           if (urlToRemove.startsWith('blob:')) {
                             URL.revokeObjectURL(urlToRemove);
                           }
-                          
+
                           // Notify parent about removal
                           onImageRemove?.(urlToRemove, index);
-                          
+
                           // If all images are removed, notify parent
                           if (newUrls.length === 0) {
                             onClear?.();
@@ -534,10 +561,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                     const fileInfo = JSON.parse(decodedData);
                     const fileName = fileInfo.name || 'Unknown File';
                     const fileExtension = fileName.split('.').pop()?.toUpperCase() || '';
-                    
+
                     return (
                       <div key={index} className="relative group">
-                        <div 
+                        <div
                           className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
                           onClick={() => {
                             // File parsing error - cannot open file
@@ -557,10 +584,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                             const urlToRemove = previewUrls[index];
                             const newUrls = previewUrls.filter((_, i) => i !== index);
                             setPreviewUrls(newUrls);
-                            
+
                             // Notify parent about removal
                             onImageRemove?.(urlToRemove, index);
-                            
+
                             // If all files are removed, notify parent
                             if (newUrls.length === 0) {
                               onClear?.();
@@ -576,7 +603,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                     // Fallback for any parsing errors
                     return (
                       <div key={index} className="relative group">
-                        <div 
+                        <div
                           className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
                           onClick={() => {
                             // File parsing error - cannot open file
@@ -595,10 +622,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                             const urlToRemove = previewUrls[index];
                             const newUrls = previewUrls.filter((_, i) => i !== index);
                             setPreviewUrls(newUrls);
-                            
+
                             // Notify parent about removal
                             onImageRemove?.(urlToRemove, index);
-                            
+
                             // If all files are removed, notify parent
                             if (newUrls.length === 0) {
                               onClear?.();
@@ -617,7 +644,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                   const isExistingImage = /\.(jpg|jpeg|png|gif|svg|webp)$/i.test(url);
                   const fileName = getFileName(url); // Use the helper function to get the correct file name
                   const fileExtension = getFileExtension(url);
-                  
+
                   if (isExistingImage) {
                     // Render image preview for existing image attachments
                     return (
@@ -645,10 +672,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                             const urlToRemove = previewUrls[index];
                             const newUrls = previewUrls.filter((_, i) => i !== index);
                             setPreviewUrls(newUrls);
-                            
+
                             // Notify parent about removal
                             onImageRemove?.(urlToRemove, index);
-                            
+
                             // If all images are removed, notify parent
                             if (newUrls.length === 0) {
                               onClear?.();
@@ -664,7 +691,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                     // Render document preview for existing document attachments
                     return (
                       <div key={index} className="relative group">
-                        <div 
+                        <div
                           className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
                           onClick={() => {
                             // Open file in new tab or download it
@@ -685,10 +712,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                             const urlToRemove = previewUrls[index];
                             const newUrls = previewUrls.filter((_, i) => i !== index);
                             setPreviewUrls(newUrls);
-                            
+
                             // Notify parent about removal
                             onImageRemove?.(urlToRemove, index);
-                            
+
                             // If all files are removed, notify parent
                             if (newUrls.length === 0) {
                               onClear?.();
@@ -705,7 +732,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                 // Fallback for unknown URL types
                 return (
                   <div key={index} className="relative group">
-                    <div 
+                    <div
                       className="w-full h-24 flex flex-col items-center justify-center rounded-md border bg-gray-50 p-2 cursor-pointer hover:bg-gray-100"
                       onClick={() => {
                         // Open file in new tab or download it
@@ -725,10 +752,10 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                         const urlToRemove = previewUrls[index];
                         const newUrls = previewUrls.filter((_, i) => i !== index);
                         setPreviewUrls(newUrls);
-                        
+
                         // Notify parent about removal
                         onImageRemove?.(urlToRemove, index);
-                        
+
                         // If all files are removed, notify parent
                         if (newUrls.length === 0) {
                           onClear?.();
@@ -769,6 +796,7 @@ export const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
               <span className="text-muted-foreground"> or drag and drop</span>
               <div className="text-xs text-muted-foreground mt-1">
                 {accept === "image/*" ? "PNG, JPG, GIF, WebP and more" : "SVG, PNG, JPG, GIF, PDF, DOC, TXT and more"}
+                {maxSize && ` (Max ${maxSize < 1024 * 1024 ? `${Math.round(maxSize / 1024)}KB` : `${(maxSize / (1024 * 1024)).toFixed(0)}MB`})`}
               </div>
             </div>
           </div>

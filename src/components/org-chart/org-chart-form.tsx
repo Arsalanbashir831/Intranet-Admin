@@ -50,14 +50,14 @@ export function OrgChartForm({
 }) {
 	// Get manager scope to filter departments
 	const { isManager, managedDepartments } = useManagerScope();
-	
+
 	// Fetch roles from API
 	const { data: rolesData } = useRoles(undefined, { pageSize: 1000 });
-	
+
 	// Get available roles and filter out manager roles if user is a manager
 	const availableRoles = React.useMemo(() => {
 		if (!rolesData?.roles?.results) return [];
-		
+
 		return rolesData.roles.results.filter(role => {
 			// If user is a manager, filter out roles with access_level="manager"
 			if (isManager && role.access_level === "manager") {
@@ -66,7 +66,7 @@ export function OrgChartForm({
 			return true;
 		});
 	}, [rolesData, isManager]);
-	
+
 	// Removed adapter functions - now using BranchDepartmentSelector component
 
 	// File upload state
@@ -90,7 +90,7 @@ export function OrgChartForm({
 	const [selectedRole, setSelectedRole] = React.useState<string>(
 		initialValues?.role ? String(initialValues.role) : ""
 	);
-	
+
 	// Set default role when roles are loaded
 	React.useEffect(() => {
 		if (!selectedRole && availableRoles.length > 0) {
@@ -133,21 +133,21 @@ export function OrgChartForm({
 
 	// Track previous role to detect role changes
 	const prevRoleRef = React.useRef<string | undefined>(selectedRole);
-	
+
 	// When role changes, handle branch/department selection based on role type
 	React.useEffect(() => {
 		if (!selectedRole) return;
-		
+
 		// Only run if role actually changed
 		if (prevRoleRef.current === selectedRole) return;
 		prevRoleRef.current = selectedRole;
-		
+
 		const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
 		if (!selectedRoleObj) return;
-		
+
 		const isManagerRole = selectedRoleObj.access_level === "manager";
 		const isExecutiveRole = selectedRoleObj.access_level === "executive";
-		
+
 		// If executive role is selected, clear branch/department selections
 		if (isExecutiveRole) {
 			setSelectedBranchDeptIds((prev) => {
@@ -208,7 +208,7 @@ export function OrgChartForm({
 				const updatePayload: EmployeeUpdateRequest = {
 					...baseFields,
 				};
-				
+
 				// Only add branch/department fields if not executive
 				if (!isExecutiveRole) {
 					if (isManagerRole && branchDepartmentIds.length > 0) {
@@ -217,7 +217,7 @@ export function OrgChartForm({
 						updatePayload.branch_department_id = branchDepartmentIds[0];
 					}
 				}
-				
+
 				await updateEmployee.mutateAsync(updatePayload);
 				toast.success("Employee updated successfully");
 			} else {
@@ -225,7 +225,7 @@ export function OrgChartForm({
 				const createPayload: EmployeeCreateRequest = {
 					...baseFields,
 				};
-				
+
 				// Only add branch/department fields if not executive
 				if (!isExecutiveRole) {
 					if (isManagerRole && branchDepartmentIds.length > 0) {
@@ -234,7 +234,7 @@ export function OrgChartForm({
 						createPayload.branch_department_id = branchDepartmentIds[0];
 					}
 				}
-				
+
 				await createEmployee.mutateAsync(createPayload);
 				toast.success("Employee created successfully");
 			}
@@ -242,10 +242,10 @@ export function OrgChartForm({
 			router.push(ROUTES.ADMIN.ORG_CHART);
 		} catch (error: unknown) {
 			// Error is handled by error handler and toast notification
-			
+
 			// Use centralized error extraction
 			const errorMessage = extractErrorMessage(error);
-			
+
 			toast.error(errorMessage);
 			onSubmitComplete?.(false); // Notify parent that submission failed
 		}
@@ -343,12 +343,12 @@ export function OrgChartForm({
 			{(() => {
 				const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
 				const isExecutiveRole = selectedRoleObj?.access_level === "executive";
-				
+
 				// Don't show branch/department selector for executives
 				if (isExecutiveRole) {
 					return null;
 				}
-				
+
 				return (
 					<div className="border-t border-[#E9EAEB] pt-4">
 						<BranchDepartmentSelector
@@ -356,7 +356,7 @@ export function OrgChartForm({
 							onChange={(ids) => {
 								const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
 								const isManagerRole = selectedRoleObj?.access_level === "manager";
-								
+
 								// If role is not Manager, allow only one selection
 								if (!isManagerRole && ids.length > 1) {
 									const lastSelected = ids[ids.length - 1];
@@ -371,16 +371,16 @@ export function OrgChartForm({
 							branchPlaceholder="Select branch(es)..."
 							departmentPlaceholder="Select department(s)..."
 							managedDepartments={isManager ? managedDepartments : undefined}
-							initialBranchDepartmentIds={initialValues?.branch_department 
-								? Array.isArray(initialValues.branch_department) 
-									? initialValues.branch_department 
+							initialBranchDepartmentIds={initialValues?.branch_department
+								? Array.isArray(initialValues.branch_department)
+									? initialValues.branch_department
 									: [initialValues.branch_department]
 								: undefined}
 						/>
 						{(() => {
 							const selectedRoleObj = availableRoles.find(r => String(r.id) === selectedRole);
 							const isManagerRole = selectedRoleObj?.access_level === "manager";
-							
+
 							if (!isManagerRole) {
 								return (
 									<p className="mt-1 text-xs text-muted-foreground ml-[16.666667%] md:ml-0">
@@ -418,6 +418,8 @@ export function OrgChartForm({
 							}
 						}}
 						accept="image/*"
+						maxSize={700 * 1024} // 700KB
+						onError={(error) => toast.error(error)}
 						initialPreviewUrls={
 							initialValues?.profileImageUrl
 								? [initialValues.profileImageUrl]
