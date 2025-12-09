@@ -20,14 +20,6 @@ import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { FilterDrawer } from "@/components/card-table/filter-drawer";
 import { format } from "date-fns";
 import { DepartmentFilter, BranchFilter } from "@/components/card-table/filter-components";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { SelectFilter } from "../common/select-filter";
 
 export type AnnouncementRow = {

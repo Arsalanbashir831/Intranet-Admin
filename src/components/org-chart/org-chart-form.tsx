@@ -428,7 +428,7 @@ export function OrgChartForm({
 					/>
 				</div>
 			</div>
-
+{/* 
 			<div className="grid grid-cols-12 items-start gap-4">
 				<Label className="col-span-12 md:col-span-2 text-sm text-muted-foreground">
 					Bio
@@ -442,7 +442,7 @@ export function OrgChartForm({
 						onChange={(html) => setBioHtml(html)}
 					/>
 				</div>
-			</div>
+			</div> */}
 		</form>
 	);
 }
