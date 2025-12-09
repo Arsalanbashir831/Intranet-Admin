@@ -68,6 +68,7 @@ export default function CompanyHubPage() {
         body: formData.body,
         type: formData.type,
         inherits_parent_permissions: false,
+        is_active: !isDraft,
       };
 
       // Add conditional fields based on what's selected

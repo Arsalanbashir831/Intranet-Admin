@@ -132,11 +132,13 @@ export default function CompanyHubEditPage() {
         permitted_branches?: number[];
         permitted_departments?: number[];
         permitted_branch_departments?: number[];
+        is_active?: boolean;
       } = {
         title: currentFormData.title || "",
         body: currentFormData.body || "",
         type: currentFormData.type === "policy" ? "policy" : "announcement",
         inherits_parent_permissions: false,
+        is_active: !isDraft,
       };
 
       // Add conditional fields based on what's selected

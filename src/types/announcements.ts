@@ -104,6 +104,7 @@ export type AnnouncementCreateRequest = {
   permitted_branches?: number[];
   permitted_departments?: number[];
   permitted_branch_departments?: number[];
+  is_active?: boolean;
 };
 
 // Request types for updating announcements
@@ -115,6 +116,7 @@ export type AnnouncementUpdateRequest = {
   permitted_branches?: number[];
   permitted_departments?: number[];
   permitted_branch_departments?: number[];
+  is_active?: boolean;
 };
 
 // Announcement attachment types
