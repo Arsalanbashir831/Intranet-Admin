@@ -126,13 +126,52 @@ export function BranchDepartmentSelector({
 
   // Update state when value prop changes (for controlled component)
   // This should only run when value/initialBranchDepartmentIds change from outside, not when internal state changes
+  // Track the last value we emitted to avoid resetting state when the parent 
+  // passes back the exact same value we just calculated (which might be lossy/partial)
+  const lastEmittedValueRef = React.useRef<string[]>(
+    value.length ? value : initialBranchDepartmentIds || []
+  );
+
+  // Helper to compare arrays as sets
+  const areArraysEqual = (a: string[], b: string[]) => {
+    if (a.length !== b.length) return false;
+    const setA = new Set(a);
+    for (const item of b) {
+      if (!setA.has(item)) return false;
+    }
+    return true;
+  };
+
+  // Update state when value prop changes (for controlled component)
+  // This should only run when value/initialBranchDepartmentIds change from outside, not when internal state changes
   React.useEffect(() => {
     // Skip if value is empty and we don't have initial values
     if (value.length === 0 && !initialBranchDepartmentIds?.length) {
+      // If we have local state but prop is cleared, we should clear local state
+      // unless it matches what we just emitted (which implies we are the ones who cleared it)
+      if (
+        (selectedBranchIds.length > 0 || selectedDepartmentIds.length > 0) &&
+        !areArraysEqual([], lastEmittedValueRef.current)
+      ) {
+        setSelectedBranchIds([]);
+        setSelectedDepartmentIds([]);
+      }
       return;
     }
 
     const idsToUse = value.length ? value : initialBranchDepartmentIds || [];
+    
+    // critical fix: If the incoming value matches what we just emitted, 
+    // do NOT overwrite internal state. The computed value (idsToUse) 
+    // might be a subset of implied state (e.g. selected branches with no valid departments yet)
+    // and overwriting would confuse the user by deselecting independent selections.
+    if (areArraysEqual(idsToUse, lastEmittedValueRef.current)) {
+      return;
+    }
+
+    // Sync ref
+    lastEmittedValueRef.current = idsToUse;
+
     const branchIds = new Set<string>();
     const deptIds = new Set<string>();
 
@@ -194,6 +233,8 @@ export function BranchDepartmentSelector({
       // Clear departments if no branches selected, or filter departments
       if (newBranchIds.length === 0) {
         setSelectedDepartmentIds([]);
+        lastEmittedValueRef.current = [];
+
         onChange([]);
       } else {
         // Recompute branch_department_ids with current departments
@@ -232,6 +273,8 @@ export function BranchDepartmentSelector({
             }
           }
         }
+        lastEmittedValueRef.current = branchDeptIds;
+
         onChange(branchDeptIds);
       }
     },
@@ -258,6 +301,8 @@ export function BranchDepartmentSelector({
 
       // Compute branch_department_ids from selected branches and departments
       if (selectedBranchIds.length === 0 || newDepartmentIds.length === 0) {
+        lastEmittedValueRef.current = [];
+
         onChange([]);
         return;
       }
@@ -279,6 +324,7 @@ export function BranchDepartmentSelector({
         }
       }
 
+      lastEmittedValueRef.current = branchDeptIds;
       onChange(branchDeptIds);
     },
     [allowMultiple, selectedBranchIds, combinationToBranchDepartmentId, onChange]
