@@ -22,7 +22,6 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
-import type { Checklist } from "@/types/new-hire";
 import { FilterDrawer } from "@/components/card-table/filter-drawer";
 import { DepartmentFilter } from "@/components/card-table/filter-components";
 import { SelectFilter } from "../common/select-filter";

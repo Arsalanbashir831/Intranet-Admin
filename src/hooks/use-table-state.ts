@@ -3,7 +3,7 @@
  * Handles search, pagination, debouncing, and edit/delete state
  */
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useDebounce } from "./use-debounce";
 
 export interface UseTableStateOptions {

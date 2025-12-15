@@ -11,7 +11,7 @@ export function useLogin() {
 
 	return useMutation({
 		mutationFn: (credentials: { username: string; password: string }) => login(credentials),
-		onSuccess: async (data: any) => { // Use 'any' temporarily or update LoginResponse type in hook if strict
+		onSuccess: async (data) => { // Use 'any' temporarily or update LoginResponse type in hook if strict
 			// If MFA is required, we don't set cookies or redirect yet
 			if (data.mfa_required) {
 				return;
@@ -154,7 +154,7 @@ export function useMfaVerify() {
 
 	return useMutation({
 		mutationFn: (data: MfaVerifyRequest) => mfaVerify(data),
-		onSuccess: (data) => {
+		onSuccess: () => {
 			// Success logic similar to login
 			if (typeof window !== "undefined") {
 				// Dispatch custom event to notify auth context

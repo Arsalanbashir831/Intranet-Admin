@@ -103,8 +103,8 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
     currentFolder.files.forEach(file => {
       const extension = file.name.split('.').pop()?.toLowerCase() || "";
       // Extract uploaded_by details if it's an object
-      const uploadedBy = typeof file.uploaded_by === 'object' && file.uploaded_by !== null 
-        ? file.uploaded_by 
+      const uploadedBy = typeof file.uploaded_by === 'object' && file.uploaded_by !== null
+        ? file.uploaded_by
         : null;
       newRows.push({
         id: `file-${file.id}`,
@@ -206,7 +206,7 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-          } catch (error) {
+          } catch {
             // Fallback: open in new tab if download fails
             window.open(file.file_url, '_blank', 'noopener,noreferrer');
           }
@@ -327,21 +327,21 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
                 <Download className="size-4" />
               </Button>
             )}
-             
-              <span onClick={(e) => e.stopPropagation()}>
-                <ConfirmPopover
-                  title={`Delete ${row.original.kind === "folder" ? "folder" : "file"}?`}
-                  description={`This action cannot be undone. ${row.original.kind === "folder" ? "All files in this folder will also be deleted." : ""}`}
-                  confirmText="Delete"
-                  onConfirm={() => handleDelete(row.original)}
-                  disabled={deletingId === row.original.id || deleteFolder.isPending || deleteFile.isPending}
-                >
-                  <Button size="icon" variant="ghost" className="text-[#D64575]" disabled={!canEditDelete}>
-                    <Trash2 className="size-4" />
-                  </Button>
-                </ConfirmPopover>
-              </span>
-            
+
+            <span onClick={(e) => e.stopPropagation()}>
+              <ConfirmPopover
+                title={`Delete ${row.original.kind === "folder" ? "folder" : "file"}?`}
+                description={`This action cannot be undone. ${row.original.kind === "folder" ? "All files in this folder will also be deleted." : ""}`}
+                confirmText="Delete"
+                onConfirm={() => handleDelete(row.original)}
+                disabled={deletingId === row.original.id || deleteFolder.isPending || deleteFile.isPending}
+              >
+                <Button size="icon" variant="ghost" className="text-[#D64575]" disabled={!canEditDelete}>
+                  <Trash2 className="size-4" />
+                </Button>
+              </ConfirmPopover>
+            </span>
+
             {row.original.kind === "folder" && (
               <Button
                 size="icon"
@@ -356,7 +356,7 @@ export function FolderDetailsTable({ title, folderId, onNewFolder, onNewFile, on
                 <Pencil className="size-4" />
               </Button>
             )}
-           
+
           </div>
         );
       },
