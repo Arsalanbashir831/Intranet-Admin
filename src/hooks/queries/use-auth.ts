@@ -1,16 +1,22 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { login, logout, refreshToken, getMe, changePassword, resetPasswordWithOTP } from "@/services/auth";
+// Update imports to include MFA functions
+import { login, logout, refreshToken, getMe, changePassword, resetPasswordWithOTP, mfaEnroll, mfaConfirm, mfaVerify, mfaDisable } from "@/services/auth";
 
 import { ROUTES } from "@/constants/routes";
 import { setAuthCookies, clearAuthCookies } from "@/lib/cookies";
-import { TokenRefresh } from "@/types/auth";
+import { TokenRefresh, MfaConfirmRequest, MfaVerifyRequest, MfaDisableRequest } from "@/types/auth";
 
 export function useLogin() {
 	const qc = useQueryClient();
 
 	return useMutation({
 		mutationFn: (credentials: { username: string; password: string }) => login(credentials),
-		onSuccess: async (data: TokenRefresh) => {
+		onSuccess: async (data: any) => { // Use 'any' temporarily or update LoginResponse type in hook if strict
+			// If MFA is required, we don't set cookies or redirect yet
+			if (data.mfa_required) {
+				return;
+			}
+
 			// Store tokens via cookies only
 			if (typeof window !== "undefined") {
 				setAuthCookies(data.access, data.refresh);
@@ -35,6 +41,8 @@ export function useLogin() {
 		},
 	});
 }
+
+// ... existing useLogout ...
 
 export function useLogout() {
 	const qc = useQueryClient();
@@ -125,5 +133,52 @@ export function useResetPasswordWithOTP() {
 export function useChangePassword() {
 	return useMutation({
 		mutationFn: (payload: { current_password: string; new_password: string }) => changePassword(payload),
+	});
+}
+
+// MFA Hooks
+export function useMfaEnroll() {
+	return useMutation({
+		mutationFn: mfaEnroll,
+	});
+}
+
+export function useMfaConfirm() {
+	return useMutation({
+		mutationFn: (data: MfaConfirmRequest) => mfaConfirm(data),
+	});
+}
+
+export function useMfaVerify() {
+	const qc = useQueryClient();
+
+	return useMutation({
+		mutationFn: (data: MfaVerifyRequest) => mfaVerify(data),
+		onSuccess: (data) => {
+			// Success logic similar to login
+			if (typeof window !== "undefined") {
+				// Dispatch custom event to notify auth context
+				window.dispatchEvent(new CustomEvent("auth:login"));
+			}
+			// Invalidate all queries to refetch with new auth state
+			qc.invalidateQueries();
+
+			// Navigate to dashboard
+			if (typeof window !== "undefined") {
+				// Redirect directly to dashboard
+				window.location.assign(ROUTES.ADMIN.DASHBOARD);
+			}
+		}
+	});
+}
+
+export function useMfaDisable() {
+	const qc = useQueryClient();
+	return useMutation({
+		mutationFn: (data: MfaDisableRequest) => mfaDisable(data),
+		onSuccess: () => {
+			// Refresh 'me' query to update user status
+			qc.invalidateQueries({ queryKey: ["me"] });
+		}
 	});
 }

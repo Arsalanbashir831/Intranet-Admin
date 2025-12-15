@@ -12,6 +12,7 @@ export type Employee = {
   bio?: string | null;
   profile_picture?: string | null;
   branch_department: number;
+  mfa_enabled?: boolean;
 };
 
 export type EmployeeCreateRequest = {

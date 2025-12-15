@@ -5,8 +5,14 @@ export const API_ROUTES = {
         VERIFY_TOKEN: "/token/verify/",
         ME: "/me/",
         FORGOT_PASSWORD: "/forgot_password/",
-		RESET_PASSWORD: "/reset_password/",
+        RESET_PASSWORD: "/reset_password/",
         CHANGE_PASSWORD: "/change_password/",
+        MFA: {
+            ENROLL: "/mfa/enroll/",
+            CONFIRM: "/mfa/confirm/",
+            VERIFY: "/mfa/verify/",
+            DISABLE: "/mfa/disable/",
+        },
     },
     STATS: '/stats/',
     BRANCHES: {
