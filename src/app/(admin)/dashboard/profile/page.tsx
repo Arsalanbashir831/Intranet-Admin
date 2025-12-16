@@ -7,7 +7,6 @@ import { ChangePasswordDialog } from "@/components/profile/change-password-dialo
 import { PageHeader } from "@/components/common";
 import { ROUTES } from "@/constants/routes";
 import { MfaDialog } from "@/components/profile/mfa-dialog";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useMe } from "@/hooks/queries/use-auth";
 
@@ -15,7 +14,7 @@ export default function ProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMfaDialogOpen, setIsMfaDialogOpen] = useState(false);
   const { data: meData } = useMe();
-  const mfaEnabled = meData?.employee?.mfa_enabled; // Updated to read from employee object
+  const mfaEnabled = meData?.user?.mfa_enabled; // Updated to read from employee object
 
   return (
     <>
@@ -54,12 +53,13 @@ export default function ProfilePage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Switch
-                    checked={mfaEnabled}
-                    onCheckedChange={() => setIsMfaDialogOpen(true)}
-                    className="data-[state=unchecked]:bg-pink-200 data-[state=checked]:bg-[#FF5A8B] cursor-pointer"
-                    thumbClassName="data-[state=unchecked]:bg-[#FF5A8BB2]"
-                  />
+                  <Button
+                    variant='outline'
+                    onClick={() => setIsMfaDialogOpen(true)}
+                    className="border-primary text-primary hover:bg-primary/10 hover:text-primary"
+                  >
+                    {mfaEnabled ? "Disable" : "Enable"}
+                  </Button>
                 </div>
               </div>
             </div>

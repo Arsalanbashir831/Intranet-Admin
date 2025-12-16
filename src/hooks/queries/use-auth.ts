@@ -144,8 +144,13 @@ export function useMfaEnroll() {
 }
 
 export function useMfaConfirm() {
+	const qc = useQueryClient();
 	return useMutation({
 		mutationFn: (data: MfaConfirmRequest) => mfaConfirm(data),
+		onSuccess: () => {
+			// Refresh 'me' query to update user status
+			qc.invalidateQueries({ queryKey: ["me"] });
+		}
 	});
 }
 
