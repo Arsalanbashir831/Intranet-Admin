@@ -8,11 +8,11 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is authenticated
+    // Check if user is authenticatedd
     const cookies = typeof document !== "undefined" ? document.cookie.split(';') : [];
     const tokenCookie = cookies.find((c) => c.trim().startsWith('accessToken='));
     const accessToken = tokenCookie ? tokenCookie.split('=')[1] : null;
-    
+
     if (accessToken) {
       // User is authenticated, redirect to dashboard
       router.push(ROUTES.ADMIN.DASHBOARD);
