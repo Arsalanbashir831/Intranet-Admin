@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  standalone: true,
+
   images: {
     remotePatterns: [
       {
@@ -32,6 +34,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+    // Improve build performance
+    poweredByHeader: false,
+
+    // Compress output for better performance
+    compress: true,
+  
+    // Set Turbopack root directory to prevent workspace root inference issues
+    turbopack: {
+      root: process.cwd(),
+    },
 };
 
 export default nextConfig;
