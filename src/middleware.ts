@@ -5,7 +5,7 @@ import { ROUTES } from '@/constants/routes'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  // Get the pathname of the request (e.g. /, /login, /dashboard)
+  // Get the pathname of the requests (e.g. /, /login, /dashboard)
   const isAuthPage = pathname.startsWith(ROUTES.AUTH.LOGIN)
   const isAdminPage = pathname.startsWith(ROUTES.ADMIN.DASHBOARD)
   const isRootPage = pathname === '/'
