@@ -13,6 +13,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthProvider } from "@/contexts/auth-context";
 import { ManagerScopeProvider } from "@/contexts/manager-scope-context";
 import { AuthGuard } from "@/components/auth/auth-guard";
+import { MfaBanner } from "@/components/common/mfa-banner";
 
 type AdminLayoutProps = {
   children: ReactNode;
@@ -34,6 +35,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <AdminSidebar />
               <SidebarInset className="flex flex-col">
                 <AdminTopbar />
+                <MfaBanner />
                 <div>
                   <UploadQueueProvider>
                     {children}
