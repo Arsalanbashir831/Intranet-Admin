@@ -7,20 +7,18 @@ import { Dropzone } from "@/components/ui/dropzone";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { useBulkUploadFiles } from "@/hooks/queries/use-knowledge-files";
 
-interface AddFileModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  folderId?: number;
-  onFileUploaded?: () => void; // Callback to refresh folder contents
-}
+import { AddFileModalProps } from "@/types/knowledge-base";
 
-export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: AddFileModalProps) {
+export function AddFileModal({
+  open,
+  onOpenChange,
+  folderId,
+  onFileUploaded,
+}: AddFileModalProps) {
   const { enqueueFiles } = useUploadQueue();
   const [selected, setSelected] = React.useState<File[]>([]);
 
   const bulkUploadFiles = useBulkUploadFiles();
-
-
 
   const handleSelect = (files: FileList | null) => {
     if (!files) return;
@@ -43,7 +41,7 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
     try {
       await bulkUploadFiles.mutateAsync({
         files: selected,
-        folderId: folderId
+        folderId: folderId,
       });
 
       // Reset form and notify parent
@@ -63,8 +61,7 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
       icon="/icons/building-2.svg"
       confirmText="Upload"
       confirmDisabled={!canCreate || bulkUploadFiles.isPending}
-      onConfirm={handleConfirm}
-    >
+      onConfirm={handleConfirm}>
       <div className="space-y-5 px-6 py-4">
         <div className="flex items-start gap-6">
           <Label className="w-28 pt-2">Select Files:</Label>
@@ -80,12 +77,15 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
         {selected.length > 0 && (
           <div className="ml-28 space-y-2">
             {selected.map((f, idx) => (
-              <div key={idx} className="flex items-center justify-between rounded border px-3 py-2 text-sm">
+              <div
+                key={idx}
+                className="flex items-center justify-between rounded border px-3 py-2 text-sm">
                 <span className="truncate pr-3">{f.name}</span>
                 <button
                   className="text-muted-foreground hover:text-foreground"
-                  onClick={() => setSelected((prev) => prev.filter((_, i) => i !== idx))}
-                >
+                  onClick={() =>
+                    setSelected((prev) => prev.filter((_, i) => i !== idx))
+                  }>
                   Remove
                 </button>
               </div>
@@ -96,5 +96,3 @@ export function AddFileModal({ open, onOpenChange, folderId, onFileUploaded }: A
     </AppModal>
   );
 }
-
-
