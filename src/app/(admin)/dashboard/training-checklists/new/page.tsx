@@ -4,10 +4,8 @@ import * as React from "react";
 import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
-import {
-  NewHirePlanForm,
-  type NewHirePlanFormData,
-} from "@/components/new-hire/new-hire-plan-form";
+import { NewHirePlanForm } from "@/components/new-hire/new-hire-plan-form";
+import { type NewHirePlanFormData } from "@/types/new-hire";
 import {
   useCreateChecklist,
   useCreateAttachment,

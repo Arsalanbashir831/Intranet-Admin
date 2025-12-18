@@ -5,66 +5,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
 import { useEmployee } from "@/hooks/queries/use-employees";
-import type { Employee as ApiEmployeeType } from "@/types/employees";
-
-interface Employee {
-  id: string;
-  name: string;
-  role: string;
-  email: string;
-  phone: string;
-  joinDate: string;
-  department: string;
-  reportingTo: string;
-  branch: string;
-  status: string;
-  bio: string;
-  profileImage: string;
-}
-
-interface EmployeeProfileCardProps {
-  employee?: Employee;
-  employeeId?: number | string;
-}
-
-// Types from domain-specific type files
-type ApiEmployee = ApiEmployeeType;
-
-// Small helper types for fields not captured in OpenAPI schema
-interface BranchRef {
-  id: number;
-  branch_name?: string;
-}
-interface DepartmentRef {
-  id: number;
-  dept_name?: string;
-}
-interface EmployeeRef {
-  id: number;
-  emp_name?: string;
-  profile_picture?: string;
-}
-interface ManagerRef {
-  id: number;
-  employee?: EmployeeRef;
-}
-interface BranchDepartmentRef {
-  id: number;
-  branch?: BranchRef;
-  department?: DepartmentRef;
-  manager?: ManagerRef | null;
-}
-
-// Type guard for the wrapped detail response
-const isDetailWrapper = (
-  value: unknown
-): value is { employee: ApiEmployee } => {
-  return (
-    Boolean(value) &&
-    typeof value === "object" &&
-    "employee" in (value as Record<string, unknown>)
-  );
-};
+import {
+  EmployeeProfileCardProps,
+  OrgChartEmployeeProfile,
+} from "@/types/org-chart";
+import { resolveEmployeeProfile } from "@/handlers/org-chart-handlers";
 
 export function EmployeeProfileCard({
   employee,
@@ -72,72 +17,10 @@ export function EmployeeProfileCard({
 }: EmployeeProfileCardProps) {
   const { data } = useEmployee(employeeId ?? "");
 
-  // Unwrap to ApiEmployee or use optional prop fallback
-  const apiEmployee: ApiEmployee | undefined = isDetailWrapper(data)
-    ? data.employee
-    : (data as ApiEmployee | undefined);
-
-  // Extract nested fields safely - now handling array of branch_departments
-  const branchDepartments: BranchDepartmentRef[] | undefined = (
-    apiEmployee as unknown as
-      | { branch_departments?: BranchDepartmentRef[] }
-      | undefined
-  )?.branch_departments;
-
-  const hireDate: string | undefined =
-    (apiEmployee as unknown as { hire_date?: string } | undefined)?.hire_date ??
-    (apiEmployee as unknown as { join_date?: string } | undefined)?.join_date;
-
-  // Extract unique branches and departments
-  const branches =
-    branchDepartments?.map((bd) => bd.branch?.branch_name).filter(Boolean) ||
-    [];
-  const departments =
-    branchDepartments?.map((bd) => bd.department?.dept_name).filter(Boolean) ||
-    [];
-  const uniqueBranches = [...new Set(branches)];
-  const uniqueDepartments = [...new Set(departments)];
-
-  // Get the first manager found (if any)
-  const firstManager = branchDepartments?.find((bd) => bd.manager)?.manager;
-
-  const resolved: Employee | null = apiEmployee
-    ? {
-        id: String(
-          (apiEmployee as unknown as { id?: number | string }).id ?? ""
-        ),
-        name: String(
-          (apiEmployee as unknown as { emp_name?: string; name?: string })
-            .emp_name ??
-            (apiEmployee as unknown as { name?: string }).name ??
-            ""
-        ),
-        role: String((apiEmployee as unknown as { role?: string }).role ?? ""),
-        email: String(
-          (apiEmployee as unknown as { email?: string }).email ?? ""
-        ),
-        phone: String(
-          (apiEmployee as unknown as { phone?: string }).phone ?? ""
-        ),
-        joinDate: hireDate
-          ? new Intl.DateTimeFormat("en-GB", {
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              timeZone: "UTC",
-            }).format(new Date(hireDate))
-          : "",
-        department: uniqueDepartments.join(", ") || "--",
-        reportingTo: String(firstManager?.employee?.emp_name ?? "--"),
-        branch: uniqueBranches.join(", ") || "--",
-        status: "ACTIVE",
-        bio: String((apiEmployee as unknown as { bio?: string }).bio ?? ""),
-        profileImage: String(
-          (apiEmployee as unknown as { profile_picture?: string })
-            .profile_picture ?? ""
-        ),
-      }
-    : employee ?? null;
+  const resolved: OrgChartEmployeeProfile | null = resolveEmployeeProfile(
+    data,
+    employee
+  );
 
   if (!resolved) {
     return (
@@ -186,8 +69,7 @@ export function EmployeeProfileCard({
               <div className="flex items-center gap-3 mb-2">
                 <Badge
                   variant="secondary"
-                  className="bg-[#1A9882] text-white rounded-full px-3 py-1 text-xs"
-                >
+                  className="bg-[#1A9882] text-white rounded-full px-3 py-1 text-xs">
                   {resolved.status}
                 </Badge>
               </div>

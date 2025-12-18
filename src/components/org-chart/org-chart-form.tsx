@@ -27,15 +27,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { toast } from "sonner";
 import { extractErrorMessage } from "@/lib/error-handler";
-export type OrgChartInitialValues = {
-  emp_name?: string;
-  email?: string | null;
-  phone?: string | null;
-  role?: string | null;
-  bio?: string | null;
-  branch_department?: string | string[]; // id(s) as string(s) for UI select - single for regular employees, array for managers
-  profileImageUrl?: string;
-};
+import { OrgChartInitialValues, OrgChartFormProps } from "@/types/org-chart";
 
 export function OrgChartForm({
   initialValues,
@@ -43,13 +35,7 @@ export function OrgChartForm({
   isEdit = false,
   employeeId,
   onSubmitComplete,
-}: {
-  initialValues?: OrgChartInitialValues;
-  onRegisterSubmit?: (submit: () => void) => void;
-  isEdit?: boolean;
-  employeeId?: string;
-  onSubmitComplete?: (success: boolean) => void;
-}) {
+}: OrgChartFormProps) {
   // Get manager scope to filter departments
   const { isManager, managedDepartments } = useManagerScope();
 
