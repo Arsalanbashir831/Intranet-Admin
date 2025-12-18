@@ -26,15 +26,8 @@ import { FilterDrawer } from "@/components/card-table/filter-drawer";
 import { DepartmentFilter } from "@/components/card-table/filter-components";
 import { SelectFilter } from "../common/select-filter";
 
-export type NewHireRow = {
-  id: string;
-  assignedTo: Array<{ id: string; name: string; avatar?: string }>; // employee objects
-  department: string;
-  dateOfCreation: string;
-  status: "Published" | "Draft";
-  assignedBy: string;
-  assignedByAvatar?: string;
-};
+import { NewHireRow } from "@/types/new-hire";
+import { transformChecklistData } from "@/handlers/new-hire-handlers";
 
 export function NewHireTable() {
   const router = useRouter();
@@ -83,62 +76,7 @@ export function NewHireTable() {
 
   // Transform API data to table format
   const data = React.useMemo<NewHireRow[]>(() => {
-    if (!checklistsData?.results) return [];
-
-    return checklistsData.results.map(
-      (checklist) => {
-        // Use expanded employee data from assigned_to_details
-        const assignedEmployees =
-          checklist.assigned_to_details?.map((emp) => ({
-            id: String(emp.id),
-            name: emp.emp_name,
-            avatar: emp.profile_picture || undefined,
-          })) || [];
-
-        // Get assigned by details
-        const assignedByDetails = checklist.assigned_by_details as
-          | { emp_name?: string; profile_picture?: string }
-          | undefined;
-
-        // Get department name from department_details (handling both string and object formats)
-        let departmentName = "N/A";
-        if (typeof checklist.department_details === "string") {
-          try {
-            // Try to parse if it's a JSON string
-            const parsed = JSON.parse(checklist.department_details);
-            departmentName =
-              parsed.dept_name ||
-              parsed.name ||
-              checklist.department_details ||
-              "N/A";
-          } catch {
-            // If parsing fails, use the string value directly
-            departmentName = checklist.department_details || "N/A";
-          }
-        } else if (
-          checklist.department_details &&
-          typeof checklist.department_details === "object"
-        ) {
-          // If it's already an object (as in the API response you provided)
-          departmentName =
-            (checklist.department_details as { dept_name?: string })
-              .dept_name || "N/A";
-        }
-
-        return {
-          id: String(checklist.id),
-          assignedTo: assignedEmployees,
-          department: departmentName,
-          dateOfCreation: format(new Date(checklist.created_at), "M/d/yy"),
-          status:
-            checklist.status === "publish"
-              ? ("Published" as const)
-              : ("Draft" as const),
-          assignedBy: assignedByDetails?.emp_name || "Admin",
-          assignedByAvatar: assignedByDetails?.profile_picture || undefined,
-        };
-      }
-    );
+    return transformChecklistData(checklistsData);
   }, [checklistsData]);
 
   const { pinnedIds, togglePin, ordered } = usePinnedRows<NewHireRow>(data);
@@ -227,8 +165,7 @@ export function NewHireTable() {
               row.original.status === "Published"
                 ? "bg-emerald-50 text-emerald-700 border-0"
                 : "bg-orange-50 text-orange-700 border-0"
-            }
-          >
+            }>
             {row.original.status}
           </Badge>
         ),
@@ -249,9 +186,9 @@ export function NewHireTable() {
                 {row.original.assignedBy === "Admin"
                   ? "A"
                   : row.original.assignedBy
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
               </AvatarFallback>
             </Avatar>
             <span className="text-sm text-[#667085]">
@@ -272,8 +209,7 @@ export function NewHireTable() {
               variant="ghost"
               className="text-[#D64575]"
               onClick={() => handleDelete(row.original.id)}
-              disabled={deleteChecklist.isPending}
-            >
+              disabled={deleteChecklist.isPending}>
               <Trash2 className="size-4" />
             </Button>
           </div>
@@ -298,8 +234,7 @@ export function NewHireTable() {
     <Card
       className={cn("border-[#FFF6F6] p-5 shadow-none", {
         "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
-      })}
-    >
+      })}>
       <CardTableToolbar
         title="Recent Training Checklists"
         searchValue={searchQuery}
@@ -331,8 +266,7 @@ export function NewHireTable() {
         onReset={handleResetFilters}
         showFilterButton={false}
         title="Filter Training Checklistss"
-        description="Filter new hire plans by status or department"
-      >
+        description="Filter new hire plans by status or department">
         <div className="space-y-6 py-4">
           <SelectFilter
             label="Status"

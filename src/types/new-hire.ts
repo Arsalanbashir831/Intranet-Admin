@@ -160,3 +160,76 @@ export type ExecutiveTrainingChecklistListResponse = {
   attachment: ExecutiveTrainingChecklistAttachment[];
   employees: ExecutiveTrainingChecklistEmployee[];
 };
+
+
+// Component Types
+
+export type ChecklistItemData = { 
+  id: string; 
+  title: string; 
+  body: string; 
+  type: "task" | "training";
+  deadline?: string;
+  files?: File[];
+  deletedFileIds?: number[];
+  existingFiles?: Array<{
+    id: number;
+    attachment: number;
+    file: string;
+    uploaded_at: string;
+  }>;
+  initialPreviewUrls?: string[];
+};
+
+export type ApiEmployee = {
+  id: number | string;
+  full_name: string;
+  username?: string;
+  department_name?: string;
+  profile_picture_url?: string;
+};
+
+export type NewHirePlanFormData = {
+  assignees: string[];
+  trainingItems: ChecklistItemData[];
+};
+
+export interface NewHirePlanFormProps {
+  onFormDataChange?: (data: NewHirePlanFormData) => void;
+  initialData?: {
+    assignees?: string[];
+    trainingItems?: ChecklistItemData[];
+  };
+}
+
+export type NewHireRow = {
+  id: string;
+  assignedTo: Array<{ id: string; name: string; avatar?: string }>; // employee objects
+  department: string;
+  dateOfCreation: string;
+  status: "Published" | "Draft";
+  assignedBy: string;
+  assignedByAvatar?: string;
+};
+
+export interface ChecklistCardProps {
+  title: string;
+  initial: ChecklistItemData[];
+  variant?: "task" | "training";
+  onItemsChange?: (items: ChecklistItemData[]) => void;
+}
+
+export interface ChecklistItemProps { 
+  item: ChecklistItemData; 
+  onDelete: (id: string) => void; 
+  onEdit?: (item: ChecklistItemData) => void; 
+}
+
+export type NewTaskModalProps = {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onCreate?: (task: { title: string; detail: string; deadline?: string; files?: File[] }) => void;
+  onUpdate?: (id: string, task: { title: string; detail: string; deadline?: string; files?: File[]; deletedFileIds?: number[] }) => void;
+  type?: "task" | "training";
+  editItem?: ChecklistItemData | null;
+};
