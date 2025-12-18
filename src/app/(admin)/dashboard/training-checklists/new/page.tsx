@@ -4,11 +4,14 @@ import * as React from "react";
 import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
-import { NewHirePlanForm, type NewHirePlanFormData } from "@/components/new-hire/new-hire-plan-form";
-import { 
-  useCreateChecklist, 
-  useCreateAttachment, 
-  useCreateAttachmentFile
+import {
+  NewHirePlanForm,
+  type NewHirePlanFormData,
+} from "@/components/new-hire/new-hire-plan-form";
+import {
+  useCreateChecklist,
+  useCreateAttachment,
+  useCreateAttachmentFile,
 } from "@/hooks/queries/use-new-hire";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -16,10 +19,12 @@ import { Loader2 } from "lucide-react";
 
 export default function NewHirePlanCreatePage() {
   const router = useRouter();
-  const [formData, setFormData] = React.useState<NewHirePlanFormData | null>(null);
+  const [formData, setFormData] = React.useState<NewHirePlanFormData | null>(
+    null
+  );
   const [isSaving, setIsSaving] = React.useState(false); // For draft saving
   const [isPublishing, setIsPublishing] = React.useState(false); // For publishing
-  
+
   const createChecklist = useCreateChecklist();
   const createAttachment = useCreateAttachment();
   const createAttachmentFile = useCreateAttachmentFile();
@@ -51,13 +56,13 @@ export default function NewHirePlanCreatePage() {
       // Step 1: Create checklist
       const checklist = await createChecklist.mutateAsync({
         assigned_to: formData.assignees.map(Number),
-        assigned_by: null, 
+        assigned_by: null,
         status: isDraft ? "draft" : "publish",
       });
 
       // Step 2: Create attachments
       const allItems = [...formData.trainingItems];
-      
+
       if (allItems.length > 0) {
         const createPromises = allItems.map(async (item) => {
           // Create attachment
@@ -85,54 +90,69 @@ export default function NewHirePlanCreatePage() {
         await Promise.all(createPromises);
       }
 
-      toast.success(`New hire plan ${isDraft ? "saved as draft" : "published"} successfully`);
+      toast.success(
+        `New hire plan ${isDraft ? "saved as draft" : "published"} successfully`
+      );
       router.push(ROUTES.ADMIN.NEW_HIRE_PLAN);
     } catch (error) {
       console.error("Failed to create new hire plan:", error);
-      
+
       // Extract error message from API response
       let errorMessage = "Failed to create new hire plan. Please try again.";
-      
-      if (error && typeof error === 'object' && 'response' in error) {
+
+      if (error && typeof error === "object" && "response" in error) {
         const apiError = error as { response?: { data?: unknown } };
         const errorData = apiError.response?.data;
-        
+
         // Check for non_field_errors (validation errors)
-        if (errorData && typeof errorData === 'object' && 'non_field_errors' in errorData) {
-          const nfe = (errorData as { non_field_errors: unknown }).non_field_errors;
+        if (
+          errorData &&
+          typeof errorData === "object" &&
+          "non_field_errors" in errorData
+        ) {
+          const nfe = (errorData as { non_field_errors: unknown })
+            .non_field_errors;
           if (Array.isArray(nfe)) {
-            errorMessage = nfe.join('. ');
+            errorMessage = nfe.join(". ");
           }
         }
         // Check for field-specific errors
-        else if (errorData && typeof errorData === 'object') {
+        else if (errorData && typeof errorData === "object") {
           const fieldErrors = Object.entries(errorData)
             .map(([field, errors]) => {
               if (Array.isArray(errors)) {
-                return `${field}: ${errors.join(', ')}`;
+                return `${field}: ${errors.join(", ")}`;
               }
               return `${field}: ${errors}`;
             })
-            .join('. ');
-          
+            .join(". ");
+
           if (fieldErrors) {
             errorMessage = fieldErrors;
           }
         }
         // Check for direct error message
-        else if (errorData && typeof errorData === 'object' && 'message' in errorData) {
+        else if (
+          errorData &&
+          typeof errorData === "object" &&
+          "message" in errorData
+        ) {
           errorMessage = String((errorData as { message: unknown }).message);
         }
         // Check for detail message (common in DRF responses)
-        else if (errorData && typeof errorData === 'object' && 'detail' in errorData) {
+        else if (
+          errorData &&
+          typeof errorData === "object" &&
+          "detail" in errorData
+        ) {
           errorMessage = String((errorData as { detail: unknown }).detail);
         }
       }
       // Handle errors from React Query mutations
-      else if (error && typeof error === 'object' && 'message' in error) {
+      else if (error && typeof error === "object" && "message" in error) {
         errorMessage = String((error as { message: unknown }).message);
       }
-      
+
       toast.error(errorMessage);
     } finally {
       // Reset the appropriate loading state
@@ -154,20 +174,32 @@ export default function NewHirePlanCreatePage() {
         ]}
         action={
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-primary"
               onClick={() => handleSave(true)}
-              disabled={isSaving || isPublishing || !formData}
-            >
-              {isSaving ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save As Draft"}
+              disabled={isSaving || isPublishing || !formData}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="animate-spin mr-2 h-4 w-4" />{" "}
+                  <span>Saving...</span>
+                </>
+              ) : (
+                "Save As Draft"
+              )}
             </Button>
-            <Button 
+            <Button
               onClick={() => handleSave(false)}
               disabled={isSaving || isPublishing || !formData}
-              className="bg-[#D64575] hover:bg-[#B53A63]"
-            >
-              {isPublishing ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Publishing...</span></> : "Publish"}
+              className="bg-[#D64575] hover:bg-[#B53A63]">
+              {isPublishing ? (
+                <>
+                  <Loader2 className="animate-spin mr-2 h-4 w-4" />{" "}
+                  <span>Publishing...</span>
+                </>
+              ) : (
+                "Publish"
+              )}
             </Button>
           </div>
         }
@@ -178,5 +210,3 @@ export default function NewHirePlanCreatePage() {
     </>
   );
 }
-
-

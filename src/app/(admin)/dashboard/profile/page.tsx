@@ -10,6 +10,11 @@ import { MfaDialog } from "@/components/profile/mfa-dialog";
 import { Badge } from "@/components/ui/badge";
 import { useMe } from "@/hooks/queries/use-auth";
 
+const BREADCRUMBS = [
+  { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
+  { label: "Profile" },
+];
+
 export default function ProfilePage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMfaDialogOpen, setIsMfaDialogOpen] = useState(false);
@@ -20,16 +25,12 @@ export default function ProfilePage() {
     <>
       <PageHeader
         title="Profile"
-        crumbs={[
-          { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
-          { label: "Profile" },
-        ]}
+        crumbs={BREADCRUMBS}
         action={
           <Button
             variant="outline"
             className="bg-primary text-white hover:bg-primary/90 hover:text-white border-0 shadow-sm"
-            onClick={() => setIsDialogOpen(true)}
-          >
+            onClick={() => setIsDialogOpen(true)}>
             Change Password
           </Button>
         }
@@ -40,24 +41,34 @@ export default function ProfilePage() {
 
           {/* Security Section */}
           <div className="w-full">
-            <h2 className="text-lg font-semibold mb-4 text-[#111827]">Security Settings</h2>
+            <h2 className="text-lg font-semibold mb-4 text-[#111827]">
+              Security Settings
+            </h2>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 max-w-full">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-[#111827]">Two-Factor Authentication (2FA)</h3>
-                    {mfaEnabled && <Badge variant="outline" className="text-green-600 bg-green-50 border-green-200">Enabled</Badge>}
+                    <h3 className="font-medium text-[#111827]">
+                      Two-Factor Authentication (2FA)
+                    </h3>
+                    {mfaEnabled && (
+                      <Badge
+                        variant="outline"
+                        className="text-green-600 bg-green-50 border-green-200">
+                        Enabled
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500">
-                    Add an extra layer of security to your account using an authenticator app.
+                    Add an extra layer of security to your account using an
+                    authenticator app.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant='outline'
+                    variant="outline"
                     onClick={() => setIsMfaDialogOpen(true)}
-                    className="border-primary text-primary hover:bg-primary/10 hover:text-primary"
-                  >
+                    className="border-primary text-primary hover:bg-primary/10 hover:text-primary">
                     {mfaEnabled ? "Disable" : "Enable"}
                   </Button>
                 </div>

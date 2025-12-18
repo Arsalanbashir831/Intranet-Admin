@@ -4,7 +4,15 @@ import { KnowledgeBaseTable } from "@/components/knowledge-base/knowledge-base-t
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/common";
 import { ROUTES } from "@/constants/routes";
-import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
+import {
+  AddFolderModal,
+  useAddFolderModal,
+} from "@/components/knowledge-base/add-folder-modal";
+
+const BREADCRUMBS = [
+  { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
+  { label: "Knowledge Base", href: ROUTES.ADMIN.KNOWLEDGE_BASE },
+];
 
 export default function KnowledgeBasePage() {
   const { open, setOpen, openModal } = useAddFolderModal();
@@ -12,13 +20,23 @@ export default function KnowledgeBasePage() {
     <>
       <PageHeader
         title="Knowledge Base"
-        crumbs={[{ label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }, { label: "Knowledge Base", href: ROUTES.ADMIN.KNOWLEDGE_BASE }]}
-        action={<Button onClick={openModal} className="bg-[#FF0F6D] hover:bg-[#e20d60]">Create Folder</Button>}
+        crumbs={BREADCRUMBS}
+        action={
+          <Button
+            onClick={openModal}
+            className="bg-[#FF0F6D] hover:bg-[#e20d60]">
+            Create Folder
+          </Button>
+        }
       />
       <div className="px-4 md:px-12 py-4">
         <KnowledgeBaseTable />
       </div>
-      <AddFolderModal open={open} onOpenChange={setOpen} showAccessOptions={true} />
+      <AddFolderModal
+        open={open}
+        onOpenChange={setOpen}
+        showAccessOptions={true}
+      />
     </>
   );
 }

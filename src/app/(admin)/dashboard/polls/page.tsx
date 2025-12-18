@@ -4,15 +4,17 @@ import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
 import { PollsTable } from "@/components/polls/polls-table";
 
+const BREADCRUMBS = [
+  { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
+  { label: "Polls", href: ROUTES.ADMIN.POLLS },
+];
+
 export default function PollsPage() {
   return (
     <>
       <PageHeader
         title="Polls"
-        crumbs={[
-          { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
-          { label: "Polls", href: ROUTES.ADMIN.POLLS }
-        ]}
+        crumbs={BREADCRUMBS}
         action={
           <Link href={ROUTES.ADMIN.POLLS_NEW}>
             <Button>Create Poll</Button>
