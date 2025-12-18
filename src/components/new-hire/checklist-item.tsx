@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Button } from "../ui/button";
 import { Trash, Paperclip } from "lucide-react";
-import { ChecklistItemData, ChecklistItemProps } from "@/types/new-hire";
+import { ChecklistItemProps } from "@/types/new-hire";
 import { format } from "date-fns";
 import * as React from "react";
 import { calculateFileCount } from "@/handlers/new-hire-handlers";
@@ -26,7 +26,7 @@ export function ChecklistItem({ item, onDelete, onEdit }: ChecklistItemProps) {
           />
         </span>
         <div className="leading-tight flex-1 min-w-0 overflow-hidden space-y-1">
-          <div className="text-base font-bold text-[#0D141C] line-clamp-2 break-words">
+          <div className="text-base font-bold text-[#0D141C] line-clamp-2 wrap-break-words">
             {item.title}
           </div>
           <div

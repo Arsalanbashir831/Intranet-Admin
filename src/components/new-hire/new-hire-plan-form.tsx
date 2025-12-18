@@ -15,7 +15,6 @@ import {
 
 import {
   ChecklistItemData,
-  NewHirePlanFormData,
   NewHirePlanFormProps,
   ApiEmployee,
 } from "@/types/new-hire";

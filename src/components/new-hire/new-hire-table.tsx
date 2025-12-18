@@ -18,7 +18,6 @@ import {
   useDeleteChecklist,
 } from "@/hooks/queries/use-new-hire";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";

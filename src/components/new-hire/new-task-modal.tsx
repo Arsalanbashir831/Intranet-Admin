@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Dropzone } from "@/components/ui/dropzone";
-
 import { NewTaskModalProps } from "@/types/new-hire";
 
 export function NewTaskModal({
