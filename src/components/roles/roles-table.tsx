@@ -15,21 +15,25 @@ import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
-import type { Role } from "@/types/roles";
+import { Role, RoleRow } from "@/types/roles";
 import { EditRoleModal } from "./edit-role-modal";
-
-export type RoleRow = {
-  id: string;
-  name: string;
-  access_level: "employee" | "manager" | "executive";
-};
+import {
+  transformRoleToRow,
+  parseRoleError,
+  getAccessLevelBadgeColor,
+  getAccessLevelDisplayText,
+} from "@/handlers/role-handlers";
 
 export function RolesTable() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = React.useState<string>("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] =
+    React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
-  const [serverPagination, setServerPagination] = React.useState({ page: 1, pageSize: 10 });
+  const [serverPagination, setServerPagination] = React.useState({
+    page: 1,
+    pageSize: 10,
+  });
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [selectedRole, setSelectedRole] = React.useState<Role | null>(null);
 
@@ -53,7 +57,12 @@ export function RolesTable() {
     return Object.keys(params).length > 0 ? params : undefined;
   }, [debouncedSearchQuery]);
 
-  const { data: apiData, isLoading, error, isFetching } = useRoles(searchParams, serverPagination);
+  const {
+    data: apiData,
+    isLoading,
+    error,
+    isFetching,
+  } = useRoles(searchParams, serverPagination);
   const deleteRole = useDeleteRole();
 
   const data = React.useMemo<RoleRow[]>(() => {
@@ -61,11 +70,7 @@ export function RolesTable() {
 
     const roles = apiData.roles?.results || [];
 
-    return roles.map((role) => ({
-      id: String(role.id),
-      name: role.name,
-      access_level: role.access_level,
-    }));
+    return roles.map(transformRoleToRow);
   }, [apiData]);
 
   const paginationInfo = React.useMemo(() => {
@@ -77,122 +82,114 @@ export function RolesTable() {
     };
   }, [apiData]);
 
-  const handleSearchChange = React.useCallback((value: string) => {
-    setSearchQuery(value);
-    // Reset pagination when searching
-    setServerPagination({ page: 1, pageSize: serverPagination.pageSize });
-  }, [serverPagination.pageSize]);
+  const handleSearchChange = React.useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+      // Reset pagination when searching
+      setServerPagination({ page: 1, pageSize: serverPagination.pageSize });
+    },
+    [serverPagination.pageSize]
+  );
 
-  const handleEditClick = React.useCallback((e: React.MouseEvent, row: RoleRow) => {
-    e.stopPropagation();
-    // Find the role from API data
-    const role = apiData?.roles?.results?.find((r: Role) => String(r.id) === row.id);
-    if (role) {
-      setSelectedRole(role);
-      setEditModalOpen(true);
-    }
-  }, [apiData]);
+  const handleEditClick = React.useCallback(
+    (e: React.MouseEvent, row: RoleRow) => {
+      e.stopPropagation();
+      // Find the role from API data
+      const role = apiData?.roles?.results?.find(
+        (r: Role) => String(r.id) === row.id
+      );
+      if (role) {
+        setSelectedRole(role);
+        setEditModalOpen(true);
+      }
+    },
+    [apiData]
+  );
 
   // Memoize the columns to prevent unnecessary re-renders
-  const columns = React.useMemo<ColumnDef<RoleRow>[]>(() => [
-    {
-      accessorKey: "name",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Role Name" />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm font-medium text-[#1D1F2C]">
-          {row.original.name}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "access_level",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Access Level" />
-      ),
-      cell: ({ getValue }) => {
-        const accessLevel = getValue() as "employee" | "manager" | "executive";
-        const badgeColors = {
-          employee: "bg-gray-100 text-gray-800",
-          manager: "bg-green-100 text-green-800",
-          executive: "bg-blue-100 text-blue-800",
-        };
-        const displayText = {
-          employee: "Employee",
-          manager: "Manager",
-          executive: "Executive",
-        };
-        return (
-          <Badge variant="default" className={badgeColors[accessLevel]}>
-            {displayText[accessLevel]}
-          </Badge>
-        );
+  const columns = React.useMemo<ColumnDef<RoleRow>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Role Name" />
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm font-medium text-[#1D1F2C]">
+            {row.original.name}
+          </span>
+        ),
       },
-    },
-    {
-      id: "actions",
-      header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
-      cell: ({ row }) => (
-        isSuperuser ? (
-          <div className="flex items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-[#D64575]"
-              onClick={(e) => handleEditClick(e, row.original)}
-            >
-              <Edit2 className="size-4" />
-            </Button>
-            <span onClick={(e) => e.stopPropagation()}>
-              <ConfirmPopover
-                title="Delete role?"
-                description="This action cannot be undone."
-                confirmText="Delete"
-                onConfirm={async () => {
-                  const id = row.original.id;
-                  try {
-                    setDeletingId(id);
-                    await deleteRole.mutateAsync(id);
-                    toast.success("Role deleted successfully");
-                  } catch (err) {
-                    console.error("Error deleting role:", err);
-                    let errorMessage = "Failed to delete role. Please try again.";
-                    
-                    // Extract error message from API response
-                    if (err instanceof Error && err.message) {
-                      errorMessage = err.message;
-                    } else {
-                      const error = err as { response?: { data?: Record<string, unknown>; status?: number } };
-                      const dataErr = error?.response?.data;
-                      if (dataErr && typeof dataErr === "object") {
-                        if ("error" in dataErr && typeof dataErr.error === "string") {
-                          errorMessage = dataErr.error;
-                        } else if ("detail" in dataErr && typeof dataErr.detail === "string") {
-                          errorMessage = dataErr.detail;
-                        } else if ("message" in dataErr && typeof dataErr.message === "string") {
-                          errorMessage = dataErr.message;
-                        }
-                      }
+      {
+        accessorKey: "access_level",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Access Level" />
+        ),
+        cell: ({ getValue }) => {
+          const accessLevel = getValue() as
+            | "employee"
+            | "manager"
+            | "executive";
+          return (
+            <Badge
+              variant="default"
+              className={getAccessLevelBadgeColor(accessLevel)}>
+              {getAccessLevelDisplayText(accessLevel)}
+            </Badge>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: () => (
+          <span className="text-sm font-medium text-[#727272]">Action</span>
+        ),
+        cell: ({ row }) =>
+          isSuperuser ? (
+            <div className="flex items-center gap-1">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-[#D64575]"
+                onClick={(e) => handleEditClick(e, row.original)}>
+                <Edit2 className="size-4" />
+              </Button>
+              <span onClick={(e) => e.stopPropagation()}>
+                <ConfirmPopover
+                  title="Delete role?"
+                  description="This action cannot be undone."
+                  confirmText="Delete"
+                  onConfirm={async () => {
+                    const id = row.original.id;
+                    try {
+                      setDeletingId(id);
+                      await deleteRole.mutateAsync(id);
+                      toast.success("Role deleted successfully");
+                    } catch (err) {
+                      console.error("Error deleting role:", err);
+                      const errorMessage = parseRoleError(err);
+                      toast.error(errorMessage);
+                    } finally {
+                      setDeletingId(null);
                     }
-                    
-                    toast.error(errorMessage);
-                  } finally {
-                    setDeletingId(null);
-                  }
-                }}
-                disabled={deletingId === row.original.id || deleteRole.isPending}
-              >
-                <Button size="icon" variant="ghost" className="text-[#D64575]">
-                  <Trash2 className="size-4" />
-                </Button>
-              </ConfirmPopover>
-            </span>
-          </div>
-        ) : null
-      ),
-    },
-  ], [isSuperuser, deletingId, deleteRole.isPending, deleteRole, handleEditClick]);
+                  }}
+                  disabled={
+                    deletingId === row.original.id || deleteRole.isPending
+                  }>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-[#D64575]">
+                    <Trash2 className="size-4" />
+                  </Button>
+                </ConfirmPopover>
+              </span>
+            </div>
+          ) : null,
+      },
+    ],
+    [isSuperuser, deletingId, deleteRole.isPending, deleteRole, handleEditClick]
+  );
 
   // Show loading state only on initial load (no search query and no existing data)
   if (isLoading && !debouncedSearchQuery && !data.length) {
@@ -210,18 +207,21 @@ export function RolesTable() {
     return (
       <Card className="border-[#FFF6F6] p-5 shadow-none">
         <div className="flex items-center justify-center py-8">
-          <div className="text-sm text-red-600">Error loading roles: {error.message}</div>
+          <div className="text-sm text-red-600">
+            Error loading roles: {error.message}
+          </div>
         </div>
       </Card>
     );
   }
 
   return (
-    <Card className={cn("border-[#FFF6F6] p-5 shadow-none", {
-      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery,
-    })}>
+    <Card
+      className={cn("border-[#FFF6F6] p-5 shadow-none", {
+        "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery,
+      })}>
       <CardTableToolbar
-        title='Roles'
+        title="Roles"
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
         showSortOptions={false}
@@ -250,4 +250,3 @@ export function RolesTable() {
     </Card>
   );
 }
-

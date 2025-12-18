@@ -8,14 +8,8 @@ import { useUpdateRole } from "@/hooks/queries/use-roles";
 import { useFormSubmission } from "@/hooks/use-form-submission";
 import { validateRequired, validateMaxLength } from "@/lib/validation";
 import { useErrorHandler } from "@/hooks/use-error-handler";
-import type { Role } from "@/types/roles";
+import type { EditRoleModalProps } from "@/types/roles";
 import { AccessLevelSelect } from "./access-level-select";
-
-interface EditRoleModalProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  role: Role | null;
-}
 
 export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
   const updateRole = useUpdateRole(role?.id || "");
@@ -29,7 +23,9 @@ export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
 
   // State for functionality
   const [roleName, setRoleName] = useState("");
-  const [accessLevel, setAccessLevel] = useState<"employee" | "manager" | "executive">("employee");
+  const [accessLevel, setAccessLevel] = useState<
+    "employee" | "manager" | "executive"
+  >("employee");
 
   const { isSubmitting, submit } = useFormSubmission({
     onSuccess: () => {
@@ -86,8 +82,7 @@ export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
       confirmText={isSubmitting ? "Updating..." : "Update"}
       confirmDisabled={isSubmitting || !roleName.trim()}
       onCancel={() => setOpen(false)}
-      icon='/icons/user-hierarchy.svg'
-    >
+      icon="/icons/user-hierarchy.svg">
       <div className="space-y-4 px-6">
         <div className="flex justify-between items-center gap-8">
           <Label htmlFor="role-name">Role Name:</Label>
@@ -115,4 +110,3 @@ export function EditRoleModal({ open, setOpen, role }: EditRoleModalProps) {
     </AppModal>
   );
 }
-
