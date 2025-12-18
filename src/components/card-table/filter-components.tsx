@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -14,25 +14,33 @@ import { useDepartments } from "@/hooks/queries/use-departments";
 import { useBranches } from "@/hooks/queries/use-branches";
 import { useBranchDepartments } from "@/hooks/queries/use-departments";
 import { useRoles } from "@/hooks/queries/use-roles";
+import {
+  DepartmentFilterProps,
+  BranchFilterProps,
+  BranchDepartmentFilterProps,
+  RoleFilterProps,
+  SearchFilterProps,
+} from "@/types/card-table";
+import {
+  normalizeDepartments,
+  normalizeBranches,
+  normalizeBranchDepartments,
+  normalizeRoles,
+} from "@/handlers/filter-handlers";
 
-interface DepartmentFilterProps {
-  value?: string;
-  onValueChange: (value: string) => void;
-  placeholder?: string;
-}
+export function DepartmentFilter({
+  value,
+  onValueChange,
+  placeholder = "Select department",
+}: DepartmentFilterProps) {
+  const { data: departmentsData, isLoading } = useDepartments({
+    page_size: 1000,
+  });
 
-export function DepartmentFilter({ value, onValueChange, placeholder = "Select department" }: DepartmentFilterProps) {
-  const { data: departmentsData, isLoading } = useDepartments({ page_size: 1000 });
-  
-  const departments = React.useMemo(() => {
-    if (!departmentsData) return [];
-    // departmentsData is now directly an array of departments
-    const list = Array.isArray(departmentsData) ? departmentsData : [];
-    return (list as { id: number; dept_name: string }[]).map(dept => ({
-      id: dept.id,
-      name: dept.dept_name
-    }));
-  }, [departmentsData]);
+  const departments = React.useMemo(
+    () => normalizeDepartments(departmentsData),
+    [departmentsData]
+  );
 
   return (
     <div className="space-y-2">
@@ -43,7 +51,9 @@ export function DepartmentFilter({ value, onValueChange, placeholder = "Select d
         </SelectTrigger>
         <SelectContent>
           {isLoading ? (
-            <SelectItem value="__loading__" disabled>Loading...</SelectItem>
+            <SelectItem value="__loading__" disabled>
+              Loading...
+            </SelectItem>
           ) : (
             <>
               <SelectItem value="__all__">All Departments</SelectItem>
@@ -60,25 +70,17 @@ export function DepartmentFilter({ value, onValueChange, placeholder = "Select d
   );
 }
 
-interface BranchFilterProps {
-  value?: string;
-  onValueChange: (value: string) => void;
-  placeholder?: string;
-}
-
-export function BranchFilter({ value, onValueChange, placeholder = "Select branch" }: BranchFilterProps) {
+export function BranchFilter({
+  value,
+  onValueChange,
+  placeholder = "Select branch",
+}: BranchFilterProps) {
   const { data: branchesData, isLoading } = useBranches({ page_size: 1000 });
-  
-  const branches = React.useMemo(() => {
-    if (!branchesData) return [];
-    const list = Array.isArray(branchesData) 
-      ? branchesData 
-      : (branchesData as { branches?: { results?: unknown[] } })?.branches?.results || [];
-    return (list as { id: number; branch_name: string }[]).map(branch => ({
-      id: branch.id,
-      name: branch.branch_name
-    }));
-  }, [branchesData]);
+
+  const branches = React.useMemo(
+    () => normalizeBranches(branchesData),
+    [branchesData]
+  );
 
   return (
     <div className="space-y-2">
@@ -89,7 +91,9 @@ export function BranchFilter({ value, onValueChange, placeholder = "Select branc
         </SelectTrigger>
         <SelectContent>
           {isLoading ? (
-            <SelectItem value="__loading__" disabled>Loading...</SelectItem>
+            <SelectItem value="__loading__" disabled>
+              Loading...
+            </SelectItem>
           ) : (
             <>
               <SelectItem value="__all__">All Branches</SelectItem>
@@ -106,38 +110,34 @@ export function BranchFilter({ value, onValueChange, placeholder = "Select branc
   );
 }
 
-interface BranchDepartmentFilterProps {
-  value?: string;
-  onValueChange: (value: string) => void;
-  placeholder?: string;
-}
+export function BranchDepartmentFilter({
+  value,
+  onValueChange,
+  placeholder = "Select branch department",
+}: BranchDepartmentFilterProps) {
+  const { data: branchDeptsData, isLoading } = useBranchDepartments({
+    page_size: 1000,
+  });
 
-export function BranchDepartmentFilter({ value, onValueChange, placeholder = "Select branch department" }: BranchDepartmentFilterProps) {
-  const { data: branchDeptsData, isLoading } = useBranchDepartments({ page_size: 1000 });
-  
-  const branchDepartments = React.useMemo(() => {
-    if (!branchDeptsData) return [];
-    
-    return (branchDeptsData as { 
-      id: number; 
-      branch: { branch_name: string };
-      department: { dept_name: string | unknown };
-    }[]).map(bd => ({
-      id: bd.id,
-      name: `${typeof bd.department?.dept_name === 'string' ? bd.department.dept_name : 'Unknown Department'} - ${bd.branch?.branch_name || 'Unknown Branch'}`
-    }));
-  }, [branchDeptsData]);
+  const branchDepartments = React.useMemo(
+    () => normalizeBranchDepartments(branchDeptsData),
+    [branchDeptsData]
+  );
 
   return (
     <div className="space-y-2">
       <Label htmlFor="branch-department">Branch Department</Label>
       <Select value={value || undefined} onValueChange={onValueChange}>
-        <SelectTrigger id="branch-department" className="w-full border-[#E4E4E4]">
+        <SelectTrigger
+          id="branch-department"
+          className="w-full border-[#E4E4E4]">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           {isLoading ? (
-            <SelectItem value="__loading__" disabled>Loading...</SelectItem>
+            <SelectItem value="__loading__" disabled>
+              Loading...
+            </SelectItem>
           ) : (
             <>
               <SelectItem value="__all__">All Branch Departments</SelectItem>
@@ -154,30 +154,16 @@ export function BranchDepartmentFilter({ value, onValueChange, placeholder = "Se
   );
 }
 
-interface SearchFilterProps {
-  value?: string;
-  onValueChange: (value: string) => void;
-  placeholder?: string;
-  label?: string;
-}
+export function RoleFilter({
+  value,
+  onValueChange,
+  placeholder = "Select role",
+}: RoleFilterProps) {
+  const { data: rolesData, isLoading } = useRoles(undefined, {
+    pageSize: 1000,
+  });
 
-interface RoleFilterProps {
-  value?: string;
-  onValueChange: (value: string) => void;
-  placeholder?: string;
-}
-
-export function RoleFilter({ value, onValueChange, placeholder = "Select role" }: RoleFilterProps) {
-  const { data: rolesData, isLoading } = useRoles(undefined, { pageSize: 1000 });
-  
-  const roles = React.useMemo(() => {
-    if (!rolesData) return [];
-    const list = rolesData.roles?.results || [];
-    return (list as { id: number; name: string }[]).map(role => ({
-      id: role.id,
-      name: role.name
-    }));
-  }, [rolesData]);
+  const roles = React.useMemo(() => normalizeRoles(rolesData), [rolesData]);
 
   return (
     <div className="space-y-2">
@@ -188,7 +174,9 @@ export function RoleFilter({ value, onValueChange, placeholder = "Select role" }
         </SelectTrigger>
         <SelectContent>
           {isLoading ? (
-            <SelectItem value="__loading__" disabled>Loading...</SelectItem>
+            <SelectItem value="__loading__" disabled>
+              Loading...
+            </SelectItem>
           ) : (
             <>
               <SelectItem value="__all__">All Roles</SelectItem>
@@ -205,11 +193,11 @@ export function RoleFilter({ value, onValueChange, placeholder = "Select role" }
   );
 }
 
-export function SearchFilter({ 
-  value, 
-  onValueChange, 
-  placeholder = "Search...", 
-  label = "Search" 
+export function SearchFilter({
+  value,
+  onValueChange,
+  placeholder = "Search...",
+  label = "Search",
 }: SearchFilterProps) {
   return (
     <div className="space-y-2">

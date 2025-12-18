@@ -4,24 +4,19 @@ import { useEffect, useRef } from "react";
 import { CommandIcon, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-type TableSearchProps = {
-  placeholder?: string;
-  value?: string;
-  onChange?: (value: string) => void;
-};
+import { handleSearchShortcut } from "@/handlers/card-table-handlers";
+import { TableSearchProps } from "@/types/card-table";
 
-export function TableSearch({ placeholder = "Search", value, onChange }: TableSearchProps) {
+export function TableSearch({
+  placeholder = "Search",
+  value,
+  onChange,
+}: TableSearchProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().includes("MAC");
-      const mod = isMac ? e.metaKey : e.ctrlKey;
-      if (mod && e.key.toLowerCase() === "f") {
-        e.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
+    const onKeyDown = (e: KeyboardEvent) =>
+      handleSearchShortcut(e, inputRef as React.RefObject<HTMLInputElement>);
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
@@ -37,14 +32,15 @@ export function TableSearch({ placeholder = "Search", value, onChange }: TableSe
       leftIcon={<Search className="size-4" />}
       rightIcon={
         <div className="flex items-center gap-1">
-        <kbd className="rounded-[4px] bg-[#F2F2F2] p-1 text-muted-foreground"><CommandIcon className="size-4"/></kbd>
-        <kbd className="rounded-[4px] bg-[#F2F2F2] px-2 text-muted-foreground">F</kbd>
+          <kbd className="rounded-[4px] bg-[#F2F2F2] p-1 text-muted-foreground">
+            <CommandIcon className="size-4" />
+          </kbd>
+          <kbd className="rounded-[4px] bg-[#F2F2F2] px-2 text-muted-foreground">
+            F
+          </kbd>
         </div>
-
       }
       onChange={(e) => onChange?.(e.target.value)}
     />
   );
 }
-
-

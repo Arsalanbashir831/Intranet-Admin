@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
 import { Column } from "@tanstack/react-table";
 
-type Props<TData> = {
-  column: Column<TData, unknown>;
-  title: string;
-};
+import { CardTableColumnHeaderProps } from "@/types/card-table";
 
-export function CardTableColumnHeader<TData>({ column, title }: Props<TData>) {
+export function CardTableColumnHeader<TData>({
+  column,
+  title,
+}: CardTableColumnHeaderProps<TData>) {
   if (!column.getCanSort()) {
     return <span>{title}</span>;
   }
@@ -19,12 +19,9 @@ export function CardTableColumnHeader<TData>({ column, title }: Props<TData>) {
     <Button
       variant="ghost"
       className="h-auto p-0! text-sm font-medium text-[#727272] hover:text-primary"
-      onClick={() => column.toggleSorting(direction === "asc")}
-    >
+      onClick={() => column.toggleSorting(direction === "asc")}>
       {title}
       <ChevronsUpDown className="size-4" />
     </Button>
   );
 }
-
-

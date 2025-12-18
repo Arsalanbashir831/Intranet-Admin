@@ -13,19 +13,7 @@ import {
   PaginationInfo,
 } from "@/lib/pagination-utils";
 
-export interface CardTablePaginationProps<TData> {
-  table: Table<TData>;
-  /**
-   * Server-side pagination info from API response
-   * If provided, will use server-side pagination instead of client-side
-   */
-  paginationInfo?: PaginationInfo;
-  /**
-   * Callback for server-side pagination page changes
-   * Called with new page number (1-based) and page size
-   */
-  onPageChange?: (page: number, pageSize: number) => void;
-}
+import { CardTablePaginationProps } from "@/types/card-table";
 
 export function CardTablePagination<TData>({
   table,
@@ -34,24 +22,24 @@ export function CardTablePagination<TData>({
 }: CardTablePaginationProps<TData>) {
   // Use server-side pagination if paginationInfo is provided
   const isServerSide = !!paginationInfo;
-  
-  const pageCount = isServerSide 
+
+  const pageCount = isServerSide
     ? calculateTotalPages(paginationInfo!.count, paginationInfo!.page_size)
     : table.getPageCount();
-    
-  const pageIndex = isServerSide 
+
+  const pageIndex = isServerSide
     ? pageNumberToPageIndex(paginationInfo!.page)
     : table.getState().pagination.pageIndex;
-    
-  const pageSize = isServerSide 
+
+  const pageSize = isServerSide
     ? paginationInfo!.page_size
     : table.getState().pagination.pageSize;
 
-  const canPreviousPage = isServerSide 
+  const canPreviousPage = isServerSide
     ? paginationInfo!.page > 1
     : table.getCanPreviousPage();
-    
-  const canNextPage = isServerSide 
+
+  const canNextPage = isServerSide
     ? paginationInfo!.page < pageCount
     : table.getCanNextPage();
 
@@ -93,13 +81,14 @@ export function CardTablePagination<TData>({
         variant="outline"
         onClick={goToPreviousPage}
         disabled={!canPreviousPage}
-        className="size-9 rounded-[4px] border-[#C4CDD5] text-[#C4CDD5]"
-      >
+        className="size-9 rounded-[4px] border-[#C4CDD5] text-[#C4CDD5]">
         <ChevronLeft className="size-4" />
       </Button>
       {numbers.map((n, i) =>
         n === "..." ? (
-          <div key={`dots-${i}`} className="size-9 rounded-[4px] border grid place-items-center text-[#C4CDD5] border-[#C4CDD5]">
+          <div
+            key={`dots-${i}`}
+            className="size-9 rounded-[4px] border grid place-items-center text-[#C4CDD5] border-[#C4CDD5]">
             …
           </div>
         ) : (
@@ -109,9 +98,10 @@ export function CardTablePagination<TData>({
             onClick={() => goToPage(n)}
             className={cn(
               "size-9 rounded-[4px] border grid place-items-center font-semibold hover:text-primary",
-              pageIndex === n ? "border-[#D64575] text-[#D64575]" : "border-[#C4CDD5] text-[#C4CDD5]"
-            )}
-          >
+              pageIndex === n
+                ? "border-[#D64575] text-[#D64575]"
+                : "border-[#C4CDD5] text-[#C4CDD5]"
+            )}>
             {n + 1}
           </Button>
         )
@@ -121,12 +111,9 @@ export function CardTablePagination<TData>({
         variant="outline"
         onClick={goToNextPage}
         disabled={!canNextPage}
-        className="size-9 rounded-[4px] border-[#C4CDD5] text-[#C4CDD5]"
-      >
+        className="size-9 rounded-[4px] border-[#C4CDD5] text-[#C4CDD5]">
         <ChevronRight className="size-4" />
       </Button>
     </div>
   );
 }
-
-
