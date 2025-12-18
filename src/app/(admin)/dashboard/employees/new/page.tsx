@@ -7,6 +7,12 @@ import { ROUTES } from "@/constants/routes";
 import { OrgChartForm } from "@/components/org-chart/org-chart-form";
 import { Loader2 } from "lucide-react";
 
+const BREADCRUMBS = [
+  { label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD },
+  { label: "Employees", href: ROUTES.ADMIN.ORG_CHART },
+  { label: "Add New", href: ROUTES.ADMIN.ORG_CHART_NEW },
+];
+
 export default function NewOrgChartPage() {
   let submitFn: (() => void) | null = null;
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -33,20 +39,30 @@ export default function NewOrgChartPage() {
     <>
       <PageHeader
         title="Employees"
-        crumbs={[{ label: "Dashboard", href: ROUTES.ADMIN.DASHBOARD }, { label: "Employees", href: ROUTES.ADMIN.ORG_CHART }, { label: "Add New", href: ROUTES.ADMIN.ORG_CHART_NEW }]}
+        crumbs={BREADCRUMBS}
         action={
           <div className="flex gap-2">
             <Button onClick={handleSave} disabled={isSubmitting}>
-              {isSubmitting ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="animate-spin mr-2 h-4 w-4" />{" "}
+                  <span>Saving...</span>
+                </>
+              ) : (
+                "Save"
+              )}
             </Button>
           </div>
         }
       />
       <div className="px-4 md:px-12 py-4">
-        <OrgChartForm onRegisterSubmit={(fn) => { submitFn = fn; }} onSubmitComplete={handleSubmitComplete} />
+        <OrgChartForm
+          onRegisterSubmit={(fn) => {
+            submitFn = fn;
+          }}
+          onSubmitComplete={handleSubmitComplete}
+        />
       </div>
     </>
   );
 }
-
-

@@ -1,6 +1,6 @@
+import * as React from "react";
 import { PageHeader } from "@/components/common";
 import { ROUTES } from "@/constants/routes";
-import * as React from "react";
 import { DepartmentsDetailTable } from "@/components/departments/departments-detail-table";
 import { getBranchDepartmentEmployees } from "@/services/departments";
 
@@ -10,13 +10,15 @@ interface DepartmentDetailsPageProps {
   }>;
 }
 
-export default async function DepartmentDetailsPage({ params }: DepartmentDetailsPageProps) {
+export default async function DepartmentDetailsPage({
+  params,
+}: DepartmentDetailsPageProps) {
   const { id } = await params;
-  
+
   // Fetch initial data to get department and branch names for breadcrumbs
   let departmentName = "Department";
   let branchName = "Branch";
-  
+
   try {
     const employeesData = await getBranchDepartmentEmployees(id);
     if (employeesData?.employees?.results?.[0]?.branch_department) {
@@ -28,7 +30,7 @@ export default async function DepartmentDetailsPage({ params }: DepartmentDetail
     // Handle error silently, will use default names
     console.error("Failed to fetch department details:", error);
   }
-  
+
   return (
     <>
       <PageHeader
@@ -40,8 +42,8 @@ export default async function DepartmentDetailsPage({ params }: DepartmentDetail
         ]}
       />
       <div className="px-4 md:px-12 py-4">
-        <DepartmentsDetailTable 
-          branchDepartmentId={id} 
+        <DepartmentsDetailTable
+          branchDepartmentId={id}
           departmentName={departmentName}
           branchName={branchName}
         />
@@ -49,5 +51,3 @@ export default async function DepartmentDetailsPage({ params }: DepartmentDetail
     </>
   );
 }
-
-

@@ -4,13 +4,16 @@ import * as React from "react";
 import { PageHeader } from "@/components/common";
 import { ROUTES } from "@/constants/routes";
 import { FolderDetailsTable } from "@/components/knowledge-base/folder-details-table";
-import { AddFolderModal, useAddFolderModal } from "@/components/knowledge-base/add-folder-modal";
+import {
+  AddFolderModal,
+  useAddFolderModal,
+} from "@/components/knowledge-base/add-folder-modal";
 import { AddFileModal } from "@/components/knowledge-base/add-file-modal";
 import { useRouter } from "next/navigation";
 import { useGetFolderTree } from "@/hooks/queries/use-knowledge-folders";
 import type { FolderTreeItem } from "@/types/knowledge";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth-context";
+import { useAdmin } from "@/hooks/use-admin";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,21 +22,38 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, ChevronDown, FolderPlus, FilePlus } from "lucide-react";
 
-export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promise<{ slug?: string[] }> }) {
+export default function KnowledgeBaseFolderCatchAll({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { isAdmin } = useAdmin();
   const { slug } = React.use(params);
   const segments = React.useMemo(() => slug ?? [], [slug]);
-  const decodedSegments = React.useMemo(() => segments.map((s) => {
-    try { return decodeURIComponent(s); } catch { return s; }
-  }), [segments]);
+  const decodedSegments = React.useMemo(
+    () =>
+      segments.map((s) => {
+        try {
+          return decodeURIComponent(s);
+        } catch {
+          return s;
+        }
+      }),
+    [segments]
+  );
 
   // For now, we'll use the first segment as the folder ID
   // In a more sophisticated setup, you might want to resolve the full path
   const folderId = segments[0] ? parseInt(segments[0]) : undefined;
 
   // Use folder tree API instead of individual folder APIs
-  const { data: folderTreeData, isLoading: treeLoading, error: treeError, refetch: refetchTree } = useGetFolderTree();
+  const {
+    data: folderTreeData,
+    isLoading: treeLoading,
+    error: treeError,
+    refetch: refetchTree,
+  } = useGetFolderTree();
 
   // Find the current folder in the tree data
   const currentFolder = React.useMemo(() => {
@@ -57,7 +77,10 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promis
     refetchTree();
   }, [refetchTree]);
 
-  const folderName = currentFolder?.name || decodedSegments[decodedSegments.length - 1] || "Root";
+  const folderName =
+    currentFolder?.name ||
+    decodedSegments[decodedSegments.length - 1] ||
+    "Root";
 
   // Build breadcrumbs with actual folder names including full hierarchy
   const crumbs = React.useMemo(() => {
@@ -79,24 +102,29 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promis
     return baseCrumbs;
   }, [folderId, currentFolder]);
 
-  const { open: openNewFolder, setOpen: setOpenNewFolder, openModal: openNewFolderModal } = useAddFolderModal();
+  const {
+    open: openNewFolder,
+    setOpen: setOpenNewFolder,
+    openModal: openNewFolderModal,
+  } = useAddFolderModal();
   const [openNewFile, setOpenNewFile] = React.useState(false);
 
   // Check if current user can add content to this folder
   const canAddContent = React.useMemo(() => {
-    if (!currentFolder || !user) return false;
+    if (!currentFolder) return false;
 
     const folderCreatedByAdmin = currentFolder.created_by?.is_admin === true;
-    const currentUserIsAdmin = user.isAdmin;
 
     // If folder was created by admin, only admins can add content
     // If folder was created by manager, both admins and managers can add content
-    return currentUserIsAdmin || !folderCreatedByAdmin;
-  }, [currentFolder, user]);
+    return isAdmin || !folderCreatedByAdmin;
+  }, [currentFolder, isAdmin]);
 
   React.useEffect(() => {
     const handler = (e: Event) => {
-      const row = (e as CustomEvent<{ id: string; kind: string; originalId: string; }>).detail;
+      const row = (
+        e as CustomEvent<{ id: string; kind: string; originalId: string }>
+      ).detail;
       if (!row || row.kind !== "folder" || !row.originalId) return;
       // Navigate to the subfolder using its ID
       router.push(`/dashboard/knowledge-base/${row.originalId}`);
@@ -111,7 +139,8 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promis
         <PageHeader title="Knowledge Base" crumbs={crumbs} />
         <div className="px-4 md:px-12 py-4">
           <div className="text-center py-8 text-red-600">
-            Error loading folder: {treeError instanceof Error ? treeError.message : "Unknown error"}
+            Error loading folder:{" "}
+            {treeError instanceof Error ? treeError.message : "Unknown error"}
           </div>
         </div>
       </>
@@ -123,9 +152,7 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promis
       <>
         <PageHeader title="Knowledge Base" crumbs={crumbs} />
         <div className="px-4 md:px-12 py-4">
-          <div className="text-center py-8">
-            Loading folder contents...
-          </div>
+          <div className="text-center py-8">Loading folder contents...</div>
         </div>
       </>
     );
@@ -156,18 +183,19 @@ export default function KnowledgeBaseFolderCatchAll({ params }: { params: Promis
                   Add File
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>)
+            </DropdownMenu>
+          )
         }
       />
       {/* <ScrollArea className="h-[calc(100vh-10rem)]"> */}
       <div className="px-4 md:px-12 py-4">
-          <FolderDetailsTable
-            title={folderName}
-            folderId={folderId}
-            onNewFolder={openNewFolderModal}
-            onNewFile={() => setOpenNewFile(true)}
-            canAddContent={canAddContent}
-          />
+        <FolderDetailsTable
+          title={folderName}
+          folderId={folderId}
+          onNewFolder={openNewFolderModal}
+          onNewFile={() => setOpenNewFile(true)}
+          canAddContent={canAddContent}
+        />
       </div>
       {/* </ScrollArea> */}
       <AddFolderModal

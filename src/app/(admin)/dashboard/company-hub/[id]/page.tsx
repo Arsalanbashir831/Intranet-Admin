@@ -1,14 +1,25 @@
 "use client";
 
+import * as React from "react";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
-import { CompanyHubForm, CompanyHubInitialData, CompanyHubFormData } from "@/components/company-hub/company-hub-form";
-import { useParams, useRouter } from "next/navigation";
-import { useAnnouncement, useUpdateAnnouncement, useCreateAnnouncementAttachment, useAnnouncementAttachments, useDeleteAnnouncementAttachment, useAttachmentDeletions } from "@/hooks/queries/use-announcements";
-import { toast } from "sonner";
-import * as React from "react";
-import { Loader2 } from "lucide-react";
+import {
+  CompanyHubForm,
+  CompanyHubInitialData,
+  CompanyHubFormData,
+} from "@/components/company-hub/company-hub-form";
+import {
+  useAnnouncement,
+  useUpdateAnnouncement,
+  useCreateAnnouncementAttachment,
+  useAnnouncementAttachments,
+  useDeleteAnnouncementAttachment,
+  useAttachmentDeletions,
+} from "@/hooks/queries/use-announcements";
 
 export default function CompanyHubEditPage() {
   const params = useParams();
@@ -16,7 +27,8 @@ export default function CompanyHubEditPage() {
   const id = (params?.id as string) ?? "";
   const [isSaving, setIsSaving] = React.useState(false); // For draft saving
   const [isPublishing, setIsPublishing] = React.useState(false); // For publishing
-  const [currentFormData, setCurrentFormData] = React.useState<CompanyHubFormData | null>(null);
+  const [currentFormData, setCurrentFormData] =
+    React.useState<CompanyHubFormData | null>(null);
 
   // Fetch announcement data and attachments
   const { data: announcement, isLoading } = useAnnouncement(id);
@@ -24,17 +36,25 @@ export default function CompanyHubEditPage() {
   const updateAnnouncement = useUpdateAnnouncement(id);
   const createAttachment = useCreateAnnouncementAttachment();
   const deleteAttachment = useDeleteAnnouncementAttachment();
-  const { deletedAttachmentIds, markForDeletion, clearDeletions } = useAttachmentDeletions();
+  const { deletedAttachmentIds, markForDeletion, clearDeletions } =
+    useAttachmentDeletions();
 
   // Transform existing attachments to the format expected by the form
   const existingAttachments = React.useMemo(() => {
     if (!attachmentsData?.attachments?.results) return [];
-    return attachmentsData.attachments.results.map((attachment: { id: number; name: string; file_url: string | null; size: number }) => ({
-      id: attachment.id,
-      name: attachment.name,
-      file_url: attachment.file_url || '',
-      size: attachment.size
-    }));
+    return attachmentsData.attachments.results.map(
+      (attachment: {
+        id: number;
+        name: string;
+        file_url: string | null;
+        size: number;
+      }) => ({
+        id: attachment.id,
+        name: attachment.name,
+        file_url: attachment.file_url || "",
+        size: attachment.size,
+      })
+    );
   }, [attachmentsData]);
 
   const handleAttachmentDelete = (attachmentId: number) => {
@@ -47,7 +67,7 @@ export default function CompanyHubEditPage() {
 
   const deleteMarkedAttachments = async () => {
     if (deletedAttachmentIds.length === 0) return;
-    
+
     const deletePromises = deletedAttachmentIds.map(async (attachmentId) => {
       return deleteAttachment.mutateAsync(attachmentId);
     });
@@ -84,30 +104,37 @@ export default function CompanyHubEditPage() {
   // Transform API data to form format
   const initialData = React.useMemo<CompanyHubInitialData | undefined>(() => {
     if (!announcement) return undefined;
-    
+
     // Type assertion to access all fields from API response
     const announcementWithAllFields = announcement as typeof announcement & {
       permitted_branches?: number[];
       permitted_departments?: number[];
       permitted_branch_departments?: number[];
     };
-    
+
     return {
       type: announcement.type === "policy" ? "policy" : "announcement",
       title: announcement.title,
       // Map all three possible fields from API response
-      permittedBranches: announcementWithAllFields.permitted_branches?.map(String) || [],
-      permittedDepartments: announcementWithAllFields.permitted_departments?.map(String) || [],
-      permittedBranchDepartments: announcementWithAllFields.permitted_branch_departments?.map(String) || [],
+      permittedBranches:
+        announcementWithAllFields.permitted_branches?.map(String) || [],
+      permittedDepartments:
+        announcementWithAllFields.permitted_departments?.map(String) || [],
+      permittedBranchDepartments:
+        announcementWithAllFields.permitted_branch_departments?.map(String) ||
+        [],
       // Keep for backward compatibility
-      selectedBranchDepartments: announcementWithAllFields.permitted_branch_departments?.map(String) || [],
+      selectedBranchDepartments:
+        announcementWithAllFields.permitted_branch_departments?.map(String) ||
+        [],
       body: announcement.body,
     };
   }, [announcement]);
 
   const handleSubmit = async (isDraft: boolean = false) => {
-    if (!id || isSaving || isPublishing || !currentFormData || !announcement) return;
-    
+    if (!id || isSaving || isPublishing || !currentFormData || !announcement)
+      return;
+
     try {
       // Set the appropriate loading state
       if (isDraft) {
@@ -115,14 +142,14 @@ export default function CompanyHubEditPage() {
       } else {
         setIsPublishing(true);
       }
-      
+
       // Type assertion to access all fields from API response
       const announcementWithAllFields = announcement as typeof announcement & {
         permitted_branches?: number[];
         permitted_departments?: number[];
         permitted_branch_departments?: number[];
       };
-      
+
       // Build payload with conditional fields
       const payload: {
         title: string;
@@ -143,25 +170,30 @@ export default function CompanyHubEditPage() {
 
       // Add conditional fields based on what's selected
       // Check what was previously set to determine if we need to clear old fields
-      const hadBranchDepts = announcementWithAllFields.permitted_branch_departments?.length;
+      const hadBranchDepts =
+        announcementWithAllFields.permitted_branch_departments?.length;
       const hadBranches = announcementWithAllFields.permitted_branches?.length;
-      const hadDepartments = announcementWithAllFields.permitted_departments?.length;
-      
+      const hadDepartments =
+        announcementWithAllFields.permitted_departments?.length;
+
       if (currentFormData.permittedBranchDepartments?.length) {
         // Both branches and departments selected
-        payload.permitted_branch_departments = currentFormData.permittedBranchDepartments.map(Number);
+        payload.permitted_branch_departments =
+          currentFormData.permittedBranchDepartments.map(Number);
         // Clear old fields if they existed
         if (hadBranches) payload.permitted_branches = [];
         if (hadDepartments) payload.permitted_departments = [];
       } else if (currentFormData.permittedBranches?.length) {
         // Only branches selected
-        payload.permitted_branches = currentFormData.permittedBranches.map(Number);
+        payload.permitted_branches =
+          currentFormData.permittedBranches.map(Number);
         // Clear old fields if they existed
         if (hadBranchDepts) payload.permitted_branch_departments = [];
         if (hadDepartments) payload.permitted_departments = [];
       } else if (currentFormData.permittedDepartments?.length) {
         // Only departments selected
-        payload.permitted_departments = currentFormData.permittedDepartments.map(Number);
+        payload.permitted_departments =
+          currentFormData.permittedDepartments.map(Number);
         // Clear old fields if they existed
         if (hadBranchDepts) payload.permitted_branch_departments = [];
         if (hadBranches) payload.permitted_branches = [];
@@ -173,16 +205,19 @@ export default function CompanyHubEditPage() {
       }
 
       await updateAnnouncement.mutateAsync(payload);
-      
+
       // Upload new attachments if any files are selected
-      if (currentFormData.attachedFiles && currentFormData.attachedFiles.length > 0) {
+      if (
+        currentFormData.attachedFiles &&
+        currentFormData.attachedFiles.length > 0
+      ) {
         try {
           await uploadAttachments(id, currentFormData.attachedFiles);
         } catch (attachmentError) {
           console.error("Failed to upload new attachments:", attachmentError);
         }
       }
-      
+
       // Delete marked attachments
       if (deletedAttachmentIds.length > 0) {
         try {
@@ -191,15 +226,20 @@ export default function CompanyHubEditPage() {
           console.error("Failed to delete attachments:", deleteError);
         }
       }
-      
+
       // Provide feedback based on what happened
-      let message = isDraft ? "Announcement updated and saved as draft" : "Announcement updated successfully";
-      if (currentFormData.attachedFiles?.length > 0 || deletedAttachmentIds.length > 0) {
+      let message = isDraft
+        ? "Announcement updated and saved as draft"
+        : "Announcement updated successfully";
+      if (
+        currentFormData.attachedFiles?.length > 0 ||
+        deletedAttachmentIds.length > 0
+      ) {
         message += " with attachment changes";
       }
-      
+
       toast.success(message);
-      
+
       router.push(ROUTES.ADMIN.COMPANY_HUB);
     } catch (error) {
       console.error("Failed to update announcement:", error);
@@ -225,19 +265,35 @@ export default function CompanyHubEditPage() {
         ]}
         action={
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-primary"
-              disabled={isSaving || isPublishing || isLoading || !currentFormData}
-              onClick={() => handleSubmit(true)}
-            >
-              {isSaving ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Saving...</span></> : "Save As Draft"}
+              disabled={
+                isSaving || isPublishing || isLoading || !currentFormData
+              }
+              onClick={() => handleSubmit(true)}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="animate-spin mr-2 h-4 w-4" />{" "}
+                  <span>Saving...</span>
+                </>
+              ) : (
+                "Save As Draft"
+              )}
             </Button>
-            <Button 
-              disabled={isSaving || isPublishing || isLoading || !currentFormData}
-              onClick={() => handleSubmit(false)}
-            >
-              {isPublishing ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> <span>Publishing...</span></> : "Publish"}
+            <Button
+              disabled={
+                isSaving || isPublishing || isLoading || !currentFormData
+              }
+              onClick={() => handleSubmit(false)}>
+              {isPublishing ? (
+                <>
+                  <Loader2 className="animate-spin mr-2 h-4 w-4" />{" "}
+                  <span>Publishing...</span>
+                </>
+              ) : (
+                "Publish"
+              )}
             </Button>
           </div>
         }
@@ -248,8 +304,8 @@ export default function CompanyHubEditPage() {
             <div className="text-gray-500">Loading announcement...</div>
           </div>
         ) : (
-          <CompanyHubForm 
-            initialData={initialData} 
+          <CompanyHubForm
+            initialData={initialData}
             onFormDataChange={handleFormDataChange}
             existingAttachments={existingAttachments}
             onAttachmentDelete={handleAttachmentDelete}
@@ -259,5 +315,3 @@ export default function CompanyHubEditPage() {
     </>
   );
 }
-
-
