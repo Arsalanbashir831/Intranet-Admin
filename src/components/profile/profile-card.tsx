@@ -6,7 +6,6 @@ import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import { useMe } from "@/hooks/queries/use-auth";
-import type { EmployeeWithScope } from "@/types/manager-scope";
 import {
   EmployeeProfileCardProps,
   ExtendedEmployee,

@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 import { useChangePassword } from "@/hooks/queries/use-auth";
 import { toast } from "sonner";
-
 import { ChangePasswordValues } from "@/types/profile";
 import { validatePasswordChange } from "@/handlers/profile-handlers";
 

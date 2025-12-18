@@ -19,7 +19,6 @@ import {
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { Copy, Check } from "lucide-react";
-
 import { MfaDialogProps, MfaViewState } from "@/types/profile";
 
 export function MfaDialog({ open, onOpenChange, isEnabled }: MfaDialogProps) {

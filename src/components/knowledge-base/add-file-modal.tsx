@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Dropzone } from "@/components/ui/dropzone";
 import { useUploadQueue } from "@/contexts/upload-queue-context";
 import { useBulkUploadFiles } from "@/hooks/queries/use-knowledge-files";
-
 import { AddFileModalProps } from "@/types/knowledge-base";
 
 export function AddFileModal({

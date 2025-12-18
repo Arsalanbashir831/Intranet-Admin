@@ -27,7 +27,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { toast } from "sonner";
 import { extractErrorMessage } from "@/lib/error-handler";
-import { OrgChartInitialValues, OrgChartFormProps } from "@/types/org-chart";
+import { OrgChartFormProps } from "@/types/org-chart";
 
 export function OrgChartForm({
   initialValues,

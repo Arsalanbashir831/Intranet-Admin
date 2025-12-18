@@ -7,7 +7,6 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { FolderPlus, FilePlus, Pen, Trash2 } from "lucide-react";
-
 import {
   TableContextMenuProps,
   RowContextMenuProps,
