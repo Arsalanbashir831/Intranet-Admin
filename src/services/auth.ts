@@ -76,6 +76,10 @@ export async function resetPasswordWithOTP(data: { email: string; otp: string; n
   await apiCaller<void>(API_ROUTES.AUTH.RESET_PASSWORD, "POST", data, {}, "json");
 }
 
+export async function forgotPassword(email: string) {
+  await apiCaller<void>(API_ROUTES.AUTH.FORGOT_PASSWORD, "POST", { email }, {}, "json");
+}
+
 // MFA Functions
 export async function mfaEnroll() {
   const res = await apiCaller<MfaEnrollResponse>(API_ROUTES.AUTH.MFA.ENROLL, "POST");

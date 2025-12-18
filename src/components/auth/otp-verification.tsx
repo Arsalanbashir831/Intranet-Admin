@@ -10,8 +10,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { API_ROUTES } from "@/constants/api-routes";
-import apiCaller from "@/lib/api-caller";
+import { useForgotPassword } from "@/hooks/queries/use-auth";
 import { toast } from "sonner";
 import { ROUTES } from "@/constants/routes";
 
@@ -21,6 +20,7 @@ export function OTPVerification() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams?.get("email") || "";
+  const resendMutation = useForgotPassword();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +57,7 @@ export function OTPVerification() {
 
     try {
       // Resend OTP
-      await apiCaller(API_ROUTES.AUTH.FORGOT_PASSWORD, "POST", { email });
+      await resendMutation.mutateAsync(email);
       toast.success("OTP resent successfully!");
     } catch (err) {
       console.error("Resend OTP error:", err);
@@ -112,8 +112,7 @@ export function OTPVerification() {
             <Button
               asChild
               variant="link"
-              className="p-0 h-auto text-blue-500 hover:underline font-normal"
-            >
+              className="p-0 h-auto text-blue-500 hover:underline font-normal">
               <Link href={ROUTES.AUTH.FORGOT_PASSWORD}>Change it</Link>
             </Button>
           </p>
@@ -126,8 +125,7 @@ export function OTPVerification() {
               maxLength={4}
               value={otp}
               onChange={setOtp}
-              disabled={isVerifying}
-            >
+              disabled={isVerifying}>
               <InputOTPGroup className="flex gap-3 sm:gap-4">
                 {[0, 1, 2, 3].map((index) => (
                   <InputOTPSlot
@@ -144,8 +142,7 @@ export function OTPVerification() {
           <Button
             type="submit"
             disabled={isVerifying || otp.length !== 4}
-            className="w-full h-12 mb-2 bg-[#E5004E] hover:bg-pink-300 text-white rounded-full font-medium text-base"
-          >
+            className="w-full h-12 mb-2 bg-[#E5004E] hover:bg-pink-300 text-white rounded-full font-medium text-base">
             {isVerifying ? "Verifying..." : "Submit"}
           </Button>
         </form>
@@ -157,8 +154,7 @@ export function OTPVerification() {
             <button
               type="button"
               onClick={handleResend}
-              className="text-blue-500 hover:underline"
-            >
+              className="text-blue-500 hover:underline">
               Resend
             </button>
           </p>

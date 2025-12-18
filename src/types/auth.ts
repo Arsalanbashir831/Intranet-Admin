@@ -69,3 +69,9 @@ export type MeResponse = {
   }) | null;
   executive: Executive | null;
 };
+
+export type AuthGuardProps = {
+  children: React.ReactNode;
+  requireAuth?: boolean;
+  redirectTo?: string;
+};

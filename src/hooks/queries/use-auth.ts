@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 // Update imports to include MFA functions
-import { login, logout, refreshToken, getMe, changePassword, resetPasswordWithOTP, mfaEnroll, mfaConfirm, mfaVerify, mfaDisable } from "@/services/auth";
+import { login, logout, refreshToken, getMe, changePassword, resetPasswordWithOTP, forgotPassword, mfaEnroll, mfaConfirm, mfaVerify, mfaDisable } from "@/services/auth";
+
 
 import { ROUTES } from "@/constants/routes";
 import { setAuthCookies, clearAuthCookies } from "@/lib/cookies";
@@ -134,6 +135,12 @@ export function useChangePassword() {
 	return useMutation({
 		mutationFn: (payload: { current_password: string; new_password: string }) => changePassword(payload),
 	});
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (email: string) => forgotPassword(email),
+  });
 }
 
 // MFA Hooks

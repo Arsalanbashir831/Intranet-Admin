@@ -5,16 +5,12 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { ROUTES } from "@/constants/routes";
 
-interface AuthGuardProps {
-  children: React.ReactNode;
-  requireAuth?: boolean;
-  redirectTo?: string;
-}
+import { AuthGuardProps } from "@/types/auth";
 
-export function AuthGuard({ 
-  children, 
-  requireAuth = true, 
-  redirectTo = ROUTES.AUTH.LOGIN 
+export function AuthGuard({
+  children,
+  requireAuth = true,
+  redirectTo = ROUTES.AUTH.LOGIN,
 }: AuthGuardProps) {
   const { isAuthenticated, isLoading, refreshAuth } = useAuth();
   const router = useRouter();
@@ -31,14 +27,16 @@ export function AuthGuard({
     if (requireAuth && !isAuthenticated) {
       // User needs to be authenticated but isn't
       // Try to refresh auth first before redirecting
-      refreshAuth().then(() => {
-        setAuthChecked(true);
-        if (!isAuthenticated) {
+      refreshAuth()
+        .then(() => {
+          setAuthChecked(true);
+          if (!isAuthenticated) {
+            router.push(redirectTo);
+          }
+        })
+        .catch(() => {
           router.push(redirectTo);
-        }
-      }).catch(() => {
-        router.push(redirectTo);
-      });
+        });
     } else if (!requireAuth && isAuthenticated) {
       // User is authenticated but shouldn't be on auth pages
       router.push(ROUTES.ADMIN.DASHBOARD);
@@ -46,7 +44,15 @@ export function AuthGuard({
       // Auth state is consistent with requirements
       setAuthChecked(true);
     }
-  }, [isAuthenticated, isLoading, requireAuth, redirectTo, router, refreshAuth, authChecked]);
+  }, [
+    isAuthenticated,
+    isLoading,
+    requireAuth,
+    redirectTo,
+    router,
+    refreshAuth,
+    authChecked,
+  ]);
 
   // Show loading while checking auth
   if (isLoading || !authChecked) {
