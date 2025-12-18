@@ -1,28 +1,54 @@
 import { BranchDepartmentDetail } from "./knowledge";
 
+export type Voter = {
+  id: number;
+  name: string;
+  email: string;
+  profile_picture: string | null;
+  voted_at: string;
+  branch_department: {
+    id: number;
+    branch: {
+      id: number;
+      name: string;
+      location: string;
+    };
+    department: {
+      id: number;
+      name: string;
+    };
+  };
+};
+
 export type PollOption = {
   id: number;
   option_text: string;
   vote_count: number;
-  voters?: {
-    id: number;
-    name: string;
-    email: string;
-    profile_picture: string | null;
-    voted_at: string;
-    branch_department: {
-      id: number;
-      branch: {
-        id: number;
-        name: string;
-        location: string;
-      };
-      department: {
-        id: number;
-        name: string;
-      };
-    };
-  }[];
+  voters?: Voter[];
+};
+
+export type PollFormData = {
+  title: string;
+  subtitle?: string;
+  question: string;
+  poll_type: "public" | "private";
+  expires_at: Date;
+  options: { option_text: string }[];
+  permitted_branches?: string[];
+  permitted_departments?: string[];
+  permitted_branch_departments?: number[];
+};
+
+export type PollFormProps = {
+  initialData?: Partial<PollFormData>;
+  onFormDataChange?: (data: PollFormData) => void;
+  onSubmit?: (data: PollFormData) => void;
+  onRegisterSubmit?: (fn: () => void) => void;
+  onSubmitComplete?: (success: boolean) => void;
+};
+
+export type PollDetailViewProps = {
+  poll: Poll;
 };
 
 export type BranchDetail = {

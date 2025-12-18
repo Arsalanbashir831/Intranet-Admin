@@ -17,49 +17,24 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, Calendar, Shield, Clock, BarChart3 } from "lucide-react";
-import type {
-  Poll,
+import {
+  PollDetailViewProps,
+  Voter,
   BranchDetail,
   DepartmentDetail,
   EmployeeDetail,
 } from "@/types/polls";
 import { BranchDepartmentDetail } from "@/types/knowledge";
-
-type Voter = {
-  id: number;
-  name: string;
-  email: string;
-  profile_picture: string | null;
-  voted_at: string;
-  branch_department: {
-    id: number;
-    branch: {
-      id: number;
-      name: string;
-      location: string;
-    };
-    department: {
-      id: number;
-      name: string;
-    };
-  };
-};
-
-export type PollDetailViewProps = {
-  poll: Poll;
-};
+import {
+  transformPollOptionsForChart,
+  calculatePercentage,
+} from "@/handlers/poll-handlers";
 
 export function PollDetailView({ poll }: PollDetailViewProps) {
   // Prepare data for the chart
   const chartData = React.useMemo(() => {
-    if (!poll?.options) return [];
-    return poll.options.map((option) => ({
-      name: option.option_text,
-      votes: option.vote_count,
-      percentage:
-        poll.total_votes > 0 ? (option.vote_count / poll.total_votes) * 100 : 0,
-    }));
-  }, [poll?.options, poll?.total_votes]);
+    return transformPollOptionsForChart(poll);
+  }, [poll]);
 
   const isExpired = poll.is_expired;
   const isActive = poll.is_active;
@@ -189,8 +164,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={chartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis
                       dataKey="name"
@@ -218,16 +192,15 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
                 <h3 className="font-semibold">Detailed Results</h3>
                 <div className="space-y-3">
                   {poll.options?.map((option) => {
-                    const percentage =
-                      poll.total_votes > 0
-                        ? (option.vote_count / poll.total_votes) * 100
-                        : 0;
+                    const percentage = calculatePercentage(
+                      option.vote_count,
+                      poll.total_votes
+                    );
 
                     return (
                       <div
                         key={option.id}
-                        className="rounded-lg border border-[#E4E4E4] bg-white px-4 py-3"
-                      >
+                        className="rounded-lg border border-[#E4E4E4] bg-white px-4 py-3">
                         <div className="flex items-center justify-between mb-3">
                           <span className="font-medium">
                             {option.option_text}
@@ -256,8 +229,7 @@ export function PollDetailView({ poll }: PollDetailViewProps) {
                                 (voter: Voter, voterIndex: number) => (
                                   <div
                                     key={voterIndex}
-                                    className="flex items-center gap-2 p-2 bg-muted rounded-lg"
-                                  >
+                                    className="flex items-center gap-2 p-2 bg-muted rounded-lg">
                                     <Avatar className="h-6 w-6">
                                       <AvatarImage
                                         src={voter.profile_picture || undefined}
