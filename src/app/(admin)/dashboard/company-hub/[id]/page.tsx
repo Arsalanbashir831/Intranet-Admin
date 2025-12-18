@@ -7,11 +7,8 @@ import { Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
-import {
-  CompanyHubForm,
-  CompanyHubInitialData,
-  CompanyHubFormData,
-} from "@/components/company-hub/company-hub-form";
+import { CompanyHubForm } from "@/components/company-hub/company-hub-form";
+import { CompanyHubInitialData, CompanyHubFormData } from "@/types/company-hub";
 import {
   useAnnouncement,
   useUpdateAnnouncement,
