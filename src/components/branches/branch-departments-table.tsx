@@ -10,14 +10,15 @@ import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { Badge } from "@/components/ui/badge";
 import { useBranch } from "@/hooks/queries/use-branches";
 import { ROUTES } from "@/constants/routes";
-import type { BranchDepartmentRow } from "@/types/branches";
+import {
+  BranchDepartmentsTableProps,
+  BranchDepartmentRow,
+} from "@/types/branches";
 
-interface BranchDepartmentsTableProps {
-  branchId: string;
-  branchName: string;
-}
-
-export function BranchDepartmentsTable({ branchId, branchName }: BranchDepartmentsTableProps) {
+export function BranchDepartmentsTable({
+  branchId,
+  branchName,
+}: BranchDepartmentsTableProps) {
   const router = useRouter();
   const { data: branchData, isLoading, error } = useBranch(branchId);
 
@@ -32,34 +33,41 @@ export function BranchDepartmentsTable({ branchId, branchName }: BranchDepartmen
     }));
   }, [branchData]);
 
-  const columns: ColumnDef<BranchDepartmentRow>[] = React.useMemo(() => [
-    {
-      accessorKey: "department",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Department" />
-      ),
-      cell: ({ row }) => (
-        <Badge variant="secondary" className="bg-[#FFF1F5] text-[#D64575] border-0">
-          {row.original.department}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: "employee_count",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Employees" />
-      ),
-      cell: ({ getValue }) => (
-        <span className="text-sm text-[#667085]">{String(getValue())}</span>
-      ),
-    },
-  ], []);
+  const columns: ColumnDef<BranchDepartmentRow>[] = React.useMemo(
+    () => [
+      {
+        accessorKey: "department",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Department" />
+        ),
+        cell: ({ row }) => (
+          <Badge
+            variant="secondary"
+            className="bg-[#FFF1F5] text-[#D64575] border-0">
+            {row.original.department}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "employee_count",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Employees" />
+        ),
+        cell: ({ getValue }) => (
+          <span className="text-sm text-[#667085]">{String(getValue())}</span>
+        ),
+      },
+    ],
+    []
+  );
 
   if (isLoading) {
     return (
       <Card className="border-[#FFF6F6] p-5 shadow-none overflow-hidden">
         <div className="flex items-center justify-center h-32">
-          <div className="text-sm text-muted-foreground">Loading departments...</div>
+          <div className="text-sm text-muted-foreground">
+            Loading departments...
+          </div>
         </div>
       </Card>
     );
@@ -88,10 +96,18 @@ export function BranchDepartmentsTable({ branchId, branchName }: BranchDepartmen
         columns={columns}
         data={data}
         headerClassName="grid-cols-[1fr_1fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1fr_1fr] cursor-pointer"}
-        onRowClick={(row) => router.push(ROUTES.ADMIN.BRANCHES_ID_DEPARTMENTS_DEPT_ID(branchId, row.original.branch_department_id))}
+        rowClassName={() =>
+          "hover:bg-[#FAFAFB] grid-cols-[1fr_1fr] cursor-pointer"
+        }
+        onRowClick={(row) =>
+          router.push(
+            ROUTES.ADMIN.BRANCHES_ID_DEPARTMENTS_DEPT_ID(
+              branchId,
+              row.original.branch_department_id
+            )
+          )
+        }
       />
     </Card>
   );
 }
-

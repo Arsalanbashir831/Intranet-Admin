@@ -11,24 +11,29 @@ import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { useBranches, useDeleteBranch } from "@/hooks/queries/use-branches";
 import { useAuth } from "@/contexts/auth-context";
-import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import type { Branch } from "@/types/branches";
 import { EditBranchModal } from "./edit-branch-modal";
-import type { BranchRow } from "@/types/branches";
+import type { Branch, BranchRow } from "@/types/branches";
+import { handleDeleteBranch } from "@/handlers/branch-handlers";
 
 export function BranchesTable() {
   const { user } = useAuth();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = React.useState<string>("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] =
+    React.useState<string>("");
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
-  const [serverPagination, setServerPagination] = React.useState({ page: 1, pageSize: 10 });
+  const [serverPagination, setServerPagination] = React.useState({
+    page: 1,
+    pageSize: 10,
+  });
   const [editModalOpen, setEditModalOpen] = React.useState(false);
-  const [selectedBranch, setSelectedBranch] = React.useState<Branch | null>(null);
+  const [selectedBranch, setSelectedBranch] = React.useState<Branch | null>(
+    null
+  );
 
   const isSuperuser = user?.isSuperuser === true;
 
@@ -50,7 +55,12 @@ export function BranchesTable() {
     return Object.keys(params).length > 0 ? params : undefined;
   }, [debouncedSearchQuery]);
 
-  const { data: apiData, isLoading, error, isFetching } = useBranches(searchParams, serverPagination);
+  const {
+    data: apiData,
+    isLoading,
+    error,
+    isFetching,
+  } = useBranches(searchParams, serverPagination);
   const deleteBranch = useDeleteBranch();
 
   const data = React.useMemo<BranchRow[]>(() => {
@@ -63,7 +73,8 @@ export function BranchesTable() {
       id: String(branch.id),
       branch_name: branch.branch_name,
       employee_count: branch.employee_count,
-      departments: branch.departments?.map(d => d.dept_name).join(", ") || "--",
+      departments:
+        branch.departments?.map((d) => d.dept_name).join(", ") || "--",
     }));
   }, [apiData]);
 
@@ -76,97 +87,112 @@ export function BranchesTable() {
     };
   }, [apiData]);
 
-  const handleSearchChange = React.useCallback((value: string) => {
-    setSearchQuery(value);
-    // Reset pagination when searching
-    setServerPagination({ page: 1, pageSize: serverPagination.pageSize });
-  }, [serverPagination.pageSize]);
+  const handleSearchChange = React.useCallback(
+    (value: string) => {
+      setSearchQuery(value);
+      // Reset pagination when searching
+      setServerPagination({ page: 1, pageSize: serverPagination.pageSize });
+    },
+    [serverPagination.pageSize]
+  );
 
-  const handleEditClick = React.useCallback((e: React.MouseEvent, row: BranchRow) => {
-    e.stopPropagation();
-    // Find the branch from API data
-    const branch = apiData?.branches?.results?.find((b: Branch) => String(b.id) === row.id);
-    if (branch) {
-      setSelectedBranch(branch);
-      setEditModalOpen(true);
-    }
-  }, [apiData]);
+  const handleEditClick = React.useCallback(
+    (e: React.MouseEvent, row: BranchRow) => {
+      e.stopPropagation();
+      // Find the branch from API data
+      const branch = apiData?.branches?.results?.find(
+        (b: Branch) => String(b.id) === row.id
+      );
+      if (branch) {
+        setSelectedBranch(branch);
+        setEditModalOpen(true);
+      }
+    },
+    [apiData]
+  );
 
   // Memoize the columns to prevent unnecessary re-renders
-  const columns = React.useMemo<ColumnDef<BranchRow>[]>(() => [
-    {
-      accessorKey: "branch_name",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Branch Name" />
-      ),
-      cell: ({ row }) => (
-        <span className="text-sm font-medium text-[#1D1F2C]">
-          {row.original.branch_name}
-        </span>
-      ),
-    },
-    {
-      accessorKey: "employee_count",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Employees" />
-      ),
-      cell: ({ getValue }) => (
-        <span className="text-sm text-[#667085]">{String(getValue())}</span>
-      ),
-    },
-    {
-      accessorKey: "departments",
-      header: ({ column }) => (
-        <CardTableColumnHeader column={column} title="Departments" />
-      ),
-      cell: ({ getValue }) => (
-        <span className="text-sm text-[#667085]">{String(getValue())}</span>
-      ),
-    },
-    {
-      id: "actions",
-      header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
-      cell: ({ row }) => (
-        isSuperuser ? (
-          <div className="flex items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-[#D64575]"
-              onClick={(e) => handleEditClick(e, row.original)}
-            >
-              <Edit2 className="size-4" />
-            </Button>
-            <span onClick={(e) => e.stopPropagation()}>
-              <ConfirmPopover
-                title="Delete branch?"
-                description="This action cannot be undone. All associated departments will also be affected."
-                confirmText="Delete"
-                onConfirm={async () => {
-                  const id = row.original.id;
-                  try {
-                    setDeletingId(id);
-                    await deleteBranch.mutateAsync(id);
-                    toast.success("Branch deleted successfully");
-                  } catch (err) {
-                    console.error(err);
-                    toast.error("Failed to delete branch");
-                  } finally {
-                    setDeletingId(null);
-                  }
-                }}
-                disabled={deletingId === row.original.id || deleteBranch.isPending}
-              >
-                <Button size="icon" variant="ghost" className="text-[#D64575]">
-                  <Trash2 className="size-4" />
-                </Button>
-              </ConfirmPopover>
-            </span>
-          </div>
-        ) : null
-      ),
-    },
-  ], [isSuperuser, deletingId, deleteBranch.isPending, deleteBranch, handleEditClick]);
+  const columns = React.useMemo<ColumnDef<BranchRow>[]>(
+    () => [
+      {
+        accessorKey: "branch_name",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Branch Name" />
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm font-medium text-[#1D1F2C]">
+            {row.original.branch_name}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "employee_count",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Employees" />
+        ),
+        cell: ({ getValue }) => (
+          <span className="text-sm text-[#667085]">{String(getValue())}</span>
+        ),
+      },
+      {
+        accessorKey: "departments",
+        header: ({ column }) => (
+          <CardTableColumnHeader column={column} title="Departments" />
+        ),
+        cell: ({ getValue }) => (
+          <span className="text-sm text-[#667085]">{String(getValue())}</span>
+        ),
+      },
+      {
+        id: "actions",
+        header: () => (
+          <span className="text-sm font-medium text-[#727272]">Action</span>
+        ),
+        cell: ({ row }) =>
+          isSuperuser ? (
+            <div className="flex items-center gap-1">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-[#D64575]"
+                onClick={(e) => handleEditClick(e, row.original)}>
+                <Edit2 className="size-4" />
+              </Button>
+              <span onClick={(e) => e.stopPropagation()}>
+                <ConfirmPopover
+                  title="Delete branch?"
+                  description="This action cannot be undone. All associated departments will also be affected."
+                  confirmText="Delete"
+                  onConfirm={async () => {
+                    await handleDeleteBranch({
+                      id: row.original.id,
+                      deleteBranchMutation: deleteBranch,
+                      setDeletingId,
+                    });
+                  }}
+                  disabled={
+                    deletingId === row.original.id || deleteBranch.isPending
+                  }>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-[#D64575]">
+                    <Trash2 className="size-4" />
+                  </Button>
+                </ConfirmPopover>
+              </span>
+            </div>
+          ) : null,
+      },
+    ],
+    [
+      isSuperuser,
+      deletingId,
+      deleteBranch.isPending,
+      deleteBranch,
+      handleEditClick,
+    ]
+  );
 
   // Show loading state only on initial load (no search query and no existing data)
   if (isLoading && !debouncedSearchQuery && !data.length) {
@@ -184,18 +210,21 @@ export function BranchesTable() {
     return (
       <Card className="border-[#FFF6F6] p-5 shadow-none">
         <div className="flex items-center justify-center py-8">
-          <div className="text-sm text-red-600">Error loading branches: {error.message}</div>
+          <div className="text-sm text-red-600">
+            Error loading branches: {error.message}
+          </div>
         </div>
       </Card>
     );
   }
 
   return (
-    <Card className={cn("border-[#FFF6F6] p-5 shadow-none", {
-      "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
-    })}>
+    <Card
+      className={cn("border-[#FFF6F6] p-5 shadow-none", {
+        "opacity-75 pointer-events-none": isFetching && debouncedSearchQuery, // Subtle loading state
+      })}>
       <CardTableToolbar
-        title='Branches'
+        title="Branches"
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
         showSortOptions={false}
@@ -205,8 +234,12 @@ export function BranchesTable() {
         columns={columns}
         data={data}
         headerClassName="grid-cols-[1fr_1fr_2fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1fr_1fr_2fr_0.8fr] cursor-pointer"}
-        onRowClick={(row) => router.push(ROUTES.ADMIN.BRANCHES_ID(row.original.id))}
+        rowClassName={() =>
+          "hover:bg-[#FAFAFB] grid-cols-[1fr_1fr_2fr_0.8fr] cursor-pointer"
+        }
+        onRowClick={(row) =>
+          router.push(ROUTES.ADMIN.BRANCHES_ID(row.original.id))
+        }
         footer={(table) => (
           <CardTablePagination
             table={table}
@@ -225,4 +258,3 @@ export function BranchesTable() {
     </Card>
   );
 }
-

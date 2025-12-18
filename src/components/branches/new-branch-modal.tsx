@@ -9,10 +9,7 @@ import { useFormSubmission } from "@/hooks/use-form-submission";
 import { validateRequired, validateMaxLength } from "@/lib/validation";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 
-interface NewBranchModalProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}
+import { NewBranchModalProps } from "@/types/branches";
 
 export function NewBranchModal({ open, setOpen }: NewBranchModalProps) {
   const createBranch = useCreateBranch();
@@ -71,8 +68,7 @@ export function NewBranchModal({ open, setOpen }: NewBranchModalProps) {
         setOpen(false);
         setBranchName("");
       }}
-      icon='/icons/branch.svg'
-    >
+      icon="/icons/branch.svg">
       <div className="space-y-4 px-6">
         <div className="flex justify-between items-start gap-8">
           <Label htmlFor="branch-name">Branch Name:</Label>
@@ -91,4 +87,3 @@ export function NewBranchModal({ open, setOpen }: NewBranchModalProps) {
     </AppModal>
   );
 }
-

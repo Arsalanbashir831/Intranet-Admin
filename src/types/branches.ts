@@ -131,3 +131,19 @@ export type BranchDepartmentRow = {
   employee_count: number;
   branch_department_id: string;
 };
+
+export interface EditBranchModalProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  branch: Branch | null;
+}
+
+export interface NewBranchModalProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}
+
+export interface BranchDepartmentsTableProps {
+  branchId: string;
+  branchName: string;
+}
