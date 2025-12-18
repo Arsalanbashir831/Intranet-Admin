@@ -18,19 +18,24 @@ export default function AuthLayout({
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AuthGuard requireAuth={false}>
-        <div className="min-h-screen bg-white grid grid-cols-1 lg:grid-cols-2">
-					<section className="flex flex-col px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
-						<div className="mb-8">
-							<Image src="/logo-primary.svg" alt="Company Logo" width={231} height={85} />
-						</div>
-						<div className="flex-1 flex items-center justify-center">
-							{children}
-						</div>
-					</section>
-					<section className="hidden lg:block">
-						<RightAuthAside />
-					</section>
-				</div>  
+          <div className="min-h-screen bg-white grid grid-cols-1 lg:grid-cols-2">
+            <section className="flex flex-col px-6 sm:px-8 lg:px-12 py-6 lg:py-8">
+              <div className="mb-8">
+                <Image
+                  src="/logo-primary.svg"
+                  alt="Company Logo"
+                  width={231}
+                  height={85}
+                />
+              </div>
+              <div className="flex-1 flex items-center justify-center">
+                {children}
+              </div>
+            </section>
+            <section className="hidden lg:block">
+              <RightAuthAside />
+            </section>
+          </div>
         </AuthGuard>
       </AuthProvider>
     </QueryClientProvider>
