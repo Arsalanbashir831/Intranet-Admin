@@ -8,15 +8,13 @@ import { useUpdateDepartment } from "@/hooks/queries/use-departments";
 import { useFormSubmission } from "@/hooks/use-form-submission";
 import { validateRequired } from "@/lib/validation";
 import { useErrorHandler } from "@/hooks/use-error-handler";
-import type { Department } from "@/types/departments";
+import { EditDepartmentModalProps } from "@/types/departments";
 
-interface EditDepartmentModalProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  department: Department | null;
-}
-
-export function EditDepartmentModal({ open, setOpen, department }: EditDepartmentModalProps) {
+export function EditDepartmentModal({
+  open,
+  setOpen,
+  department,
+}: EditDepartmentModalProps) {
   const updateDepartment = useUpdateDepartment(department?.id || "");
   const handleError = useErrorHandler();
 
@@ -64,8 +62,7 @@ export function EditDepartmentModal({ open, setOpen, department }: EditDepartmen
       confirmText={isSubmitting ? "Updating..." : "Update"}
       confirmDisabled={isSubmitting || !departmentName.trim()}
       onCancel={() => setOpen(false)}
-      icon='/icons/user-hierarchy.svg'
-    >
+      icon="/icons/user-hierarchy.svg">
       <div className="space-y-4 px-6">
         <div className="flex justify-between items-start gap-8">
           <Label htmlFor="dept-name">Department Name:</Label>

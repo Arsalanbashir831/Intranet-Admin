@@ -8,11 +8,7 @@ import { useCreateDepartment } from "@/hooks/queries/use-departments";
 import { useFormSubmission } from "@/hooks/use-form-submission";
 import { validateRequired } from "@/lib/validation";
 import { useErrorHandler } from "@/hooks/use-error-handler";
-
-interface NewDepartmentModalProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}
+import { NewDepartmentModalProps } from "@/types/departments";
 
 export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
   const createDepartment = useCreateDepartment();
@@ -54,8 +50,7 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
       confirmText={isSubmitting ? "Creating..." : "Create"}
       confirmDisabled={isSubmitting || !departmentName.trim()}
       onCancel={() => setOpen(false)}
-      icon='/icons/user-hierarchy.svg'
-    >
+      icon="/icons/user-hierarchy.svg">
       <div className="space-y-4 px-6">
         <div className="flex justify-between items-start gap-8">
           <Label htmlFor="dept-name">Department:</Label>
@@ -70,5 +65,5 @@ export function NewDepartmentModal({ open, setOpen }: NewDepartmentModalProps) {
         </div>
       </div>
     </AppModal>
-  )
+  );
 }

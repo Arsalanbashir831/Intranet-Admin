@@ -4,10 +4,8 @@ import * as React from "react";
 import { PageHeader } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
-import {
-  CompanyHubForm,
-  type CompanyHubFormData,
-} from "@/components/company-hub/company-hub-form";
+import { CompanyHubForm } from "@/components/company-hub/company-hub-form";
+import { CompanyHubFormData } from "@/types/company-hub";
 import {
   useCreateAnnouncement,
   useCreateAnnouncementAttachment,

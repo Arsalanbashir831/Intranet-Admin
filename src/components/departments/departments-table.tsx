@@ -20,13 +20,14 @@ import type { Department } from "@/types/departments";
 import { EditDepartmentModal } from "./edit-department-modal";
 import { toast } from "sonner";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
+import { DepartmentRow, DepartmentsTableProps } from "@/types/departments";
+import {
+  normalizeDepartmentsData,
+  getDepartmentPaginationInfo,
+  transformDepartmentRows,
+} from "@/handlers/department-handlers";
 
-export type DepartmentRow = {
-  id: string;
-  department: string;
-};
-
-export function DepartmentsTable({ className }: { className?: string }) {
+export function DepartmentsTable({ className }: DepartmentsTableProps) {
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] =
     React.useState<string>("");
@@ -83,10 +84,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
     if (!departmentsData) return;
 
     // Handle both array (legacy) and paginated response structure
-    const departments = Array.isArray(departmentsData)
-      ? departmentsData
-      : (departmentsData as { departments?: { results?: Department[] } })
-          ?.departments?.results || [];
+    const departments = normalizeDepartmentsData(departmentsData);
 
     const department = departments.find((dept) => String(dept.id) === row.id);
 
@@ -114,51 +112,13 @@ export function DepartmentsTable({ className }: { className?: string }) {
 
   // Transform API data to match our UI structure
   const data: DepartmentRow[] = React.useMemo(() => {
-    if (!departmentsData) return [];
-
-    // Handle both array (legacy) and paginated response structure
-    const departments = Array.isArray(departmentsData)
-      ? departmentsData
-      : (departmentsData as { departments?: { results?: Department[] } })
-          ?.departments?.results || [];
-
-    return departments.map((dept) => ({
-      id: String(dept.id),
-      department: dept.dept_name,
-    }));
+    const departments = normalizeDepartmentsData(departmentsData);
+    return transformDepartmentRows(departments);
   }, [departmentsData]);
 
   // Get pagination info from API response if available
   const paginationInfo = React.useMemo(() => {
-    if (!departmentsData) return undefined;
-
-    // If it's a paginated response, extract pagination info
-    if (
-      typeof departmentsData === "object" &&
-      "departments" in departmentsData
-    ) {
-      const paginated = departmentsData as {
-        departments?: { count?: number; page?: number; page_size?: number };
-      };
-      if (paginated.departments) {
-        return {
-          count: paginated.departments.count || 0,
-          page: paginated.departments.page || 1,
-          page_size: paginated.departments.page_size || 10,
-        };
-      }
-    }
-
-    // Fallback for array response
-    if (Array.isArray(departmentsData)) {
-      return {
-        count: departmentsData.length,
-        page: serverPagination.page,
-        page_size: serverPagination.pageSize,
-      };
-    }
-
-    return undefined;
+    return getDepartmentPaginationInfo(departmentsData, serverPagination);
   }, [departmentsData, serverPagination]);
 
   const [tableData, setTableData] = React.useState<DepartmentRow[]>(data);
@@ -175,8 +135,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
         className={cn(
           "border-[#FFF6F6] p-5 shadow-none overflow-hidden",
           className
-        )}
-      >
+        )}>
         <div className="flex items-center justify-center h-32">
           <div className="text-sm text-muted-foreground">
             Loading departments...
@@ -192,8 +151,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
         className={cn(
           "border-[#FFF6F6] p-5 shadow-none overflow-hidden",
           className
-        )}
-      >
+        )}>
         <div className="flex items-center justify-center h-32">
           <div className="text-sm text-red-500">Error loading departments</div>
         </div>
@@ -210,8 +168,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
       cell: ({ row }) => (
         <Badge
           variant="secondary"
-          className="bg-[#FFF1F5] text-[#D64575] border-0"
-        >
+          className="bg-[#FFF1F5] text-[#D64575] border-0">
           {row.original.department}
         </Badge>
       ),
@@ -230,8 +187,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
             onClick={(e) => {
               e.stopPropagation();
               handleEditClick(row.original);
-            }}
-          >
+            }}>
             <Edit2 className="size-4" />
           </Button>
           <span onClick={(e) => e.stopPropagation()}>
@@ -242,8 +198,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
               onConfirm={() => handleDeleteClick(row.original)}
               disabled={
                 deletingId === row.original.id || deleteDepartment.isPending
-              }
-            >
+              }>
               <Button size="icon" variant="ghost" className="text-[#D64575]">
                 <Trash2 className="size-4" />
               </Button>
@@ -264,8 +219,7 @@ export function DepartmentsTable({ className }: { className?: string }) {
             "opacity-75 pointer-events-none":
               isFetching && debouncedSearchQuery,
           }
-        )}
-      >
+        )}>
         <CardTableToolbar
           title="Departments"
           searchValue={searchQuery}
