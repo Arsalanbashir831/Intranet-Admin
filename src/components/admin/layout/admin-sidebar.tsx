@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import { AdminFooterMenu } from "./admin-footer-menu";
 import { ROUTES } from "@/constants/routes";
-import { cn } from "@/lib/utils";
+import { cn, getIconStyle } from "@/lib/utils";
 import { useAdmin } from "@/hooks/use-admin";
 import { useMemo } from "react";
 import { NAV_ITEMS } from "@/constants/nav-items";
@@ -99,16 +99,7 @@ export function AdminSidebar() {
                         <div className="flex items-center gap-3">
                           <span
                             className="size-5 inline-block bg-current shrink-0"
-                            style={{
-                              WebkitMaskImage: `url(${item.iconSrc})`,
-                              maskImage: `url(${item.iconSrc})`,
-                              WebkitMaskRepeat: "no-repeat",
-                              maskRepeat: "no-repeat",
-                              WebkitMaskPosition: "center",
-                              maskPosition: "center",
-                              WebkitMaskSize: "contain",
-                              maskSize: "contain",
-                            }}
+                            style={getIconStyle(item.iconSrc)}
                             aria-hidden
                           />
                           <span className="text-base group-data-[collapsible=icon]:hidden">

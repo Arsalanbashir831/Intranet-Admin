@@ -14,16 +14,13 @@ import { useAuth } from "@/contexts/auth-context";
 import { useLogout } from "@/hooks/queries/use-auth";
 import Link from "next/link";
 import { ROUTES } from "@/constants/routes";
-
-type ProfileDropdownProps = {
-  name?: string;
-  avatarSrc?: string;
-};
+import { getInitials } from "@/lib/utils";
+import { ProfileDropdownProps } from "@/types/admin";
 
 export function ProfileDropdown({ name, avatarSrc }: ProfileDropdownProps) {
   const { user } = useAuth();
   const logoutMutation = useLogout();
-  
+
   const displayName = name || user?.name || "User";
   const displayAvatar = avatarSrc || user?.avatar;
 
@@ -36,10 +33,16 @@ export function ProfileDropdown({ name, avatarSrc }: ProfileDropdownProps) {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2 rounded-full focus:outline-none">
           <Avatar className="size-8">
-            {displayAvatar ? <AvatarImage src={displayAvatar} alt={displayName} /> : null}
-            <AvatarFallback className="text-sm">{displayName.split(" ").map((n: string) => n[0]).join("")}</AvatarFallback>
+            {displayAvatar ? (
+              <AvatarImage src={displayAvatar} alt={displayName} />
+            ) : null}
+            <AvatarFallback className="text-sm">
+              {getInitials(displayName)}
+            </AvatarFallback>
           </Avatar>
-          <span className="hidden sm:inline text-sm font-medium text-foreground">{displayName}</span>
+          <span className="hidden sm:inline text-sm font-medium text-foreground">
+            {displayName}
+          </span>
           <ChevronDown className="size-4 text-muted-foreground" />
         </button>
       </DropdownMenuTrigger>
@@ -47,16 +50,15 @@ export function ProfileDropdown({ name, avatarSrc }: ProfileDropdownProps) {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <Link href={ROUTES.ADMIN.PROFILE}>
-        <DropdownMenuItem>
-          <User className="mr-2 size-4" />
-          Profile
-        </DropdownMenuItem>
+          <DropdownMenuItem>
+            <User className="mr-2 size-4" />
+            Profile
+          </DropdownMenuItem>
         </Link>
-        <DropdownMenuItem 
+        <DropdownMenuItem
           className="text-red-600 focus:text-red-600"
           onClick={handleLogout}
-          disabled={logoutMutation.isPending}
-        >
+          disabled={logoutMutation.isPending}>
           <LogOut className="mr-2 size-4 text-destructive" />
           {logoutMutation.isPending ? "Signing out..." : "Sign out"}
         </DropdownMenuItem>
@@ -64,5 +66,3 @@ export function ProfileDropdown({ name, avatarSrc }: ProfileDropdownProps) {
     </DropdownMenu>
   );
 }
-
-

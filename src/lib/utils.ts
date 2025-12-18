@@ -13,3 +13,26 @@ export const getBaseUrl = () => {
 	}
 	return "http://localhost:8000"; // fallback
 };
+
+export const getIconStyle = (iconSrc: string) => {
+	return {
+		WebkitMaskImage: `url(${iconSrc})`,
+		maskImage: `url(${iconSrc})`,
+		WebkitMaskRepeat: "no-repeat",
+		maskRepeat: "no-repeat",
+		WebkitMaskPosition: "center",
+		maskPosition: "center",
+		WebkitMaskSize: "contain",
+		maskSize: "contain",
+	};
+};
+
+export const getInitials = (name?: string) => {
+	if (!name) return "U";
+	return name
+		.split(" ")
+		.map((n) => n[0])
+		.join("")
+		.toUpperCase()
+		.slice(0, 2);
+};
