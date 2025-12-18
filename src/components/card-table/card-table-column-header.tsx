@@ -1,10 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
-import { Column } from "@tanstack/react-table";
-
 import { CardTableColumnHeaderProps } from "@/types/card-table";
 
 export function CardTableColumnHeader<TData>({

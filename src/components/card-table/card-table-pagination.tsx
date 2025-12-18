@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Table } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,7 +9,6 @@ import {
   generatePageNumbers,
   pageIndexToPageNumber,
   pageNumberToPageIndex,
-  PaginationInfo,
 } from "@/lib/pagination-utils";
 
 import { CardTablePaginationProps } from "@/types/card-table";
@@ -20,7 +18,6 @@ export function CardTablePagination<TData>({
   paginationInfo,
   onPageChange,
 }: CardTablePaginationProps<TData>) {
-  // Use server-side pagination if paginationInfo is provided
   const isServerSide = !!paginationInfo;
 
   const pageCount = isServerSide

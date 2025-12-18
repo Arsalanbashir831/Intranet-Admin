@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
@@ -14,7 +13,6 @@ import {
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useSidebar } from "../ui/sidebar";
-
 import { CardTableProps } from "@/types/card-table";
 
 export function CardTable<TData, TValue>({

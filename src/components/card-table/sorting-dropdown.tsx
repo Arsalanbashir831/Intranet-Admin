@@ -7,7 +7,6 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
-
 import { SortingDropdownProps } from "@/types/card-table";
 
 export function SortingDropdown({

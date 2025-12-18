@@ -1,12 +1,10 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TableSearch } from "./table-search";
 import { SortingDropdown } from "./sorting-dropdown";
-
 import { CardTableToolbarProps } from "@/types/card-table";
 
 export function CardTableToolbar({
