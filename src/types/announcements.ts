@@ -165,3 +165,12 @@ export type AnnouncementRateResponse = {
   start_date: string;
   end_date: string;
 };
+
+export type AnnouncementRow = {
+  id: string;
+  title: string;
+  access: string;
+  date: string;
+  type: string;
+  status: "Published" | "Draft";
+};

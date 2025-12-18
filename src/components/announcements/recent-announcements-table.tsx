@@ -12,30 +12,29 @@ import { CardTableToolbar } from "@/components/card-table/card-table-toolbar";
 import { CardTablePagination } from "@/components/card-table/card-table-pagination";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { useAnnouncements, useDeleteAnnouncement } from "@/hooks/queries/use-announcements";
+import {
+  useAnnouncements,
+  useDeleteAnnouncement,
+} from "@/hooks/queries/use-announcements";
+import { AnnouncementRow } from "@/types/announcements";
 import { useManagerScope } from "@/contexts/manager-scope-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmPopover } from "@/components/common/confirm-popover";
 import { FilterDrawer } from "@/components/card-table/filter-drawer";
 import { format } from "date-fns";
-import { DepartmentFilter, BranchFilter } from "@/components/card-table/filter-components";
+import {
+  DepartmentFilter,
+  BranchFilter,
+} from "@/components/card-table/filter-components";
 import { SelectFilter } from "../common/select-filter";
-
-export type AnnouncementRow = {
-  id: string;
-  title: string;
-  access: string;
-  date: string;
-  type: string;
-  status: "Published" | "Draft";
-};
 
 export function RecentAnnouncementsTable() {
   const { isManager } = useManagerScope();
   const [sortedBy, setSortedBy] = React.useState<string>("title");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] =
+    React.useState<string>("");
   const [isFilterOpen, setIsFilterOpen] = React.useState(false);
   const [filters, setFilters] = React.useState<Record<string, unknown>>({});
 
@@ -57,7 +56,10 @@ export function RecentAnnouncementsTable() {
     }
 
     // Add include_inactive filter
-    if (filters.includeInactive !== undefined && filters.includeInactive !== "__all__") {
+    if (
+      filters.includeInactive !== undefined &&
+      filters.includeInactive !== "__all__"
+    ) {
       params.include_inactive = filters.includeInactive === "true";
     } else {
       // Default to true to include drafts
@@ -99,44 +101,61 @@ export function RecentAnnouncementsTable() {
     if (!apiData) return [];
 
     // Handle AnnouncementListResponse structure: { announcements: { results: Announcement[] } }
-    const list = (apiData.announcements && Array.isArray(apiData.announcements.results))
-      ? apiData.announcements.results
-      : (Array.isArray(apiData) ? apiData : []);
+    const list =
+      apiData.announcements && Array.isArray(apiData.announcements.results)
+        ? apiData.announcements.results
+        : Array.isArray(apiData)
+        ? apiData
+        : [];
 
-    return (list as Array<{
-      id: number;
-      title: string;
-      permitted_employees?: number[];
-      permitted_branches?: number[];
-      permitted_departments?: number[];
-      permitted_branch_departments?: number[];
-      permitted_branch_departments_details?: Array<{
+    return (
+      list as Array<{
         id: number;
-        branch: {
+        title: string;
+        permitted_employees?: number[];
+        permitted_branches?: number[];
+        permitted_departments?: number[];
+        permitted_branch_departments?: number[];
+        permitted_branch_departments_details?: Array<{
           id: number;
-          branch_name: string;
-          location: string;
-        };
-        department: {
-          id: number;
-          dept_name: string;
-        };
-      }>;
-      created_at: string;
-      type: string;
-      is_active: boolean;
-    }>).map((announcement) => {
+          branch: {
+            id: number;
+            branch_name: string;
+            location: string;
+          };
+          department: {
+            id: number;
+            dept_name: string;
+          };
+        }>;
+        created_at: string;
+        type: string;
+        is_active: boolean;
+      }>
+    ).map((announcement) => {
       // Determine access level based on permissions
       let accessText = "All Employees";
 
-      if (announcement.permitted_branch_departments && announcement.permitted_branch_departments.length > 0) {
+      if (
+        announcement.permitted_branch_departments &&
+        announcement.permitted_branch_departments.length > 0
+      ) {
         // Show generic text for branch departments
         accessText = "Specific Branch Dept";
-      } else if (announcement.permitted_branches && announcement.permitted_branches.length > 0) {
+      } else if (
+        announcement.permitted_branches &&
+        announcement.permitted_branches.length > 0
+      ) {
         accessText = `${announcement.permitted_branches.length} Branch(es)`;
-      } else if (announcement.permitted_departments && announcement.permitted_departments.length > 0) {
+      } else if (
+        announcement.permitted_departments &&
+        announcement.permitted_departments.length > 0
+      ) {
         accessText = `${announcement.permitted_departments.length} Department(s)`;
-      } else if (announcement.permitted_employees && announcement.permitted_employees.length > 0) {
+      } else if (
+        announcement.permitted_employees &&
+        announcement.permitted_employees.length > 0
+      ) {
         accessText = `${announcement.permitted_employees.length} Employee(s)`;
       }
 
@@ -175,40 +194,72 @@ export function RecentAnnouncementsTable() {
   const columns: ColumnDef<AnnouncementRow>[] = [
     {
       accessorKey: "title",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Title" />,
-      cell: ({ row }) => <span className="text-sm font-medium text-[#1D1F2C]">{row.original.title}</span>,
+      header: ({ column }) => (
+        <CardTableColumnHeader column={column} title="Title" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-sm font-medium text-[#1D1F2C]">
+          {row.original.title}
+        </span>
+      ),
     },
     {
       accessorKey: "access",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Access Level" />,
+      header: ({ column }) => (
+        <CardTableColumnHeader column={column} title="Access Level" />
+      ),
       cell: ({ row }) => (
-        <Badge variant="secondary" className={row.original.access === "All Employees" ? "bg-pink-50 text-pink-700 border-0" : "bg-blue-50 text-blue-700 border-0"}>
+        <Badge
+          variant="secondary"
+          className={
+            row.original.access === "All Employees"
+              ? "bg-pink-50 text-pink-700 border-0"
+              : "bg-blue-50 text-blue-700 border-0"
+          }>
           {row.original.access}
         </Badge>
       ),
     },
     {
       accessorKey: "date",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Date Posted" />,
-      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span>
+      header: ({ column }) => (
+        <CardTableColumnHeader column={column} title="Date Posted" />
+      ),
+      cell: ({ getValue }) => (
+        <span className="text-sm text-[#667085]">{String(getValue())}</span>
+      ),
     },
     {
       accessorKey: "type",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Type" />,
-      cell: ({ getValue }) => <span className="text-sm text-[#667085]">{String(getValue())}</span>
+      header: ({ column }) => (
+        <CardTableColumnHeader column={column} title="Type" />
+      ),
+      cell: ({ getValue }) => (
+        <span className="text-sm text-[#667085]">{String(getValue())}</span>
+      ),
     },
     {
       accessorKey: "status",
-      header: ({ column }) => <CardTableColumnHeader column={column} title="Status" />,
+      header: ({ column }) => (
+        <CardTableColumnHeader column={column} title="Status" />
+      ),
       cell: ({ row }) => (
-        <Badge variant="secondary" className={row.original.status === "Published" ? "bg-emerald-50 text-emerald-700 border-0" : "bg-orange-50 text-orange-700 border-0"}>
+        <Badge
+          variant="secondary"
+          className={
+            row.original.status === "Published"
+              ? "bg-emerald-50 text-emerald-700 border-0"
+              : "bg-orange-50 text-orange-700 border-0"
+          }>
           {row.original.status}
         </Badge>
       ),
     },
     {
       id: "actions",
-      header: () => <span className="text-sm font-medium text-[#727272]">Action</span>,
+      header: () => (
+        <span className="text-sm font-medium text-[#727272]">Action</span>
+      ),
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <span onClick={(e) => e.stopPropagation()}>
@@ -229,8 +280,9 @@ export function RecentAnnouncementsTable() {
                   setDeletingId(null);
                 }
               }}
-              disabled={deletingId === row.original.id || deleteAnnouncement.isPending}
-            >
+              disabled={
+                deletingId === row.original.id || deleteAnnouncement.isPending
+              }>
               <Button size="icon" variant="ghost" className="text-[#D64575]">
                 <Trash2 className="size-4" />
               </Button>
@@ -263,7 +315,9 @@ export function RecentAnnouncementsTable() {
         columns={columns}
         data={data}
         headerClassName="grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr]"
-        rowClassName={() => "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr] cursor-pointer"}
+        rowClassName={() =>
+          "hover:bg-[#FAFAFB] grid-cols-[1.2fr_1fr_1.1fr_0.9fr_0.9fr_0.8fr] cursor-pointer"
+        }
         onRowClick={(row) => handleRowClick(row.original)}
         footer={(table) => <CardTablePagination table={table} />}
       />
@@ -274,36 +328,43 @@ export function RecentAnnouncementsTable() {
         onReset={handleResetFilters}
         showFilterButton={false}
         title="Filter Announcements"
-        description="Filter announcements by various criteria"
-      >
+        description="Filter announcements by various criteria">
         <div className="space-y-6 py-4">
           <SelectFilter
             label="Status"
             value={(filters.includeInactive as string) || "__all__"}
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, includeInactive: value }))}
+            onValueChange={(value: string) =>
+              setFilters((prev) => ({ ...prev, includeInactive: value }))
+            }
             options={[
               { value: "__all__", label: "All Statuses" },
               { value: "true", label: "Include Drafts" },
-              { value: "false", label: "Published Only" }
+              { value: "false", label: "Published Only" },
             ]}
           />
           <SelectFilter
             label="Type"
             value={(filters.type as string) || "__all__"}
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, type: value }))}
+            onValueChange={(value: string) =>
+              setFilters((prev) => ({ ...prev, type: value }))
+            }
             options={[
               { value: "__all__", label: "All Types" },
               { value: "announcement", label: "Announcement" },
-              { value: "policy", label: "Policy" }
+              { value: "policy", label: "Policy" },
             ]}
           />
           <BranchFilter
             value={(filters.branch as string) || "__all__"}
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, branch: value }))}
+            onValueChange={(value: string) =>
+              setFilters((prev) => ({ ...prev, branch: value }))
+            }
           />
           <DepartmentFilter
             value={(filters.department as string) || "__all__"}
-            onValueChange={(value: string) => setFilters(prev => ({ ...prev, department: value }))}
+            onValueChange={(value: string) =>
+              setFilters((prev) => ({ ...prev, department: value }))
+            }
           />
         </div>
       </FilterDrawer>
