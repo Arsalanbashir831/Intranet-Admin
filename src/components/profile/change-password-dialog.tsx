@@ -14,7 +14,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { useChangePassword } from "@/hooks/queries/use-auth";
 import { toast } from "sonner";
 
-type Values = { current: string; next: string; confirm: string };
+import { ChangePasswordValues } from "@/types/profile";
+import { validatePasswordChange } from "@/handlers/profile-handlers";
 
 // Move Field component outside to prevent re-creation on each render
 const Field = React.memo(
@@ -30,11 +31,11 @@ const Field = React.memo(
   }: {
     id: string;
     label: string;
-    valueKey: keyof Values;
-    values: Values;
-    setValues: React.Dispatch<React.SetStateAction<Values>>;
+    valueKey: keyof ChangePasswordValues;
+    values: ChangePasswordValues;
+    setValues: React.Dispatch<React.SetStateAction<ChangePasswordValues>>;
     show: { [k: string]: boolean };
-    toggle: (k: keyof Values) => void;
+    toggle: (k: keyof ChangePasswordValues) => void;
     loading: boolean;
   }) => (
     <div className="space-y-2">
@@ -58,8 +59,7 @@ const Field = React.memo(
           onClick={() => toggle(valueKey)}
           className="absolute right-3 top-1/2 -translate-y-1/2"
           aria-label="Toggle password visibility"
-          disabled={loading}
-        >
+          disabled={loading}>
           {show[valueKey] ? (
             <EyeOff className="h-4 w-4" />
           ) : (
@@ -81,7 +81,7 @@ export function ChangePasswordDialog({
   onOpenChange: (v: boolean) => void;
 }) {
   const [show, setShow] = React.useState<{ [k: string]: boolean }>({});
-  const [values, setValues] = React.useState<Values>({
+  const [values, setValues] = React.useState<ChangePasswordValues>({
     current: "",
     next: "",
     confirm: "",
@@ -89,17 +89,20 @@ export function ChangePasswordDialog({
   const [error, setError] = React.useState<string>("");
   const { mutate: changePassword, isPending: loading } = useChangePassword();
 
-  const toggle = (k: keyof Values) => setShow((s) => ({ ...s, [k]: !s[k] }));
+  const toggle = (k: keyof ChangePasswordValues) =>
+    setShow((s) => ({ ...s, [k]: !s[k] }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!values.current || !values.next || !values.confirm) {
-      setError("All fields are required.");
-      return;
-    }
-    if (values.next !== values.confirm) {
-      setError("New password and confirm password do not match.");
+
+    const validationError = validatePasswordChange(
+      values.current,
+      values.next,
+      values.confirm
+    );
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -189,8 +192,7 @@ export function ChangePasswordDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+              disabled={loading}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>

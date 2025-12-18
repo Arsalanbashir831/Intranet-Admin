@@ -7,33 +7,12 @@ import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import { useMe } from "@/hooks/queries/use-auth";
 import type { EmployeeWithScope } from "@/types/manager-scope";
-
-interface Employee {
-  id: string;
-  name: string;
-  role: string;
-  email: string;
-  phone: string;
-  joinDate: string;
-  department: string;
-  reportingTo: string;
-  branch: string;
-  status: string;
-  bio: string;
-  profileImage: string;
-}
-
-interface EmployeeProfileCardProps {
-  employee?: Employee;
-}
-
-
-type ExtendedEmployee = EmployeeWithScope & {
-  email?: string;
-  phone?: string | null;
-  hire_date?: string;
-  bio?: string | null;
-};
+import {
+  EmployeeProfileCardProps,
+  ExtendedEmployee,
+  ProfileEmployee,
+} from "@/types/profile";
+import { resolveProfileEmployee } from "@/handlers/profile-handlers";
 
 export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
   const { data, isLoading, isError } = useMe();
@@ -43,27 +22,10 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
   const isAdminWithoutEmployee = isAdmin && !data?.employee;
 
   const apiEmployee = data?.employee as ExtendedEmployee | undefined;
-  const resolvedEmployee: Employee | undefined = apiEmployee
-    ? {
-        id: apiEmployee.id.toString(),
-        name: apiEmployee.emp_name,
-        role: apiEmployee.role || "",
-        email: apiEmployee.email || "",
-        phone: apiEmployee.phone || "",
-        joinDate: apiEmployee.hire_date
-          ? new Date(apiEmployee.hire_date).toLocaleDateString()
-          : "",
-        department:
-          apiEmployee.branch_departments?.[0]?.department?.dept_name || "",
-        reportingTo: apiEmployee.branch_departments?.[0]?.manager
-          ? apiEmployee.branch_departments[0].manager.employee?.emp_name || "--"
-          : "--",
-        branch: apiEmployee.branch_departments?.[0]?.branch?.branch_name || "",
-        status: "Active Employee",
-        bio: apiEmployee.bio || "",
-        profileImage: apiEmployee.profile_picture || "",
-      }
-    : employee;
+  const resolvedEmployee: ProfileEmployee | undefined = resolveProfileEmployee(
+    apiEmployee,
+    employee
+  );
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -102,8 +64,7 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
             mx-auto w-full max-w-full
             rounded-2xl border-0 bg-white
             px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-7
-          "
-        >
+          ">
           <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4 sm:gap-6">
             <div className="flex items-start gap-4 sm:gap-5">
               <div className="relative">
@@ -139,8 +100,7 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
             className="
               grid gap-x-6 gap-y-6
               grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
-            "
-          >
+            ">
             {[
               {
                 icon: "/icons/id-badge.svg",
@@ -182,8 +142,7 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
           mx-auto w-full max-w-full
           rounded-2xl border-0 bg-white
           px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-7
-        "
-      >
+        ">
         <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4 sm:gap-6">
           <div className="flex items-start gap-4 sm:gap-5">
             <div className="relative">
@@ -244,8 +203,7 @@ export function EmployeeProfileCard({ employee }: EmployeeProfileCardProps) {
           className="
             grid gap-x-6 gap-y-6
             grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
-          "
-        >
+          ">
           {[
             {
               icon: "/icons/id-badge.svg",
