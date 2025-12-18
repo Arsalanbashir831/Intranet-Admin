@@ -14,8 +14,11 @@ import { toast } from "sonner";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -93,7 +96,7 @@ export function LoginForm() {
     try {
       await mfaVerifyMutation.mutateAsync({
         challenge_token: challengeToken,
-        code: mfaCode
+        code: mfaCode,
       });
       toast.success("Login successful!");
       router.push(ROUTES.ADMIN.DASHBOARD);
@@ -111,29 +114,40 @@ export function LoginForm() {
           {/* Icon */}
           <div className="h-20 w-20 bg-[#E5004E] rounded-full flex items-center justify-center mb-2">
             <div className="h-10 w-10 text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-full h-full">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-full h-full">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+                />
               </svg>
             </div>
           </div>
 
           {/* Header */}
           <div className="text-center space-y-3">
-            <h1 className="text-4xl font-bold text-[#111827] tracking-tight">OTP Verification</h1>
+            <h1 className="text-4xl font-bold text-[#111827] tracking-tight">
+              OTP Verification
+            </h1>
             <div className="text-lg text-gray-500">
               Enter the 6-digit code from your <br /> authenticator app
             </div>
             <div className="flex items-center justify-center gap-1 text-base text-gray-500 mt-2">
               <span>Not your account?</span>
               <Button
-                variant='link'
+                variant="link"
                 onClick={() => {
                   setIsMfaRequired(false);
                   setMfaCode("");
                   setChallengeToken("");
                 }}
-                className="text-[#2563EB] hover:underline font-medium px-0"
-              >
+                className="text-[#2563EB] hover:underline font-medium px-0">
                 Change it
               </Button>
             </div>
@@ -149,8 +163,7 @@ export function LoginForm() {
               <InputOTP
                 maxLength={6}
                 value={mfaCode}
-                onChange={(val) => setMfaCode(val)}
-              >
+                onChange={(val) => setMfaCode(val)}>
                 <InputOTPGroup className="gap-3 sm:gap-4 flex w-full justify-center">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <InputOTPSlot
@@ -165,10 +178,13 @@ export function LoginForm() {
 
             <Button
               type="submit"
-              disabled={isLoading || mfaVerifyMutation.isPending || mfaCode.length !== 6}
-              className="w-full h-14 bg-[#F4729F] hover:bg-[#E5004E] text-white rounded-full font-semibold text-lg transition-colors shadow-sm"
-            >
-              {isLoading || mfaVerifyMutation.isPending ? "Verifying..." : "Submit"}
+              disabled={
+                isLoading || mfaVerifyMutation.isPending || mfaCode.length !== 6
+              }
+              className="w-full h-14 bg-[#F4729F] hover:bg-[#E5004E] text-white rounded-full font-semibold text-lg transition-colors shadow-sm">
+              {isLoading || mfaVerifyMutation.isPending
+                ? "Verifying..."
+                : "Submit"}
             </Button>
           </form>
         </div>
@@ -186,8 +202,7 @@ export function LoginForm() {
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="flex w-full max-w-md flex-col items-stretch space-y-6 text-center"
-          >
+            className="flex w-full max-w-md flex-col items-stretch space-y-6 text-center">
             {apiError && (
               <div className="rounded-md bg-red-50 p-4 text-sm text-red-800">
                 {apiError}
@@ -210,7 +225,9 @@ export function LoginForm() {
                 ].join(" ")}
               />
               {errors.username && (
-                <p className="text-sm text-red-500">{errors.username.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.username.message}
+                </p>
               )}
             </div>
 
@@ -230,7 +247,9 @@ export function LoginForm() {
                 ].join(" ")}
               />
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -239,8 +258,7 @@ export function LoginForm() {
                 <Button
                   variant="link"
                   className="text-sm text-teal-500 hover:underline"
-                  type="button"
-                >
+                  type="button">
                   Forgot password ?
                 </Button>
               </Link>
@@ -249,8 +267,7 @@ export function LoginForm() {
             <Button
               type="submit"
               disabled={isLoading || loginMutation.isPending}
-              className="h-11 w-full rounded-full bg-secondary text-white disabled:opacity-70"
-            >
+              className="h-11 w-full rounded-full bg-secondary text-white disabled:opacity-70">
               {isLoading || loginMutation.isPending ? (
                 <div className="flex items-center justify-center">
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>

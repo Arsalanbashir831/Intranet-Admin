@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { ROUTES } from "@/constants/routes";
-
 import { AuthGuardProps } from "@/types/auth";
 
 export function AuthGuard({

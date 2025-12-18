@@ -8,7 +8,6 @@ import {
   getPaginationRowModel,
   SortingState,
   useReactTable,
-  Row,
 } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
