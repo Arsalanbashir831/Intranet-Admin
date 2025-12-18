@@ -1,18 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
-type ConfirmPopoverProps = {
-  children: React.ReactNode; // trigger
-  title?: string;
-  description?: string;
-  confirmText?: string;
-  cancelText?: string;
-  onConfirm: () => Promise<void> | void;
-  disabled?: boolean;
-};
+import { ConfirmPopoverProps } from "@/types/common";
 
 export function ConfirmPopover({
   children,
@@ -46,10 +42,18 @@ export function ConfirmPopover({
           <div className="text-sm font-medium text-foreground">{title}</div>
           <div className="text-sm text-muted-foreground">{description}</div>
           <div className="flex justify-end gap-2 pt-1">
-            <Button variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={pending}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOpen(false)}
+              disabled={pending}>
               {cancelText}
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleConfirm} disabled={pending}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleConfirm}
+              disabled={pending}>
               {pending ? "Working..." : confirmText}
             </Button>
           </div>
@@ -58,5 +62,3 @@ export function ConfirmPopover({
     </Popover>
   );
 }
-
-

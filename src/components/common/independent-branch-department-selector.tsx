@@ -11,20 +11,11 @@ import {
 import { useDepartments } from "@/hooks/queries/use-departments";
 import { createCustomSelectableItems } from "@/components/ui/selectable-tags";
 
-export type IndependentBranchDepartmentSelectorProps = {
-  selectedBranches: string[];
-  selectedDepartments: string[];
-  onBranchesChange: (branchIds: string[]) => void;
-  onDepartmentsChange: (departmentIds: string[]) => void;
-  allowMultiple?: boolean;
-  disabled?: boolean;
-  branchLabel?: string;
-  departmentLabel?: string;
-  branchPlaceholder?: string;
-  departmentPlaceholder?: string;
-  className?: string;
-  managedDepartments?: number[];
-};
+import {
+  getFilteredBranches,
+  getFilteredDepartments,
+} from "@/handlers/common-handlers";
+import { IndependentBranchDepartmentSelectorProps } from "@/types/common";
 
 /**
  * Component for independent branch and department selection.
@@ -47,39 +38,25 @@ export function IndependentBranchDepartmentSelector({
   managedDepartments,
 }: IndependentBranchDepartmentSelectorProps) {
   // Fetch all branch departments data for filtering
-  const { data: branchDepartmentsData } = useBranchDepartments(undefined, { pageSize: 1000 });
+  const { data: branchDepartmentsData } = useBranchDepartments(undefined, {
+    pageSize: 1000,
+  });
 
   // Get branches data
   const { data: availableBranches } = useBranchesForSelector();
 
   // Filter branches based on manager scope
   const filteredBranches = React.useMemo(() => {
-    if (!availableBranches || availableBranches.length === 0) {
-      return [];
-    }
-
-    if (!managedDepartments || managedDepartments.length === 0) {
-      return availableBranches;
-    }
-
-    // Get unique branch IDs from managed departments
-    const allowedBranchIds = new Set<number>();
-    if (branchDepartmentsData?.branch_departments?.results) {
-      for (const bd of branchDepartmentsData.branch_departments.results) {
-        if (managedDepartments.includes(bd.id) && bd.branch?.id) {
-          allowedBranchIds.add(bd.branch.id);
-        }
-      }
-    }
-
-    return availableBranches.filter((branch) =>
-      allowedBranchIds.has(Number(branch.id))
+    return getFilteredBranches(
+      availableBranches,
+      managedDepartments,
+      branchDepartmentsData
     );
   }, [availableBranches, managedDepartments, branchDepartmentsData]);
 
   // Get departments - filtered by selected branches if branches are selected, otherwise all departments
   const shouldFilterByBranches = selectedBranches.length > 0;
-  
+
   // When branches are selected, use branch departments to filter
   const { data: filteredDepartments } = useDepartmentsForSelector(
     shouldFilterByBranches ? selectedBranches : [],
@@ -92,33 +69,31 @@ export function IndependentBranchDepartmentSelector({
     if (!allDepartmentsData) return [];
     const list = Array.isArray(allDepartmentsData)
       ? allDepartmentsData
-      : (allDepartmentsData as { departments?: { results?: unknown[] } } | undefined)?.departments?.results || [];
-    return createCustomSelectableItems(list as Array<{ id: unknown; dept_name: unknown }>, "id", "dept_name");
+      : (
+          allDepartmentsData as
+            | { departments?: { results?: unknown[] } }
+            | undefined
+        )?.departments?.results || [];
+    return createCustomSelectableItems(
+      list as Array<{ id: unknown; dept_name: unknown }>,
+      "id",
+      "dept_name"
+    );
   }, [allDepartmentsData]);
 
   // Apply manager scope filtering to all departments
   const filteredAllDepartments = React.useMemo(() => {
-    if (!managedDepartments || managedDepartments.length === 0) {
-      return allDepartments;
-    }
-
-    // Get unique department IDs from managed departments
-    const allowedDeptIds = new Set<number>();
-    if (branchDepartmentsData?.branch_departments?.results) {
-      for (const bd of branchDepartmentsData.branch_departments.results) {
-        if (managedDepartments.includes(bd.id) && bd.department?.id) {
-          allowedDeptIds.add(bd.department.id);
-        }
-      }
-    }
-
-    return allDepartments.filter((dept) =>
-      allowedDeptIds.has(Number(dept.id))
+    return getFilteredDepartments(
+      allDepartments,
+      managedDepartments,
+      branchDepartmentsData
     );
   }, [allDepartments, managedDepartments, branchDepartmentsData]);
 
   // Determine which departments to show
-  const availableDepartments = shouldFilterByBranches ? filteredDepartments : filteredAllDepartments;
+  const availableDepartments = shouldFilterByBranches
+    ? filteredDepartments
+    : filteredAllDepartments;
 
   // Create adapter functions for branches
   const useAllBranchesAdapter = React.useCallback(() => {
@@ -235,4 +210,3 @@ export function IndependentBranchDepartmentSelector({
     </div>
   );
 }
-

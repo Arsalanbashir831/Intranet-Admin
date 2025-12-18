@@ -14,24 +14,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Separator } from "../ui/separator";
 
-export type AppModalProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: React.ReactNode;
-  description?: React.ReactNode;
-  // Accept either a React node (e.g., Lucide icon) or a string path to a public icon
-  icon?: React.ReactNode | string;
-  children?: React.ReactNode;
-  className?: string;
-  showFooter?: boolean;
-  cancelText?: string;
-  confirmText?: string;
-  confirmVariant?: React.ComponentProps<typeof Button>["variant"];
-  confirmDisabled?: boolean;
-  onConfirm?: () => void | Promise<void>;
-  onCancel?: () => void;
-  footerSlot?: React.ReactNode; // fully custom footer overrides default
-};
+import { AppModalProps } from "@/types/common";
 
 export function AppModal({
   open,
@@ -99,7 +82,10 @@ export function AppModal({
         ) : showFooter ? (
           <DialogFooter className="gap-2 sm:justify-between p-6 pt-0">
             <DialogClose asChild>
-              <Button variant="outline" onClick={onCancel} className="basis-1/2">
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                className="basis-1/2">
                 {cancelText}
               </Button>
             </DialogClose>
@@ -107,8 +93,7 @@ export function AppModal({
               onClick={onConfirm}
               disabled={confirmDisabled}
               variant={confirmVariant}
-              className="basis-1/2"
-            >
+              className="basis-1/2">
               {confirmText}
             </Button>
           </DialogFooter>
@@ -125,5 +110,3 @@ export function useAppModalControls(initial = false) {
   const closeModal = React.useCallback(() => setOpen(false), []);
   return { open, setOpen, openModal, closeModal } as const;
 }
-
-

@@ -9,19 +9,12 @@ import {
   useDepartmentsForSelector,
 } from "@/hooks/use-branch-department-selector";
 
-export type BranchDepartmentSelectorProps = {
-  value?: string[];
-  onChange: (branchDepartmentIds: string[]) => void;
-  allowMultiple?: boolean;
-  disabled?: boolean;
-  branchLabel?: string;
-  departmentLabel?: string;
-  branchPlaceholder?: string;
-  departmentPlaceholder?: string;
-  className?: string;
-  managedDepartments?: number[];
-  initialBranchDepartmentIds?: string[];
-};
+import {
+  areArraysEqual,
+  getFilteredBranches,
+  mapBranchDepartmentIds,
+} from "@/handlers/common-handlers";
+import { BranchDepartmentSelectorProps } from "@/types/common";
 
 /**
  * Reusable component for selecting branch departments through a two-step process:
@@ -42,105 +35,67 @@ export function BranchDepartmentSelector({
   initialBranchDepartmentIds,
 }: BranchDepartmentSelectorProps) {
   // Fetch all branch departments data
-  const { data: branchDepartmentsData } = useBranchDepartments(
-    undefined,
-    { pageSize: 1000 }
-  );
+  const { data: branchDepartmentsData } = useBranchDepartments(undefined, {
+    pageSize: 1000,
+  });
 
   // Get branches data using custom hook
   const branchesResult = useBranchesForSelector();
   const availableBranches = branchesResult.data || [];
 
-  // Create mapping from branch_department_id to {branchId, departmentId}
-  const branchDepartmentIdToCombination = React.useMemo(() => {
-    const map = new Map<string, { branchId: number; departmentId: number }>();
-    if (!branchDepartmentsData?.branch_departments?.results) return map;
-
-    for (const bd of branchDepartmentsData.branch_departments.results) {
-      // Apply manager scope filtering if provided
-      if (managedDepartments && !managedDepartments.includes(bd.id)) {
-        continue;
-      }
-
-      if (bd.branch?.id && bd.department?.id) {
-        map.set(String(bd.id), {
-          branchId: bd.branch.id,
-          departmentId: bd.department.id,
-        });
-      }
-    }
-    return map;
-  }, [branchDepartmentsData, managedDepartments]);
-
-  // Create reverse mapping from {branchId, departmentId} to branch_department_id
-  const combinationToBranchDepartmentId = React.useMemo(() => {
-    const map = new Map<string, string>();
-    if (!branchDepartmentsData?.branch_departments?.results) return map;
-
-    for (const bd of branchDepartmentsData.branch_departments.results) {
-      // Apply manager scope filtering if provided
-      if (managedDepartments && !managedDepartments.includes(bd.id)) {
-        continue;
-      }
-
-      if (bd.branch?.id && bd.department?.id) {
-        const key = `${bd.branch.id}-${bd.department.id}`;
-        map.set(key, String(bd.id));
-      }
-    }
-    return map;
-  }, [branchDepartmentsData, managedDepartments]);
+  // Create mappings
+  const {
+    idToCombo: branchDepartmentIdToCombination,
+    comboToId: combinationToBranchDepartmentId,
+  } = React.useMemo(
+    () => mapBranchDepartmentIds(branchDepartmentsData, managedDepartments),
+    [branchDepartmentsData, managedDepartments]
+  );
 
   // Initialize selected branches and departments from value (branch_department_ids)
-  const [selectedBranchIds, setSelectedBranchIds] = React.useState<string[]>(() => {
-    if (!value.length && !initialBranchDepartmentIds?.length) return [];
-    
-    const idsToUse = value.length ? value : initialBranchDepartmentIds || [];
-    const branchIds = new Set<string>();
-    
-    for (const bdId of idsToUse) {
-      const combo = branchDepartmentIdToCombination.get(bdId);
-      if (combo) {
-        branchIds.add(String(combo.branchId));
-      }
-    }
-    
-    return Array.from(branchIds);
-  });
+  const [selectedBranchIds, setSelectedBranchIds] = React.useState<string[]>(
+    () => {
+      if (!value.length && !initialBranchDepartmentIds?.length) return [];
 
-  const [selectedDepartmentIds, setSelectedDepartmentIds] = React.useState<string[]>(() => {
+      const idsToUse = value.length ? value : initialBranchDepartmentIds || [];
+      const branchIds = new Set<string>();
+
+      for (const bdId of idsToUse) {
+        const combo = branchDepartmentIdToCombination.get(bdId);
+        if (combo) {
+          branchIds.add(String(combo.branchId));
+        }
+      }
+
+      return Array.from(branchIds);
+    }
+  );
+
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = React.useState<
+    string[]
+  >(() => {
     if (!value.length && !initialBranchDepartmentIds?.length) return [];
-    
+
     const idsToUse = value.length ? value : initialBranchDepartmentIds || [];
     const deptIds = new Set<string>();
-    
+
     for (const bdId of idsToUse) {
       const combo = branchDepartmentIdToCombination.get(bdId);
       if (combo) {
         deptIds.add(String(combo.departmentId));
       }
     }
-    
+
     return Array.from(deptIds);
   });
 
   // Update state when value prop changes (for controlled component)
   // This should only run when value/initialBranchDepartmentIds change from outside, not when internal state changes
-  // Track the last value we emitted to avoid resetting state when the parent 
+  // Track the last value we emitted to avoid resetting state when the parent
   // passes back the exact same value we just calculated (which might be lossy/partial)
   const lastEmittedValueRef = React.useRef<string[]>(
     value.length ? value : initialBranchDepartmentIds || []
   );
-
-  // Helper to compare arrays as sets
-  const areArraysEqual = (a: string[], b: string[]) => {
-    if (a.length !== b.length) return false;
-    const setA = new Set(a);
-    for (const item of b) {
-      if (!setA.has(item)) return false;
-    }
-    return true;
-  };
 
   // Update state when value prop changes (for controlled component)
   // This should only run when value/initialBranchDepartmentIds change from outside, not when internal state changes
@@ -160,9 +115,9 @@ export function BranchDepartmentSelector({
     }
 
     const idsToUse = value.length ? value : initialBranchDepartmentIds || [];
-    
-    // critical fix: If the incoming value matches what we just emitted, 
-    // do NOT overwrite internal state. The computed value (idsToUse) 
+
+    // critical fix: If the incoming value matches what we just emitted,
+    // do NOT overwrite internal state. The computed value (idsToUse)
     // might be a subset of implied state (e.g. selected branches with no valid departments yet)
     // and overwriting would confuse the user by deselecting independent selections.
     if (areArraysEqual(idsToUse, lastEmittedValueRef.current)) {
@@ -189,35 +144,17 @@ export function BranchDepartmentSelector({
 
   // Filter branches based on manager scope
   const filteredBranches = React.useMemo(() => {
-    if (!availableBranches || availableBranches.length === 0) {
-      return [];
-    }
-
-    if (!managedDepartments || managedDepartments.length === 0) {
-      return availableBranches;
-    }
-
-    // Get unique branch IDs from managed departments
-    const allowedBranchIds = new Set<number>();
-    if (branchDepartmentsData?.branch_departments?.results) {
-      for (const bd of branchDepartmentsData.branch_departments.results) {
-        if (managedDepartments.includes(bd.id) && bd.branch?.id) {
-          allowedBranchIds.add(bd.branch.id);
-        }
-      }
-    }
-
-    return availableBranches.filter((branch) =>
-      allowedBranchIds.has(Number(branch.id))
+    return getFilteredBranches(
+      availableBranches,
+      managedDepartments,
+      branchDepartmentsData
     );
   }, [availableBranches, managedDepartments, branchDepartmentsData]);
 
   // Get available departments filtered by selected branches using custom hook
   // Note: This hook is called unconditionally at the top level
-  const { data: availableDepartments, isLoading: isLoadingDepartments } = useDepartmentsForSelector(
-    selectedBranchIds,
-    managedDepartments
-  );
+  const { data: availableDepartments, isLoading: isLoadingDepartments } =
+    useDepartmentsForSelector(selectedBranchIds, managedDepartments);
 
   // Handle branch selection change
   const handleBranchChange = React.useCallback(
@@ -327,7 +264,12 @@ export function BranchDepartmentSelector({
       lastEmittedValueRef.current = branchDeptIds;
       onChange(branchDeptIds);
     },
-    [allowMultiple, selectedBranchIds, combinationToBranchDepartmentId, onChange]
+    [
+      allowMultiple,
+      selectedBranchIds,
+      combinationToBranchDepartmentId,
+      onChange,
+    ]
   );
 
   // Create adapter functions for SelectableTags
@@ -459,4 +401,3 @@ export function BranchDepartmentSelector({
     </div>
   );
 }
-

@@ -15,37 +15,7 @@ import {
 import { ChevronDown } from "lucide-react";
 import { useDebounce } from "../../hooks/use-debounce";
 
-export type Employee = {
-  id: number | string;
-  emp_name?: string;
-  email?: string | null;
-  profile_picture?: string | null;
-};
-
-export type EmployeeSelectorProps = {
-  /** Currently selected employee ID */
-  value?: string;
-  /** Callback when employee selection changes */
-  onValueChange: (employeeId: string) => void;
-  /** Placeholder text for the selector */
-  placeholder?: string;
-  /** Search placeholder text */
-  searchPlaceholder?: string;
-  /** Custom hook for fetching all employees */
-  useAllEmployees: () => {
-    data?: { results: Employee[] };
-    isLoading: boolean;
-  };
-  /** Custom hook for searching employees */
-  useSearchEmployees: (query: string) => {
-    data?: { results: Employee[] };
-    isLoading: boolean;
-  };
-  /** Optional className for styling */
-  className?: string;
-  /** Whether the selector is disabled */
-  disabled?: boolean;
-};
+import { Employee, EmployeeSelectorProps } from "@/types/common";
 
 export function EmployeeSelector({
   value,
@@ -76,17 +46,21 @@ export function EmployeeSelector({
   }, [localSearchQuery]);
 
   // Fetch data using provided hooks
-  const { data: allEmployeesData, isLoading: allEmployeesLoading } = useAllEmployees();
-  const { data: searchResults, isLoading: searchLoading } = useSearchEmployees(debouncedSearchQuery);
+  const { data: allEmployeesData, isLoading: allEmployeesLoading } =
+    useAllEmployees();
+  const { data: searchResults, isLoading: searchLoading } =
+    useSearchEmployees(debouncedSearchQuery);
 
   // Transform employees data
   const availableEmployees = useMemo(() => {
-    const list = debouncedSearchQuery ? (searchResults?.results ?? []) : (allEmployeesData?.results ?? []);
-    
+    const list = debouncedSearchQuery
+      ? searchResults?.results ?? []
+      : allEmployeesData?.results ?? [];
+
     return list.map((emp: Employee) => ({
       value: String(emp.id),
       label: emp.emp_name || "",
-      username: emp.email ? emp.email.split('@')[0] : "user",
+      username: emp.email ? emp.email.split("@")[0] : "user",
       avatar: emp.profile_picture,
     }));
   }, [debouncedSearchQuery, searchResults, allEmployeesData]);
@@ -98,7 +72,9 @@ export function EmployeeSelector({
     }
   }, [availableEmployees, localSearchQuery]);
 
-  const isLoadingEmployees = debouncedSearchQuery ? searchLoading : allEmployeesLoading;
+  const isLoadingEmployees = debouncedSearchQuery
+    ? searchLoading
+    : allEmployeesLoading;
 
   const handleValueChange = (selectedValue: string) => {
     onValueChange(selectedValue);
@@ -108,7 +84,14 @@ export function EmployeeSelector({
 
   return (
     <Combobox
-      data={availableEmployees as unknown as { value: string; label: string; username: string; avatar: string }[]}
+      data={
+        availableEmployees as unknown as {
+          value: string;
+          label: string;
+          username: string;
+          avatar: string;
+        }[]
+      }
       type="Employee"
       value={value ?? ""}
       open={isOpen}
@@ -119,12 +102,8 @@ export function EmployeeSelector({
         }
         setIsOpen(open);
       }}
-      onValueChange={handleValueChange}
-    >
-      <ComboboxTrigger 
-        className={className}
-        disabled={disabled}
-      >
+      onValueChange={handleValueChange}>
+      <ComboboxTrigger className={className} disabled={disabled}>
         <span className="flex w-full items-center justify-between gap-2">
           {value ? (
             <span className="flex items-center gap-2 truncate">
@@ -140,7 +119,10 @@ export function EmployeeSelector({
                 return (
                   <>
                     <Avatar className="size-8">
-                      <AvatarImage src={selectedEmployee.avatar || undefined} alt={selectedEmployee.label} />
+                      <AvatarImage
+                        src={selectedEmployee.avatar || undefined}
+                        alt={selectedEmployee.label}
+                      />
                       <AvatarFallback className="text-[10px]">
                         {initials}
                       </AvatarFallback>
@@ -164,7 +146,7 @@ export function EmployeeSelector({
         </span>
       </ComboboxTrigger>
       <ComboboxContent shouldFilter={false}>
-        <ComboboxInput 
+        <ComboboxInput
           placeholder={searchPlaceholder}
           value={localSearchQuery}
           onValueChange={(searchValue: string) => {
@@ -174,7 +156,7 @@ export function EmployeeSelector({
           onFocus={() => setIsOpen(true)} // Open when focused
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             // Prevent closing on any key press
-            if (e.key !== 'Escape') {
+            if (e.key !== "Escape") {
               setIsOpen(true);
             }
           }}
@@ -188,7 +170,10 @@ export function EmployeeSelector({
               <ComboboxItem key={emp.value} value={emp.value}>
                 <div className="flex items-center gap-2">
                   <Avatar className="size-8">
-                    <AvatarImage src={emp.avatar || undefined} alt={emp.label} />
+                    <AvatarImage
+                      src={emp.avatar || undefined}
+                      alt={emp.label}
+                    />
                     <AvatarFallback className="text-[10px]">
                       {emp.label
                         .split(" ")
@@ -198,7 +183,9 @@ export function EmployeeSelector({
                   </Avatar>
                   <div className="leading-tight">
                     <div className="text-sm">{emp.label}</div>
-                    <div className="text-xs text-muted-foreground">@{emp.username}</div>
+                    <div className="text-xs text-muted-foreground">
+                      @{emp.username}
+                    </div>
                   </div>
                 </div>
               </ComboboxItem>
